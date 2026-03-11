@@ -14,7 +14,7 @@ public class InventoryContainer : MonoBehaviour
     private ContainerView hotbarView;
     private int slotCount;
 
-    [Header("Placement")]
+    [Header("PlacementFeature")]
 
     private Vector3 _mousePos;
     private Vector3 MousePos
@@ -27,13 +27,21 @@ public class InventoryContainer : MonoBehaviour
             holdInteractContext.MousePos = value;
         }
     }
+    public ItemStack CurrentStack => backpackContainer.Items[currentSlot];
+    public ItemBase_SO CurrentItem
+    {
+        get
+        {
+            var stack = CurrentStack;
+            return ItemRegistry.Get(stack.itemId);
+        }
+    }
 
     private HoldTickContext holdTickContext;
     [SerializeField] private Material PhantomMat_G;
     [SerializeField] private Material PhantomMat_R;
     private GameObject PlacementInstance;
     private List<GameObject> CellInstance;
-
 
     private HoldInteractContext holdInteractContext;
     private int placementItemID;
@@ -43,16 +51,9 @@ public class InventoryContainer : MonoBehaviour
 
     private EnterSelectContext enterSelectContext;
     [SerializeField] private GameObject cellPrefab;
-    public ItemStack CurrentStack => backpackContainer.Items[currentSlot];
 
-    public ItemBase_SO CurrentItem
-    {
-        get
-        {
-            var stack = CurrentStack;
-            return ItemRegistry.Get(stack.itemId);
-        }
-    }
+
+
     private void Update()
     {
         //TODO:鼠标位置后续一定通过InputManger储存，并从中调用，严谨私自获取输入信息
@@ -72,22 +73,32 @@ public class InventoryContainer : MonoBehaviour
                         holdInteractContext.ItemID = CurrentStack.itemId;
                         holdInteractContext.containerIndex = currentSlot;
                         i.OnHoldInteract(holdInteractContext);
+
+                        if(CurrentStack.count <= 0)
+                        {
+                            if (feature is IExitSelect j)
+                            {
+                                j.ExitSelect(exitSelectContext, ref PlacementInstance, ref CellInstance);
+                            }
+                        }
                     }
                 }
             }
         }
 
+        //调用帧更新接口
         if(CurrentItem != null)
         {
             foreach (var feature in CurrentItem.Features)
             {
                 if(feature is IHoldTick i)
                 {
+                    holdTickContext.PlacementInstance = PlacementInstance;
+                    holdTickContext.CellInstance = CellInstance;
                     i.OnHoldTick(holdTickContext, out isValid);
                 }
             }
         }
-        //调用帧更新接口
     }
     public void Init(ItemContainer backpackContainer)
     {
@@ -101,8 +112,7 @@ public class InventoryContainer : MonoBehaviour
         holdTickContext = new HoldTickContext();
         holdTickContext.PhantomMat_G = PhantomMat_G;
         holdTickContext.PhantomMat_R = PhantomMat_R;
-        holdTickContext.PlacementInstance = PlacementInstance;
-        holdTickContext.CellInstance = CellInstance;
+
 
         holdInteractContext = new HoldInteractContext();
         holdInteractContext.backpackContainer = backpackContainer;
@@ -147,7 +157,7 @@ public class InventoryContainer : MonoBehaviour
                 {
                     enterSelectContext.placementPrefab = placementFeature.prefabObj;
                 }
-                i.EnterSelect(enterSelectContext, out holdTickContext.PlacementInstance, out holdTickContext.CellInstance);
+                i.EnterSelect(enterSelectContext, out PlacementInstance, out CellInstance);
             }
         }
 

@@ -14,10 +14,9 @@ public class ItemSlotUI : MonoBehaviour, IPointerClickHandler
     public Sprite NullImage;
     private ItemContainer container;
     private ContainerView view;
-    private BackpackContainer controller;
+    private ItemContainer_Base controller;
     private int slotId;
-
-    public void Bind(ItemContainer c, ContainerView v, int id, BackpackContainer ctrl)
+    public void Bind(ItemContainer c, ContainerView v, int id, ItemContainer_Base ctrl)
     {
         container = c;
         view = v;

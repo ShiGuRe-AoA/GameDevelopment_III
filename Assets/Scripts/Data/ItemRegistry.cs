@@ -13,4 +13,5 @@ public class ItemRegistry : MonoBehaviour
     }
 
     public static ItemBase_SO Get(int id) => DB.Get(id);
+    public static ItemBase_SO Get(string id) => DB.Get(id);
 }

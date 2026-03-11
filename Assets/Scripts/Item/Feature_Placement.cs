@@ -37,12 +37,13 @@ public class Feature_Placement : ItemFeature, IHoldTick,IHoldInteract,IEnterSele
     {
         //销毁预制体和范围指示物
         if (prefabInstance != null) { Destroy(prefabInstance); }
-        foreach (var cell in cellInstance)
+        if (cellInstance != null)
+            foreach (var cell in cellInstance)
         {
             if (cell != null) { Destroy(cell); }
         }
          prefabInstance = null;
-         cellInstance.Clear();
+         if(cellInstance != null) cellInstance.Clear();
     }
     public void OnHoldTick(HoldTickContext context, out bool isValid)
     {

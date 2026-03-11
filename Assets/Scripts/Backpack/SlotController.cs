@@ -125,6 +125,8 @@ public class SlotController : MonoBehaviour
         }
         return slots;
     }
+
+    //尝试添加物品
     public bool TryAddItem(int newItemID, int count, ItemContainer container)
     {
         if (count <= 0) return true;
@@ -155,7 +157,7 @@ public class SlotController : MonoBehaviour
             if (count <= 0) return true;
         }
 
-        // 再找空格（这里仍然是“最小版本”：一次塞进一个空格，若你要支持 count 超过一格上限，可再 while 分多格塞）
+        // 再找空格
         for (int i = 0; i < container.SlotCount; i++)
         {
             if (!container.Items[i].IsEmpty) continue;
@@ -172,6 +174,102 @@ public class SlotController : MonoBehaviour
 
         return false;
     }
+    public bool TryAddItem(string newItemID, int count, ItemContainer container)
+    {
+        if (count <= 0) return true;
+
+        ItemBase_SO def = ItemRegistry.Get(newItemID);
+        if (def == null)
+        {
+            Debug.LogError($"ItemRegistry.Get({newItemID}) 返回 null");
+            return false;
+        }
+
+        // 先尝试堆叠
+        for (int i = 0; i < container.SlotCount; i++)
+        {
+            if (container.Items[i].IsEmpty) continue;
+            if (ItemRegistry.Get(container.Items[i].itemId).ID_str != newItemID) continue;
+
+            int max = def.StackAmount;
+            int canAdd = max - container.Items[i].count;
+            if (canAdd <= 0) continue;
+
+            int add = Mathf.Min(canAdd, count);
+            container.Items[i].count += add;
+            count -= add;
+
+            RefreshSlot(container, i);
+
+            if (count <= 0) return true;
+        }
+
+        // 再找空格
+        for (int i = 0; i < container.SlotCount; i++)
+        {
+            if (!container.Items[i].IsEmpty) continue;
+
+            int put = Mathf.Min(def.StackAmount, count);
+            container.Items[i].itemId = ItemRegistry.Get(newItemID).ID_num;
+            container.Items[i].count = put;
+            count -= put;
+
+            RefreshSlot(container, i);
+
+            if (count <= 0) return true;
+        }
+
+        return false;
+    }
+    public bool TryAddItem(ItemStack newStack, ItemContainer container)
+    {
+        if (newStack.count <= 0) return true;
+
+        ItemBase_SO def = ItemRegistry.Get(newStack.itemId);
+        if (def == null)
+        {
+            Debug.LogError($"ItemRegistry.Get({newStack.itemId}) 返回 null");
+            return false;
+        }
+
+        // 先尝试堆叠
+        for (int i = 0; i < container.SlotCount; i++)
+        {
+            if (container.Items[i].IsEmpty) continue;
+            if (container.Items[i].itemId != newStack.itemId) continue;
+
+            int max = def.StackAmount;
+            int canAdd = max - container.Items[i].count;
+            if (canAdd <= 0) continue;
+
+            int add = Mathf.Min(canAdd, newStack.count);
+            container.Items[i].count += add;
+            newStack.count -= add;
+
+            RefreshSlot(container, i);
+
+            if (newStack.count <= 0) return true;
+        }
+
+        // 再找空格
+        for (int i = 0; i < container.SlotCount; i++)
+        {
+            if (!container.Items[i].IsEmpty) continue;
+
+            int put = Mathf.Min(def.StackAmount, newStack.count);
+            container.Items[i].itemId = newStack.itemId;
+            container.Items[i].count = put;
+            newStack.count -= put;
+
+            RefreshSlot(container, i);
+
+            if (newStack.count <= 0) return true;
+        }
+
+        return false;
+    }
+
+    //设置某单元格物品数量（慎用）
     public void SetItemCount(ItemContainer container, int containerIndex, int count)
     {
         if (container == null)
@@ -240,6 +338,8 @@ public class SlotController : MonoBehaviour
 
         return true;
     }
+
+    //同步指定单元格UI
     public void RefreshSlot(ItemContainer container, int containerIndex)
     {
         int temp = 0;
@@ -270,18 +370,23 @@ public class SlotController : MonoBehaviour
 
     }
 
+    //全部单元格UI强制同步一遍
     public void RefreshAll(ItemContainer container) 
     {
         Debug.Log("2333" + container.SlotCount);
         for (int i = 0; i < container.SlotCount; i++)
             RefreshSlot(container, i);
     }
+
+    //清空手持物
     public void ClearHoldingItem()
     {
         holdingContainer.Items[0].Clear();
         holdingItem = false;
         RefreshSlot(holdingContainer, 0);
     }
+
+    //拿起全部（玩家操作，禁止除玩家输入控制器ItemSlotUI以外直接调用,懒得写friend类了，切记，切记！！！）
     public void PickUpAll(ItemContainer container, int containerIndex)
     {
         if (container.Items[containerIndex].IsEmpty) return;
@@ -296,6 +401,7 @@ public class SlotController : MonoBehaviour
         //ShowPhantom();
     }
 
+    //放下所有或交换物体，取决指定格是否为空（玩家操作，禁止除玩家输入控制器ItemSlotUI以外直接调用,懒得写friend类了，切记，切记！！！）
     public void PlaceAllOrSwap(ItemContainer container, int containerIndex)
     {
         //int idx = view.GetContainerIndex(uiSlotIndex);
@@ -340,6 +446,7 @@ public class SlotController : MonoBehaviour
         RefreshSlot(holdingContainer, 0);
     }
 
+    //拿一半（玩家操作，禁止除玩家输入控制器ItemSlotUI以外直接调用,懒得写friend类了，切记，切记！！！）
     public void PickUpHalf(ItemContainer container, int containerIndex)
     {
         
@@ -356,6 +463,8 @@ public class SlotController : MonoBehaviour
             RefreshSlot(holdingContainer, 0);
         }
     }
+
+    //放一个（玩家操作，禁止除玩家输入控制器ItemSlotUI以外直接调用,懒得写friend类了，切记，切记！！！）
     public void PlaceOne(ItemContainer container, int containerIndex)
     {
         if (!holdingItem || holdingContainer.Items[0].count <= 0)
@@ -399,6 +508,7 @@ public class SlotController : MonoBehaviour
         RefreshSlot(holdingContainer, 0);
     }
 
+    //收集全部同类（玩家操作，禁止除玩家输入控制器ItemSlotUI以外直接调用,懒得写friend类了，切记，切记！！！）
     public void CollectAll(ItemContainer container)
     {
         if (!holdingItem) return;
@@ -437,6 +547,7 @@ public class SlotController : MonoBehaviour
         if (held.count <= 0) ClearHoldingItem(); // 理论上不会发生，但防御一下
     }
 
+    //好像没用到但不敢删
     private void ShowPhantom() => HoldingSlot_obj.SetActive(true);
     private void HidePhantom() => HoldingSlot_obj.SetActive(false);
 }
