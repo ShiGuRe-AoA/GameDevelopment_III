@@ -13,6 +13,8 @@ public class InputManager : MonoBehaviour
 
     public Vector2 playerMoveInput;
 
+    public bool CompositeOperation;
+
     private void Awake()
     {
         if(inputActions == null)
@@ -26,6 +28,9 @@ public class InputManager : MonoBehaviour
             inputActions.Main.Interact.performed += Interact_performed;
 
             inputActions.Main.Pause.performed += Pause_performed;
+
+            inputActions.Main.CompositeOperation.started += CompositeOperation_started;
+            inputActions.Main.CompositeOperation.canceled += CompositeOperation_canceled;
         }
     }
 
@@ -33,6 +38,7 @@ public class InputManager : MonoBehaviour
     public void Init()
     {
         playerMoveInput = Vector2.zero;
+        CompositeOperation = false;
     }
 
 
@@ -72,6 +78,20 @@ public class InputManager : MonoBehaviour
     {
         Debug.Log("ÓÎÏ·ÔÝÍ£");
     }
+
+    //============================================================================================
+    //¸´ºÏ²Ù×÷
+    //============================================================================================
+    private void CompositeOperation_started(UnityEngine.InputSystem.InputAction.CallbackContext obj)
+    {
+        CompositeOperation = true ;
+    }
+    private void CompositeOperation_canceled(UnityEngine.InputSystem.InputAction.CallbackContext obj)
+    {
+        CompositeOperation = false ;
+    }
+
+    
 
     void Update()
     {
