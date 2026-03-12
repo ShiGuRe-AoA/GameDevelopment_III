@@ -17,23 +17,31 @@ public struct ComplexTime
     public int Hour;
     public int Minute;
 }
+
 public enum Season
 {
-    Spring, Summer, Autumn, Winter
+    Spring,
+    Summer,
+    Autumn,
+    Winter
 }
+
 public class TimeManager : MonoBehaviour
 {
+    public static TimeManager Instance { get; private set; }
+
     [Header("初始设置，后续从SO表读入")]
     [SerializeField] private int DateOfSeason = 28;
     [SerializeField] private int dayBeginHour;
     [SerializeField] private int dayEndHour;
-    [SerializeField] private float minuteTransferRate;
+    [SerializeField] private float minuteTransferRate = 1f;
 
     private int dayCount;
     private int minuteCount;
     private float realTimeCount;
 
     public bool IsPause { get; private set; }
+
     private float nextMintuteTick => (minuteCount + 1) * minuteTransferRate;
 
     private Season season;
@@ -41,28 +49,28 @@ public class TimeManager : MonoBehaviour
     private int _date;
     private int date
     {
-        get {  return _date; }
+        get { return _date; }
         set
         {
-            if(value > DateOfSeason)
+            if (value > DateOfSeason)
             {
                 _date = 1;
-                season++;
+                NextSeason();
             }
             else
             {
                 _date = value;
             }
         }
-            
     }
+
     private int _hour;
     private int hour
     {
         get { return _hour; }
         set
         {
-            if(value >= dayEndHour)
+            if (value >= dayEndHour)
             {
                 NextDay();
             }
@@ -72,78 +80,119 @@ public class TimeManager : MonoBehaviour
             }
         }
     }
+
     private int _minute;
     private int minute
     {
         get { return _minute; }
         set
         {
-            if(minute >= 60)
+            if (value >= 60)
             {
+                _minute = 0;
                 hour++;
             }
             else
             {
-                minute = value;
+                _minute = value;
             }
         }
     }
 
-
     private void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+        // 如果你希望切场景后也保留，再打开这一行
+        // DontDestroyOnLoad(gameObject);
+
         Init();
     }
+
     private void Update()
     {
+        if (IsPause) return;
+
         realTimeCount += Time.deltaTime;
-        if(realTimeCount >= nextMintuteTick)
+
+        if (realTimeCount >= nextMintuteTick)
         {
             minuteCount++;
             minute++;
         }
     }
 
-
     public void Init()
     {
         dayCount = 0;
+        minuteCount = 0;
+        realTimeCount = 0f;
+
+        season = Season.Spring;
+        date = 1;
+        hour = dayBeginHour;
+        minute = 0;
     }
+
     public void NextDay()
     {
         dayCount++;
-        hour = dayBeginHour;
-        minute = 0;
-        realTimeCount = 0;
-        //TODO: 存档
+        date++;
+        _hour = dayBeginHour;
+        _minute = 0;
+        realTimeCount = 0f;
+        // TODO: 存档
     }
+
+    private void NextSeason()
+    {
+        if (season == Season.Winter)
+        {
+            season = Season.Spring;
+        }
+        else
+        {
+            season = (Season)((int)season + 1);
+        }
+    }
+
     public int TransferTimeR2M(float realTime)
     {
         return (int)(realTime / minuteTransferRate);
     }
+
     public float TransferTimeM2R(int minute)
     {
         return minute * minuteTransferRate;
     }
+
     public ComplexTime GetComplexTime()
     {
-        ComplexTime output = new ComplexTime(season,date,hour,minute);
-        return output;
+        return new ComplexTime(season, date, hour, minute);
     }
+
     public float GetRealTime()
     {
         return realTimeCount;
     }
+
     public int GetMinuteCount()
     {
         return minuteCount;
     }
-    public void PauseTime()
+
+    public void PauseGame()
     {
         IsPause = true;
         Time.timeScale = 0f;
     }
-    public void StartTime()
+
+    public void StartGame()
     {
         IsPause = false;
         Time.timeScale = 1f;

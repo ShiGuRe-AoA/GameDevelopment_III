@@ -2,12 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "Game/Item/ItemBaseSO")]
 
 public abstract class ItemFeature : ScriptableObject
 {
     
 }
+[CreateAssetMenu(menuName = "Game/Item/ItemBaseSO")]
 public class ItemBase_SO : ScriptableObject
 {
     public int ID_num;  //机器阅读的数字ID用于哈希查找

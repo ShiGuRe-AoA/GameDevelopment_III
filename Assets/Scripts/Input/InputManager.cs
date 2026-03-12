@@ -4,67 +4,91 @@ using UnityEngine;
 
 public class InputManager : MonoBehaviour
 {
-    public InputActionMain inputActions;
+    public static InputManager Instance { get; private set; }
 
+    public InputActionMain inputActions;
+    public PlayerController playerController;
+    public BackpackContainer backpackContainer;
 
     public int hotbarSize = 10; // 1~0 = 10 格（0 通常映射第10格）
     public int selectedIndex = 0;
     public InventoryContainer inventoryContainer;
 
-    public Vector2 playerMoveInput;
-
     public bool CompositeOperation;
 
     private void Awake()
     {
-        if(inputActions == null)
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+        // 如果你希望切场景后也保留，再取消注释
+        // DontDestroyOnLoad(gameObject);
+
+        if (inputActions == null)
         {
             inputActions = new InputActionMain();
+
             inputActions.Main.PlayerMove.performed += PlayerMove_performed;
             inputActions.Main.PlayerMove.canceled += PlayerMove_canceled;
 
             inputActions.Main.OpenBackpack.performed += OpenBackpack_performed;
-
             inputActions.Main.Interact.performed += Interact_performed;
-
             inputActions.Main.Pause.performed += Pause_performed;
 
             inputActions.Main.CompositeOperation.started += CompositeOperation_started;
             inputActions.Main.CompositeOperation.canceled += CompositeOperation_canceled;
         }
+
+        inputActions.Enable();
     }
 
+    private void OnDisable()
+    {
+        if (inputActions != null)
+        {
+            inputActions.Disable();
+        }
+    }
 
     public void Init()
     {
-        playerMoveInput = Vector2.zero;
         CompositeOperation = false;
     }
 
-
     //============================================================================================
-    //玩家移动
+    // 玩家移动
     //============================================================================================
     private void PlayerMove_canceled(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
-        playerMoveInput = Vector2.zero;
+        if (playerController != null)
+            playerController.SetMoveInput(Vector2.zero);
     }
 
     private void PlayerMove_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
-        playerMoveInput = obj.ReadValue<Vector2>();
+        if (playerController != null)
+            playerController.SetMoveInput(obj.ReadValue<Vector2>());
     }
 
     //============================================================================================
-    //背包交互
+    // 背包交互
     //============================================================================================
     private void OpenBackpack_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
         Debug.Log("Opening Backpack");
+
+        if (backpackContainer == null) return;
+
+        if (backpackContainer.IsOpen) { backpackContainer.CloseBackpack(); }
+        else { backpackContainer.OpenBackpack(); }
     }
 
     //============================================================================================
-    //鼠标点击交互
+    // 鼠标点击交互
     //============================================================================================
     private void Interact_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
@@ -72,29 +96,35 @@ public class InputManager : MonoBehaviour
     }
 
     //============================================================================================
-    //暂停
+    // 暂停
     //============================================================================================
     private void Pause_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
         Debug.Log("游戏暂停");
+
+        if (TimeManager.Instance == null) return;
+
+        if (TimeManager.Instance.IsPause) { TimeManager.Instance.StartGame(); }
+        else { TimeManager.Instance.PauseGame(); }
     }
 
     //============================================================================================
-    //复合操作
+    // 复合操作
     //============================================================================================
     private void CompositeOperation_started(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
-        CompositeOperation = true ;
+        CompositeOperation = true;
     }
+
     private void CompositeOperation_canceled(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
-        CompositeOperation = false ;
+        CompositeOperation = false;
     }
 
-    
-
-    void Update()
+    private void Update()
     {
+        if (inventoryContainer == null) return;
+
         int idx = GetHotbarNumberKeyDown(hotbarSize);
         if (idx != -1)
         {
@@ -114,9 +144,8 @@ public class InputManager : MonoBehaviour
     }
 
     // 返回 0..hotbarSize-1；没按返回 -1
-    static int GetHotbarNumberKeyDown(int hotbarSize)
+    private static int GetHotbarNumberKeyDown(int hotbarSize)
     {
-        // 1..9 -> 0..8
         int max9 = Mathf.Min(9, hotbarSize);
         for (int n = 1; n <= max9; n++)
         {
@@ -124,7 +153,6 @@ public class InputManager : MonoBehaviour
                 return n - 1;
         }
 
-        // 0 -> 第10格（索引 9）
         if (hotbarSize >= 10 && Input.GetKeyDown(KeyCode.Alpha0))
             return 9;
 

@@ -13,6 +13,7 @@ public class BackpackContainer : ItemContainer_Base
     [Header("Inventory Slots")]
     public InventoryContainer inventoryContainer;
 
+    public bool IsOpen {  get; private set; }
 
     protected override void Awake()
     {
@@ -30,6 +31,14 @@ public class BackpackContainer : ItemContainer_Base
         SlotController.Instance.TryAddItem(10101, 36, container);
         SlotController.Instance.TryAddItem(10102, 5, container);
     }
-    public void OpenBackpackUI() => BackpackPanel.gameObject.SetActive(true);
-    public void CloseBackpackUI() => BackpackPanel.gameObject.SetActive(false);
+    public void OpenBackpack()
+    {
+        BackpackPanel.gameObject.SetActive(true);
+        IsOpen = true;
+    }  
+    public void CloseBackpack() 
+    {
+        BackpackPanel.gameObject.SetActive(false);
+        IsOpen = false;
+    }
 }
