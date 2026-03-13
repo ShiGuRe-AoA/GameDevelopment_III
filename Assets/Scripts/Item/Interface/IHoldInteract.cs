@@ -5,6 +5,7 @@ using UnityEngine;
 public struct HoldInteractContext
 {
     public Vector3 MousePos;
+    public Vector3Int InteractGrid;
     public bool isValid;
     public ItemContainer backpackContainer;
     public int ItemID;

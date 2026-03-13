@@ -4,13 +4,22 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
+public enum GridType
+{
+    Water,
+    Soil,
+    Farmland,
+    Grass
+}
 public struct CellData  //需要通过单元格检索的全部信息
 {
     public int EntityID;
+    public GridType Type;
     public bool Empty;
     public CellData(int value)
     {
         EntityID = value;
+        Type = GridType.Soil;
         Empty = true;
     }
 
@@ -20,6 +29,7 @@ public class WorldState : MonoBehaviour
 {
     public Vector2Int MapSize;
     public Tilemap MainTile;
+    public Tilemap OverlapTile;
     public Vector3 cellSize;
     
     public CellData[] MapData;  //全部地图信息，存建筑用ID
@@ -91,9 +101,14 @@ public class WorldState : MonoBehaviour
     {
         return MainTile.GetCellCenterWorld(cellPos);
     }
+    private int Index(int x,int y)
+    {
+        int index = y * MapSize.x + x;
+        return index;
+    }
     public bool CheckEmpty(Vector3Int cellPos)
     {
-        int index = cellPos.y * MapSize.x + cellPos.x;
+        int index = Index(cellPos.x, cellPos.y);
         if (index < 0 || index >= MapData.Length)
         {
             //Debug.LogError($"Cell position out of bounds: {cellPos}");
@@ -133,5 +148,27 @@ public class WorldState : MonoBehaviour
             }
         }
         RegisterEntity(nextEntityId, rt);
+    }
+    public void PlaceTile(Vector3Int cellPos)
+    {
+
+    }
+    public CellData GetCell(Vector3Int target)
+    {
+        int index = Index(target.x, target.y);
+        return MapData[index];
+    }
+    public void ItemInteract(List<ToolType> toolTypes, Vector3Int targetGridPos)
+    {
+        CellData cell = GetCell(targetGridPos);
+        if (toolTypes.Contains(ToolType.Hoe))
+        {
+            if(cell.Type == GridType.Soil && CheckEmpty(targetGridPos))
+            {
+                cell.Type = GridType.Farmland;
+
+
+            }
+        }
     }
 }
