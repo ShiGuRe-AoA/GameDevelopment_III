@@ -11,19 +11,36 @@ public enum GridType
     Farmland,
     Grass
 }
-public struct CellData  //需要通过单元格检索的全部信息
+public struct BasicCellData  //需要通过单元格检索的全部信息
 {
-    public int EntityID;
     public GridType Type;
     public bool Empty;
-    public CellData(int value)
+    public static BasicCellData Create(GridType type = GridType.Soil)
     {
-        EntityID = value;
-        Type = GridType.Soil;
-        Empty = true;
+        bool empty;
+        if(type == GridType.Water)
+        {
+            empty = false;
+        }
+        else
+        {
+            empty = true;
+        }
+        return new BasicCellData { Type = type, Empty = empty };
     }
-
 }
+public struct DetailedCellData
+{
+    public int EntityID;
+    public float WaterTimeLast;   //含水时间（倒计时,单位，游戏分钟）
+    public float FertTimeLast;  //肥料剩余时间（倒计时，单位，游戏分钟）
+    public float FertRank;      //肥料等级
+    public static DetailedCellData Create(int entityID = -1, float waterTime = 0, float fertTime = 0, float fertRank = 0)
+    {
+        return new DetailedCellData { EntityID = entityID, WaterTimeLast = waterTime, FertTimeLast = fertTime, FertRank = fertRank };
+    }
+}
+
 
 public class WorldState : MonoBehaviour
 {
@@ -32,7 +49,7 @@ public class WorldState : MonoBehaviour
     public Tilemap OverlapTile;
     public Vector3 cellSize;
     
-    public CellData[] MapData;  //全部地图信息，存建筑用ID
+    public BasicCellData[] MapData;  //全部地图信息，存建筑用ID
     private Dictionary<int, EntityRuntime> Entitys;  //当前正在运行的设备实例，只存有运行数据的
 
     private Dictionary<string, TileBase> TileDict;
@@ -42,6 +59,7 @@ public class WorldState : MonoBehaviour
     private static WorldState _instance;
     public static WorldState Instance 
     {
+        
         get 
         { 
             if (_instance == null)
@@ -69,10 +87,10 @@ public class WorldState : MonoBehaviour
     }
     public void InitMap(int lenth, int height)
     {
-        MapData = new CellData[lenth * height];
+        MapData = new BasicCellData[lenth * height];
         for (int i = 0; i < MapData.Length; i++)
         {
-            MapData[i] = new CellData(-1);
+            MapData[i] = BasicCellData.Create();
         }
         cellSize = MainTile.cellSize;
     }
@@ -146,7 +164,13 @@ public class WorldState : MonoBehaviour
                     Debug.LogError($"Cell position out of bounds: {pos}");
                     continue;
                 }
-                MapData[index].EntityID = nextEntityId;
+
+
+                Debug.LogError($"你这家伙，忘了写这块的TODO了！");
+                //TODO：EntityID已列入DetailedCellData，填写加入哈希字典的逻辑
+
+
+                //MapData[index].EntityID = nextEntityId;
                 MapData[index].Empty = false;
             }
         }
@@ -179,7 +203,7 @@ public class WorldState : MonoBehaviour
                     Debug.LogError($"Cell position out of bounds: {pos}");
                     continue;
                 }
-                MapData[index].EntityID = nextEntityId;
+                //MapData[index].EntityID = nextEntityId;
                 MapData[index].Empty = false;
             }
         }
@@ -191,14 +215,14 @@ public class WorldState : MonoBehaviour
         var thisTile = ItemRegistry.GetTile(tileID);
         OverlapTile.SetTile(cellPos, thisTile.Tile);
     }
-    public CellData GetCell(Vector3Int target)
+    public BasicCellData GetCell(Vector3Int target)
     {
         int index = Index(target.x, target.y);
         return MapData[index];
     }
     public void ItemInteract(Vector3Int targetGridPos, List<ToolType> toolTypes)
     {
-        CellData cell = GetCell(targetGridPos);
+        BasicCellData cell = GetCell(targetGridPos);
         if (toolTypes.Contains(ToolType.Hoe))   //具备锄头属性
         {
             if(cell.Type == GridType.Soil && CheckEmpty(targetGridPos)) //地块检测
