@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public class InventoryContainer : MonoBehaviour
 {
     private ItemContainer backpackContainer;
+    [SerializeField] PlayerController playerController;
 
     private int currentSlot;
     public List<ItemSlotUI> hotbarSlots = new();
@@ -72,6 +73,7 @@ public class InventoryContainer : MonoBehaviour
                     {
                         holdInteractContext.ItemID = CurrentStack.itemId;
                         holdInteractContext.containerIndex = currentSlot;
+                        holdInteractContext.InteractGrid = playerController.InteractTilePosition;
                         i.OnHoldInteract(holdInteractContext);
 
                         if(CurrentStack.count <= 0)
@@ -116,6 +118,7 @@ public class InventoryContainer : MonoBehaviour
 
         holdInteractContext = new HoldInteractContext();
         holdInteractContext.backpackContainer = backpackContainer;
+
 
         exitSelectContext = new ExitSelectContext();
 

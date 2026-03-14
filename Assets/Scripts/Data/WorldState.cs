@@ -35,7 +35,10 @@ public class WorldState : MonoBehaviour
     public CellData[] MapData;  //全部地图信息，存建筑用ID
     private Dictionary<int, EntityRuntime> Entitys;  //当前正在运行的设备实例，只存有运行数据的
 
+    private Dictionary<string, TileBase> TileDict;
+
     public ItemDatabaseSO ItemDatabase; //wup数据库
+    public TileDatabaseSO TileDatabase; //wup数据库
     private static WorldState _instance;
     public static WorldState Instance 
     {
@@ -62,7 +65,7 @@ public class WorldState : MonoBehaviour
             return;
         }
         InitMap(MapSize.x, MapSize.y);
-        ItemRegistry.Init(ItemDatabase);
+        ItemRegistry.Init(ItemDatabase, TileDatabase);
     }
     public void InitMap(int lenth, int height)
     {
@@ -101,7 +104,7 @@ public class WorldState : MonoBehaviour
     {
         return MainTile.GetCellCenterWorld(cellPos);
     }
-    private int Index(int x,int y)
+    private int Index(int x,int y)//二维坐标映射一维ID
     {
         int index = y * MapSize.x + x;
         return index;
@@ -116,7 +119,7 @@ public class WorldState : MonoBehaviour
         }
         return MapData[index].Empty;
     }
-    public void PlaceEntity(Vector3Int cellPos, int itemID)
+    public void PlaceEntity(Vector3Int cellPos, int itemID)//放置设施，包含实例注册
     {
         var def = ItemRegistry.Get(itemID);
         if (def == null)
@@ -149,25 +152,60 @@ public class WorldState : MonoBehaviour
         }
         RegisterEntity(nextEntityId, rt);
     }
-    public void PlaceTile(Vector3Int cellPos)
+    public void PlaceEntity(Vector3Int cellPos, string itemID)
     {
+        var def = ItemRegistry.Get(itemID);
+        if (def == null)
+        {
+            Debug.LogError($"Invalid item ID: {itemID}");
+            return;
+        }
+        Feature_Placement feature = def.GetFeature<Feature_Placement>();
+        if (feature == null)
+        {
+            return;
+        }
+        Vector3 worldPos = feature.GetCenterWorldFromPivot(cellPos);
+        GameObject obj = Instantiate(feature.prefabObj, worldPos, Quaternion.identity);
+        EntityRuntime rt = obj.GetComponent<EntityRuntime>();
+        for (int i = 0; i < feature.Length; i++)
+        {
+            for (int j = 0; j < feature.Height; j++)
+            {
+                Vector3Int pos = cellPos + new Vector3Int(i, j, 0);
+                int index = pos.y * MapSize.x + pos.x;
+                if (index < 0 || index >= MapData.Length)
+                {
+                    Debug.LogError($"Cell position out of bounds: {pos}");
+                    continue;
+                }
+                MapData[index].EntityID = nextEntityId;
+                MapData[index].Empty = false;
+            }
+        }
+        RegisterEntity(nextEntityId, rt);
+    }
 
+    public void PlaceTile(Vector3Int cellPos, string tileID)
+    {
+        var thisTile = ItemRegistry.GetTile(tileID);
+        OverlapTile.SetTile(cellPos, thisTile.Tile);
     }
     public CellData GetCell(Vector3Int target)
     {
         int index = Index(target.x, target.y);
         return MapData[index];
     }
-    public void ItemInteract(List<ToolType> toolTypes, Vector3Int targetGridPos)
+    public void ItemInteract(Vector3Int targetGridPos, List<ToolType> toolTypes)
     {
         CellData cell = GetCell(targetGridPos);
-        if (toolTypes.Contains(ToolType.Hoe))
+        if (toolTypes.Contains(ToolType.Hoe))   //具备锄头属性
         {
-            if(cell.Type == GridType.Soil && CheckEmpty(targetGridPos))
+            if(cell.Type == GridType.Soil && CheckEmpty(targetGridPos)) //地块检测
             {
                 cell.Type = GridType.Farmland;
 
-
+                PlaceTile(targetGridPos, "Farmland_Tile");//放置实体瓦片
             }
         }
     }

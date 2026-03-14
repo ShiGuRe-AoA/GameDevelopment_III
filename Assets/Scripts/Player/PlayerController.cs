@@ -22,7 +22,7 @@ public class PlayerController : MonoBehaviour
     private Vector3Int interactOffset = Vector3Int.up;
 
     private Vector3Int TilePosition => MainTile.WorldToCell(rb.position);
-    private Vector3Int InteractTilePosition => MainTile.WorldToCell(rb.position) + interactOffset;
+    public Vector3Int InteractTilePosition => MainTile.WorldToCell(rb.position) + interactOffset;
 
     public List<Sprite> FacingSprites = new List<Sprite>();
     public float MaxDirectionChange;

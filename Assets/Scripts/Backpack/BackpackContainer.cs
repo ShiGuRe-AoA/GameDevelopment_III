@@ -2,9 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-
-
-
 public class BackpackContainer : ItemContainer_Base
 {
     [Header("Backpack Panel")]
@@ -30,6 +27,8 @@ public class BackpackContainer : ItemContainer_Base
         SlotController.Instance.TryAddItem(10100, 4, container);
         SlotController.Instance.TryAddItem(10101, 36, container);
         SlotController.Instance.TryAddItem(10102, 5, container);
+
+        SlotController.Instance.TryAddItem("Hoe_1", 1, container);
     }
     public void OpenBackpack()
     {

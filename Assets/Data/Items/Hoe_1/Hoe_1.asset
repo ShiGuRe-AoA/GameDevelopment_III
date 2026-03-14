@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c26c87345fee584ea91ebe6c4d6eb11, type: 3}
+  m_Name: Hoe_1
+  m_EditorClassIdentifier: 
+  ID_num: 11001
+  ID_str: Hoe_1
+  Name: "\u9504\u5934"
+  StackAmount: 1
+  ItemSprite: {fileID: -2045447912, guid: 17e356c73d8b9e940b2d5b9569871af1, type: 3}
+  Features:
+  - {fileID: 11400000, guid: e6b2965cb9bc2c94b8155580b327ae74, type: 2}
