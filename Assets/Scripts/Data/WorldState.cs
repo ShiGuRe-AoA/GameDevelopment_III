@@ -49,7 +49,10 @@ public class WorldState : MonoBehaviour
     public Tilemap OverlapTile;
     public Vector3 cellSize;
     
-    public BasicCellData[] MapData;  //全部地图信息，存建筑用ID
+    public BasicCellData[] BasicMapData;  //全部地图信息，存建筑用ID
+    public Dictionary<Vector3Int, DetailedCellData> DetailedMapData = new();    //详细地块信息
+
+
     private Dictionary<int, EntityRuntime> Entitys;  //当前正在运行的设备实例，只存有运行数据的
 
     private Dictionary<string, TileBase> TileDict;
@@ -87,10 +90,10 @@ public class WorldState : MonoBehaviour
     }
     public void InitMap(int lenth, int height)
     {
-        MapData = new BasicCellData[lenth * height];
-        for (int i = 0; i < MapData.Length; i++)
+        BasicMapData = new BasicCellData[lenth * height];
+        for (int i = 0; i < BasicMapData.Length; i++)
         {
-            MapData[i] = BasicCellData.Create();
+            BasicMapData[i] = BasicCellData.Create();
         }
         cellSize = MainTile.cellSize;
     }
@@ -130,12 +133,12 @@ public class WorldState : MonoBehaviour
     public bool CheckEmpty(Vector3Int cellPos)
     {
         int index = Index(cellPos.x, cellPos.y);
-        if (index < 0 || index >= MapData.Length)
+        if (index < 0 || index >= BasicMapData.Length)
         {
             //Debug.LogError($"Cell position out of bounds: {cellPos}");
             return false;
         }
-        return MapData[index].Empty;
+        return BasicMapData[index].Empty;
     }
     public void PlaceEntity(Vector3Int cellPos, int itemID)//放置设施，包含实例注册
     {
@@ -159,7 +162,7 @@ public class WorldState : MonoBehaviour
             {
                 Vector3Int pos = cellPos + new Vector3Int(i, j, 0);
                 int index = pos.y * MapSize.x + pos.x;
-                if (index < 0 || index >= MapData.Length)
+                if (index < 0 || index >= BasicMapData.Length)
                 {
                     Debug.LogError($"Cell position out of bounds: {pos}");
                     continue;
@@ -168,10 +171,10 @@ public class WorldState : MonoBehaviour
 
                 Debug.LogError($"你这家伙，忘了写这块的TODO了！");
                 //TODO：EntityID已列入DetailedCellData，填写加入哈希字典的逻辑
-
+                ApplyDetailedMapData()
 
                 //MapData[index].EntityID = nextEntityId;
-                MapData[index].Empty = false;
+                BasicMapData[index].Empty = false;
             }
         }
         RegisterEntity(nextEntityId, rt);
@@ -198,13 +201,13 @@ public class WorldState : MonoBehaviour
             {
                 Vector3Int pos = cellPos + new Vector3Int(i, j, 0);
                 int index = pos.y * MapSize.x + pos.x;
-                if (index < 0 || index >= MapData.Length)
+                if (index < 0 || index >= BasicMapData.Length)
                 {
                     Debug.LogError($"Cell position out of bounds: {pos}");
                     continue;
                 }
                 //MapData[index].EntityID = nextEntityId;
-                MapData[index].Empty = false;
+                BasicMapData[index].Empty = false;
             }
         }
         RegisterEntity(nextEntityId, rt);
@@ -218,8 +221,67 @@ public class WorldState : MonoBehaviour
     public BasicCellData GetCell(Vector3Int target)
     {
         int index = Index(target.x, target.y);
-        return MapData[index];
+        return BasicMapData[index];
     }
+
+
+    //=========================================================================================
+    //地图块拓展信息的创建与销毁
+    public void ApplyDetailedMapData(List<Vector3Int> grids)
+    {
+        foreach(var grid in grids)
+        {
+            if (!DetailedMapData.ContainsKey(grid))
+            {
+                DetailedCellData newCell = DetailedCellData.Create();
+                DetailedMapData.Add(grid, newCell);
+            }
+        }
+    }
+    public void ApplyDetailedMapData(Vector3Int grid)
+    {
+        if (!DetailedMapData.ContainsKey(grid))
+        {
+            DetailedCellData newCell = DetailedCellData.Create();
+            DetailedMapData.Add(grid, newCell);
+        }
+    }
+    public void ApplyDetailedMapData(List<Vector3Int> grids, int entityID)
+    {
+        foreach (var grid in grids)
+        {
+            if (!DetailedMapData.ContainsKey(grid))
+            {
+                DetailedCellData newCell = DetailedCellData.Create();
+                newCell.EntityID = entityID;    
+                DetailedMapData.Add(grid, newCell);
+            }
+        }
+    }
+    public void ApplyDetailedMapData(Vector3Int grid, int entityID)
+    {
+        if (!DetailedMapData.ContainsKey(grid))
+        {
+            DetailedCellData newCell = DetailedCellData.Create();
+            newCell.EntityID = entityID;
+            DetailedMapData.Add(grid, newCell);
+        }
+    }
+    public void ReleaseDetailedMapData(List<Vector3Int> grids)
+    {
+        foreach(var grid in grids)
+        {
+            if (DetailedMapData.ContainsKey(grid))
+            {
+                DetailedMapData.Remove(grid);
+            }
+        }
+    }
+    //=========================================================================================
+
+
+
+
     public void ItemInteract(Vector3Int targetGridPos, List<ToolType> toolTypes)
     {
         BasicCellData cell = GetCell(targetGridPos);
