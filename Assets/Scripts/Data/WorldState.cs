@@ -171,7 +171,7 @@ public class WorldState : MonoBehaviour
 
                 Debug.LogError($"你这家伙，忘了写这块的TODO了！");
                 //TODO：EntityID已列入DetailedCellData，填写加入哈希字典的逻辑
-                ApplyDetailedMapData()
+                ApplyDetailedMapData(pos, nextEntityId);
 
                 //MapData[index].EntityID = nextEntityId;
                 BasicMapData[index].Empty = false;
