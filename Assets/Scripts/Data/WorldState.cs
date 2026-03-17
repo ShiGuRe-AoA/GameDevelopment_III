@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using static UnityEditor.PlayerSettings;
 
 public enum GridType
 {
@@ -111,8 +112,8 @@ public class WorldState : MonoBehaviour
         Entitys.Add(id, rt);
 
         // 反向赋值便于查找
-        rt.EntityId = id;
-        rt.WorldState = this;
+        rt.Init(id, this);
+
         nextEntityId ++;
 
         return true;
@@ -217,6 +218,8 @@ public class WorldState : MonoBehaviour
     {
         var thisTile = ItemRegistry.GetTile(tileID);
         OverlapTile.SetTile(cellPos, thisTile.Tile);
+        ApplyDetailedMapData(cellPos, nextEntityId);
+       // RegisterEntity(nextEntityId, rt);
     }
     public BasicCellData GetCell(Vector3Int target)
     {

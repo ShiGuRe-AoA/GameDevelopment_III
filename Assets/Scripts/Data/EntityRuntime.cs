@@ -2,10 +2,50 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class EntityRuntime : MonoBehaviour
+public class EntityRuntime
 {
-    [HideInInspector] public int EntityId;
-    [HideInInspector] public WorldState WorldState;
-    public abstract void Save();//TODO：这玩意肯定不长这样，有参数
-    public abstract void Load();//TODO：这玩意肯+定不长这样，有返回类型
+    public int EntityId { get; protected set; }
+    protected WorldState WorldState;
+
+    public virtual void Init(int entityId, WorldState worldState)
+    {
+        EntityId = entityId;
+        WorldState = worldState;
+    }
+    public virtual void OnAwake()
+    {
+
+    }
+    public virtual void OnInteract()
+    {
+
+    }
+    public virtual void OnTickUpdate()
+    {
+
+    }
+    public virtual void OnMinuteUpdate()
+    {
+
+    }
+    public virtual void OnDateUpdate()
+    {
+
+    } 
+    public virtual void OnDestroy()
+    { 
+
+    }
+    public virtual int GetID()
+    {
+        return EntityId;
+    }
+    public virtual void Save()
+    {
+
+    }//TODO：这玩意肯定不长这样，有参数
+    public virtual void Load()
+    {
+
+    }//TODO：这玩意肯+定不长这样，有返回类型
 }
