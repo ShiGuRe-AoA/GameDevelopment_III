@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 6163476109034773413}
   - component: {fileID: 815830720336712750}
-  - component: {fileID: 2852947195214631423}
   m_Layer: 0
   m_Name: House_Car_1
   m_TagString: Untagged
@@ -85,17 +84,3 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &2852947195214631423
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2162057099804349097}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b476d5465b97bc442895e11c632c009d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  EntityId: 0
-  WorldState: {fileID: 0}
