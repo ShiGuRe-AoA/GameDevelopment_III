@@ -56,10 +56,12 @@ public class WorldState : MonoBehaviour
 
     private Dictionary<int, EntityRuntime> Entitys;  //当前正在运行的设备实例，只存有运行数据的
 
-    private Dictionary<string, TileBase> TileDict;
+    //private Dictionary<string, TileBase> TileDict;
 
     public ItemDatabaseSO ItemDatabase; //wup数据库
-    public TileDatabaseSO TileDatabase; //wup数据库
+    //public TileDatabaseSO TileDatabase; //wup数据库
+
+    public TileBase FarmlandTile;
     private static WorldState _instance;
     public static WorldState Instance 
     {
@@ -87,7 +89,7 @@ public class WorldState : MonoBehaviour
             return;
         }
         InitMap(MapSize.x, MapSize.y);
-        ItemRegistry.Init(ItemDatabase, TileDatabase);
+        
     }
     public void InitMap(int lenth, int height)
     {
@@ -214,19 +216,42 @@ public class WorldState : MonoBehaviour
         RegisterEntity(nextEntityId, rt);
     }
 
-    public void PlaceTile(Vector3Int cellPos, string tileID)
+    public void PlaceTile(Vector3Int cellPos, TileBase tile,EntityRuntime runtimeSc, out int EntityID)
     {
-        var thisTile = ItemRegistry.GetTile(tileID);
-        OverlapTile.SetTile(cellPos, thisTile.Tile);
-        ApplyDetailedMapData(cellPos, nextEntityId);
-       // RegisterEntity(nextEntityId, rt);
+        OverlapTile.SetTile(cellPos, tile);
+        if (!DetailedMapData.ContainsKey(cellPos)) { ApplyDetailedMapData(cellPos, nextEntityId); }
+        EntityID = nextEntityId;
+        RegisterEntity(nextEntityId, runtimeSc);
     }
-    public BasicCellData GetCell(Vector3Int target)
+    public void SwitchTile(Vector3Int cellPos, TileBase tile)
+    {
+        OverlapTile.SetTile(cellPos, tile);
+    }
+    public BasicCellData GetCell(Vector3Int target, out bool hasDetail, out DetailedCellData detailedData)
     {
         int index = Index(target.x, target.y);
+
+        if (DetailedMapData.TryGetValue(target, out detailedData))
+        {
+            hasDetail = true;
+        }
+        else
+        {
+            hasDetail = false;
+            detailedData = default;
+        }
+
         return BasicMapData[index];
     }
-
+    public EntityRuntime GetEntity(int entityID)
+    {
+        if (Entitys != null && Entitys.TryGetValue(entityID, out var runtime))
+        {
+            return runtime;
+        }
+        Debug.LogError($"Entity ID not found: {entityID}");
+        return null;
+    }
 
     //=========================================================================================
     //地图块拓展信息的创建与销毁
@@ -287,14 +312,14 @@ public class WorldState : MonoBehaviour
 
     public void ItemInteract(Vector3Int targetGridPos, List<ToolType> toolTypes)
     {
-        BasicCellData cell = GetCell(targetGridPos);
+        BasicCellData cell = GetCell(targetGridPos, out bool hasDetail, out DetailedCellData detailedData);
         if (toolTypes.Contains(ToolType.Hoe))   //具备锄头属性
         {
             if(cell.Type == GridType.Soil && CheckEmpty(targetGridPos)) //地块检测
             {
                 cell.Type = GridType.Farmland;
-
-                PlaceTile(targetGridPos, "Farmland_Tile");//放置实体瓦片
+                EntityRuntime entity = EntityRuntimeFactory.Create(EntityRuntimeKind.Farmland);
+                PlaceTile(targetGridPos, FarmlandTile, entity, out int ID);//放置实体瓦片
             }
         }
     }

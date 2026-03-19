@@ -32,7 +32,7 @@ public class TimeManager : MonoBehaviour
 
     [Header("初始设置，后续从SO表读入")]
     [SerializeField] private int DateOfSeason = 28;
-    [SerializeField] private int dayBeginHour;
+    [SerializeField] public int dayBeginHour { get; private set; }
     [SerializeField] private int dayEndHour;
     [SerializeField] private float minuteTransferRate = 1f;
 
@@ -181,9 +181,29 @@ public class TimeManager : MonoBehaviour
         return realTimeCount;
     }
 
-    public int GetMinuteCount()
+    public float GetMinuteCount()
     {
         return minuteCount;
+    }
+
+    public float TimeDistant(ComplexTime Atime,ComplexTime BTime)   //计算Atime与BTime的时间差，单位为游戏分钟
+    {
+        float DateDistant = (Atime.Season - BTime.Season) * DateOfSeason + (Atime.Date - BTime.Date);
+
+        float HourDistant = Atime.Hour - BTime.Hour;
+
+        float MinuteDistant = Atime.Minute - BTime.Minute;
+
+        return (DateDistant * 24 + HourDistant) * 60 + MinuteDistant;
+    }
+    public float TimeDistant(int Ahour, int Bhour)  //计算单日内Ahour与Bhour的时间差，单位为游戏分钟
+    {
+        if(Bhour < Ahour) { Bhour += 24; }
+        return (Bhour - Ahour) * 60;
+    }
+    public float TimeDistToNow(ComplexTime Atime)   //计算Atime与当前时间的时间差，单位为游戏分钟
+    {
+        return TimeDistant(Atime, GetComplexTime());
     }
 
     public void PauseGame()

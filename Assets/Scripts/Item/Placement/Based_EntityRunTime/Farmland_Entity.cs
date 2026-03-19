@@ -1,16 +1,22 @@
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public interface IPlantable
 {
+    public float WaterTimeLeft { get; }
+    public float FertTimeLeft { get; }
+    public float FertRank { get;}
+    public int CropInstanceId { get; } // 0 = none
     bool CanPlant(ItemBase_SO seedItem);
     void Plant(ItemBase_SO seedItem);
+
+
 }
 public class Farmland_Entity : EntityRuntime, IPlantable
 {
-    public Vector2Int Pos { get; private set; }
+    public Vector3Int GridPos { get; private set; }
 
     // 状态
-    public bool IsTilled { get; private set; }
     public float WaterTimeLeft { get; private set; }
     public float FertTimeLeft { get; private set; }
     public float FertRank { get; private set; }
@@ -22,16 +28,19 @@ public class Farmland_Entity : EntityRuntime, IPlantable
     private const float MaxWaterTime = 24f;   // 一天
     private const float MaxFertTime = 72f;   // 三天
 
-    public void Setup(Vector2Int pos)
+
+    // 初始化 ----------------------
+    public void Setup(Vector3Int pos)
     {
-        Pos = pos;
-        IsTilled = true;
+        GridPos = pos;
+        CropInstanceId = 0;
     }
+
+    // 更新 ----------------------
 
     public override void OnMinuteUpdate()
     {
-        if (!IsTilled) return;
-
+        base.OnMinuteUpdate();
         if (WaterTimeLeft > 0)
             WaterTimeLeft = Mathf.Max(0, WaterTimeLeft - 1f);
 
@@ -39,8 +48,9 @@ public class Farmland_Entity : EntityRuntime, IPlantable
             FertTimeLeft = Mathf.Max(0, FertTimeLeft - 1f);
     }
 
-    public override void OnDateUpdate()
+    public override void OnDateUpdate(ComplexTime curTime)
     {
+        base.OnDateUpdate(curTime);
         // 可选：跨天处理（如完全干涸、作物死亡判定等）
         if (CropInstanceId != 0 && WaterTimeLeft <= 0)
         {
@@ -50,36 +60,40 @@ public class Farmland_Entity : EntityRuntime, IPlantable
 
     // 行为 ----------------------
 
-    public void Hoe()
-    {
-        IsTilled = true;
-    }
-
     public void Water()
     {
-        if (!IsTilled) return;
         WaterTimeLeft = MaxWaterTime;
     }
 
     public void ApplyFertilizer(float rank)
     {
-        if (!IsTilled) return;
         FertRank = rank;
         FertTimeLeft = MaxFertTime;
     }
 
     public bool CanPlant(ItemBase_SO seedItem)
     {
-        return IsTilled && CropInstanceId == 0;
+        return CropInstanceId == 0;
     }
 
     public void Plant(ItemBase_SO seedItem)
     {
         if (!CanPlant(seedItem)) return;
-        //TODO: 创建 CropRuntime 实例并关联 CropInstanceId
-        Debug.LogError("傻逼，还没写这块的Todo就着急测试?");
+        foreach (var feature in seedItem.Features)
+        {
+            if (feature is Feature_Seed seedFeature)
+            {
+                //创建农作物实例
+                EntityRuntime newCropsRuntime = EntityRuntimeFactory.Create(seedFeature.CropRuntimeKind);
+                WorldState.Instance.PlaceTile(GridPos, seedFeature.SeedTiles[0], newCropsRuntime, out int EntityId);
+                CropInstanceId = EntityId;
+            }
+        }
     }
-
+    public void SwitchTile(TileBase income)
+    {
+        WorldState.Instance.SwitchTile(GridPos, income);
+    }
     public void ClearCrop()
     {
         CropInstanceId = 0;
@@ -87,7 +101,6 @@ public class Farmland_Entity : EntityRuntime, IPlantable
 
     public void ClearFarmland()
     {
-        IsTilled = false;
         WaterTimeLeft = 0;
         FertTimeLeft = 0;
         FertRank = 0;

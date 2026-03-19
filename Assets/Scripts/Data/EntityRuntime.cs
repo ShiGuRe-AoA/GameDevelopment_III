@@ -28,7 +28,7 @@ public class EntityRuntime
     {
 
     }
-    public virtual void OnDateUpdate()
+    public virtual void OnDateUpdate(ComplexTime curTime)
     {
 
     } 
