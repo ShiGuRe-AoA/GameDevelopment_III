@@ -9,7 +9,7 @@ public class Feature_Seed : ItemFeature, IHoldInteract
     public List<TileBase> SeedTiles;
     public ItemBase_SO Product;
     public EntityRuntimeKind CropRuntimeKind;
-    private ItemBase_SO parent;//TODO: 目前设计上Feature没有指向父Item的引用，如果需要访问父Item数据，可以考虑在使用时传入父Item或者在Feature中添加一个初始化方法来设置父Item引用
+    
     public void OnHoldInteract(HoldInteractContext context)
     {
         Vector3Int interactGrid = context.InteractGrid;

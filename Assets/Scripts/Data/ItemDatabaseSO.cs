@@ -10,8 +10,19 @@ public class ItemDatabaseSO : ScriptableObject
     private Dictionary<int, ItemBase_SO> _byId;
     private Dictionary<string, ItemBase_SO> _byStringId;
 
+    public void Init()
+    {
+        Debug.Log($"Initializing ItemsData");
+        foreach (var it in items)
+        {
+            if (it != null)
+                it.Init();
+        }
+    }
     public void BuildCache()
     {
+        Init();
+
         _byId = new Dictionary<int, ItemBase_SO>(items.Count);
         _byStringId = new Dictionary<string, ItemBase_SO>(items.Count);
 

@@ -23,13 +23,14 @@ public class Crops_Entity : EntityRuntime
     protected bool needWater;  //是否需要浇水
     protected Farmland_Entity farmland_Entity; //关联的农田实体
     protected bool canHarvest;  //是否可以收获
+    protected ItemBase_SO seedItem; //作物对应的物品ID
 
-    public virtual void Init(int entityId, WorldState worldState, Farmland_Entity farmland_Entity, Genome genome = null, bool needWater = true )
+    public virtual void Init(ItemBase_SO seedItem, int entityId, Farmland_Entity farmland_Entity, Genome genome = null, bool needWater = true )
     {
         EntityId = entityId;
-        WorldState = worldState;
         cropGenome = (genome == null) ? new Genome() : genome;
         this.needWater = needWater;
+        this.seedItem = seedItem;
         canHarvest = false;
     }
     public override void OnMinuteUpdate()

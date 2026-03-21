@@ -30,7 +30,7 @@ public class Farmland_Entity : EntityRuntime, IPlantable
 
 
     // 初始化 ----------------------
-    public void Setup(Vector3Int pos)
+    public void Init(Vector3Int pos)
     {
         GridPos = pos;
         CropInstanceId = 0;
@@ -79,13 +79,17 @@ public class Farmland_Entity : EntityRuntime, IPlantable
     public void Plant(ItemBase_SO seedItem)
     {
         if (!CanPlant(seedItem)) return;
+
         foreach (var feature in seedItem.Features)
         {
             if (feature is Feature_Seed seedFeature)
             {
                 //创建农作物实例
-                EntityRuntime newCropsRuntime = EntityRuntimeFactory.Create(seedFeature.CropRuntimeKind);
-                WorldState.Instance.PlaceTile(GridPos, seedFeature.SeedTiles[0], newCropsRuntime, out int EntityId);
+                Crops_Entity newCropsRuntime = (Crops_Entity)EntityRuntimeFactory.Create(seedFeature.CropRuntimeKind);
+                //放置地块并获取实体ID
+                WorldState.Instance.PlaceTile(GridPos, seedFeature.SeedTiles[0], newCropsRuntime,2 , out int EntityId);
+                // 初始化作物实例（传入种子物品、实体ID和关联的农田实体）
+                newCropsRuntime.Init(seedItem, EntityId,this); 
                 CropInstanceId = EntityId;
             }
         }

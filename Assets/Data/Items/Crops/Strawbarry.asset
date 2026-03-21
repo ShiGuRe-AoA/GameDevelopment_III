@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c26c87345fee584ea91ebe6c4d6eb11, type: 3}
+  m_Name: Strawbarry
+  m_EditorClassIdentifier: 
+  ID_num: 12001
+  ID_str: Strawbarry
+  Name: "\u8349\u8393"
+  StackAmount: 64
+  ItemSprite: {fileID: 1246325502, guid: 770d310c7fea9b948b0d3d5667c1203c, type: 3}
+  Features: []

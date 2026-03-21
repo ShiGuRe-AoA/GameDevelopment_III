@@ -7,7 +7,7 @@ public class DebugTester : MonoBehaviour
     public Vector3Int Spawnpoint;
     void Start()
     {
-        WorldState.Instance.PlaceEntity(Spawnpoint, 10102);
+        //WorldState.Instance.PlaceEntity(Spawnpoint, 10102);
     }
     private void OnDrawGizmos()
     {

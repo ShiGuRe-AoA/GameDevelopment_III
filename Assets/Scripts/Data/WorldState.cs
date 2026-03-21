@@ -48,6 +48,7 @@ public class WorldState : MonoBehaviour
     public Vector2Int MapSize;
     public Tilemap MainTile;
     public Tilemap OverlapTile;
+    public Tilemap UperTile;
     public Vector3 cellSize;
     
     public BasicCellData[] BasicMapData;  //全部地图信息，存建筑用ID
@@ -89,7 +90,7 @@ public class WorldState : MonoBehaviour
             return;
         }
         InitMap(MapSize.x, MapSize.y);
-        
+        ItemRegistry.Init(ItemDatabase);
     }
     public void InitMap(int lenth, int height)
     {
@@ -99,6 +100,7 @@ public class WorldState : MonoBehaviour
             BasicMapData[i] = BasicCellData.Create();
         }
         cellSize = MainTile.cellSize;
+        Debug.Log("MapInitComplete");
     }
     private bool RegisterEntity(int id, EntityRuntime rt)//仅允许使用此方法注册物体实例，以确保ID唯一且正确设置反向引用
     {
@@ -117,7 +119,7 @@ public class WorldState : MonoBehaviour
         rt.Init(id, this);
 
         nextEntityId ++;
-
+        Debug.Log($"EntityRegisteredInID:{id}");
         return true;
     }
     public Vector3Int WorldToCell(Vector3 worldPos)
@@ -216,9 +218,27 @@ public class WorldState : MonoBehaviour
         RegisterEntity(nextEntityId, rt);
     }
 
-    public void PlaceTile(Vector3Int cellPos, TileBase tile,EntityRuntime runtimeSc, out int EntityID)
+    public void PlaceTile(Vector3Int cellPos, TileBase tile,EntityRuntime runtimeSc,int tileLayer, out int EntityID)
     {
-        OverlapTile.SetTile(cellPos, tile);
+        Tilemap targetTilemap;
+        switch (tileLayer)
+        {
+            case 0:
+                targetTilemap = MainTile;
+                break;
+            case 1:
+                targetTilemap = OverlapTile;
+                break;
+            case 2:
+                targetTilemap = UperTile;
+                break;
+            default:
+                Debug.LogError($"Invalid tile layer: {tileLayer}");
+                EntityID = -1;
+                return;
+        }
+
+        targetTilemap.SetTile(cellPos, tile);
         if (!DetailedMapData.ContainsKey(cellPos)) { ApplyDetailedMapData(cellPos, nextEntityId); }
         EntityID = nextEntityId;
         RegisterEntity(nextEntityId, runtimeSc);
@@ -318,8 +338,9 @@ public class WorldState : MonoBehaviour
             if(cell.Type == GridType.Soil && CheckEmpty(targetGridPos)) //地块检测
             {
                 cell.Type = GridType.Farmland;
-                EntityRuntime entity = EntityRuntimeFactory.Create(EntityRuntimeKind.Farmland);
-                PlaceTile(targetGridPos, FarmlandTile, entity, out int ID);//放置实体瓦片
+                Farmland_Entity entity = (Farmland_Entity)EntityRuntimeFactory.Create(EntityRuntimeKind.Farmland);
+                entity.Init(targetGridPos);
+                PlaceTile(targetGridPos, FarmlandTile, entity,1, out int ID);//放置实体瓦片
             }
         }
     }

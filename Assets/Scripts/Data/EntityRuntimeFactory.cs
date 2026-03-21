@@ -5,7 +5,7 @@ using UnityEngine;
 public enum EntityRuntimeKind
 {
     Farmland,
-    
+    Crop,
 }
 
 public static class EntityRuntimeFactory
@@ -14,6 +14,7 @@ public static class EntityRuntimeFactory
         = new()
         {
             { EntityRuntimeKind.Farmland, () => new Farmland_Entity() },
+            { EntityRuntimeKind.Crop, () => new Crops_Entity() },
 
         };
 

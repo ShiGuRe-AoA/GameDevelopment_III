@@ -3,9 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-public abstract class ItemFeature : ScriptableObject
+public class ItemFeature : ScriptableObject
 {
-    
+    protected ItemBase_SO parent;
+
+    public void Init(ItemBase_SO parent)
+    {
+        this.parent = parent;
+    }
 }
 [CreateAssetMenu(menuName = "Game/Item/ItemBaseSO")]
 public class ItemBase_SO : ScriptableObject
@@ -26,5 +31,13 @@ public class ItemBase_SO : ScriptableObject
                 return typed;
         }
         return null;
+    }
+    public void Init()
+    {
+        foreach (var f in Features)
+        {
+            if (f is ItemFeature itf)
+                itf.Init(this);
+        }
     }
 }

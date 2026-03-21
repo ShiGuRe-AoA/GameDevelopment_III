@@ -5,12 +5,10 @@ using UnityEngine;
 public class EntityRuntime
 {
     public int EntityId { get; protected set; }
-    protected WorldState WorldState;
 
     public virtual void Init(int entityId, WorldState worldState)
     {
         EntityId = entityId;
-        WorldState = worldState;
     }
     public virtual void OnAwake()
     {

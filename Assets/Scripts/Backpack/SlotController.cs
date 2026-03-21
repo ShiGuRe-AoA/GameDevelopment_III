@@ -130,7 +130,6 @@ public class SlotController : MonoBehaviour
     public bool TryAddItem(int newItemID, int count, ItemContainer container)
     {
         if (count <= 0) return true;
-
         ItemBase_SO def = ItemRegistry.Get(newItemID);
         if (def == null)
         {
