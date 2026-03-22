@@ -119,9 +119,10 @@ public class TimeManager : MonoBehaviour
         if (IsPause) return;
 
         realTimeCount += Time.deltaTime;
-
+        TickUpdate();
         if (realTimeCount >= nextMintuteTick)
         {
+            MinuteUpdate();
             minuteCount++;
             minute++;
         }
@@ -146,6 +147,7 @@ public class TimeManager : MonoBehaviour
         _hour = dayBeginHour;
         _minute = 0;
         realTimeCount = 0f;
+        DateUpdate();
         // TODO: 存档
     }
 
@@ -186,7 +188,7 @@ public class TimeManager : MonoBehaviour
         return minuteCount;
     }
 
-    public float TimeDistant(ComplexTime Atime,ComplexTime BTime)   //计算Atime与BTime的时间差，单位为游戏分钟
+    public float TimeDistant(ComplexTime Atime, ComplexTime BTime)   //计算Atime与BTime的时间差，单位为游戏分钟
     {
         float DateDistant = (Atime.Season - BTime.Season) * DateOfSeason + (Atime.Date - BTime.Date);
 
@@ -198,7 +200,7 @@ public class TimeManager : MonoBehaviour
     }
     public float TimeDistant(int Ahour, int Bhour)  //计算单日内Ahour与Bhour的时间差，单位为游戏分钟
     {
-        if(Bhour < Ahour) { Bhour += 24; }
+        if (Bhour < Ahour) { Bhour += 24; }
         return (Bhour - Ahour) * 60;
     }
     public float TimeDistToNow(ComplexTime Atime)   //计算Atime与当前时间的时间差，单位为游戏分钟
@@ -216,5 +218,27 @@ public class TimeManager : MonoBehaviour
     {
         IsPause = false;
         Time.timeScale = 1f;
+    }
+
+    public void TickUpdate()
+    {
+        foreach(var pair in WorldState.Instance.Entitys)
+        {
+            pair.Value.OnTickUpdate();
+        }
+    }
+    public void MinuteUpdate()
+    {
+        foreach (var pair in WorldState.Instance.Entitys)
+        {
+            pair.Value.OnMinuteUpdate();
+        }
+    }
+    public void DateUpdate()
+    {
+        foreach (var pair in WorldState.Instance.Entitys)
+        {
+            pair.Value.OnDateUpdate(GetComplexTime());
+        }
     }
 }

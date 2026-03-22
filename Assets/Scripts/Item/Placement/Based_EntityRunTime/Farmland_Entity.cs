@@ -89,7 +89,7 @@ public class Farmland_Entity : EntityRuntime, IPlantable
                 //放置地块并获取实体ID
                 WorldState.Instance.PlaceTile(GridPos, seedFeature.SeedTiles[0], newCropsRuntime,2 , out int EntityId);
                 // 初始化作物实例（传入种子物品、实体ID和关联的农田实体）
-                newCropsRuntime.Init(seedItem, EntityId,this); 
+                newCropsRuntime.Init(seedItem, EntityId, this); 
                 CropInstanceId = EntityId;
             }
         }

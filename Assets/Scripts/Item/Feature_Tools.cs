@@ -5,7 +5,8 @@ using UnityEngine;
 public enum ToolType
 {
     Hoe,
-    Axe
+    Axe,
+    WateringCan
 }
 [CreateAssetMenu(menuName = "Game/Feature/Tool")]
 [SerializeField]

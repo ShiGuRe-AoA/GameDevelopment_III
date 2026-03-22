@@ -8293,6 +8293,7 @@ GameObject:
   - component: {fileID: 918951880}
   - component: {fileID: 918951881}
   - component: {fileID: 918951882}
+  - component: {fileID: 918951883}
   m_Layer: 0
   m_Name: MainController
   m_TagString: Untagged
@@ -8413,6 +8414,21 @@ MonoBehaviour:
   selectedIndex: 0
   inventoryContainer: {fileID: 918951881}
   CompositeOperation: 0
+--- !u!114 &918951883
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 918951876}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74c3a0203aab4334987bcd5f2a362956, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  DateOfSeason: 28
+  dayEndHour: 23
+  minuteTransferRate: 1
 --- !u!1001 &922800364
 PrefabInstance:
   m_ObjectHideFlags: 0

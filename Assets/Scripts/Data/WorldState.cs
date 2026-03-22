@@ -45,24 +45,31 @@ public struct DetailedCellData
 
 public class WorldState : MonoBehaviour
 {
+    [Header("地图设置")]
     public Vector2Int MapSize;
+    public Vector3 cellSize;
+
+    [Header("瓦片层级")]
     public Tilemap MainTile;
     public Tilemap OverlapTile;
     public Tilemap UperTile;
-    public Vector3 cellSize;
-    
-    public BasicCellData[] BasicMapData;  //全部地图信息，存建筑用ID
-    public Dictionary<Vector3Int, DetailedCellData> DetailedMapData = new();    //详细地块信息
+
+    [Header("地图存储")]
+    private BasicCellData[] BasicMapData;  //全部地图信息，存建筑用ID
+    private Dictionary<Vector3Int, DetailedCellData> DetailedMapData = new();    //详细地块信息
 
 
-    private Dictionary<int, EntityRuntime> Entitys;  //当前正在运行的设备实例，只存有运行数据的
+    public Dictionary<int, EntityRuntime> Entitys { get; private set; } = new();  //当前正在运行的设备实例，只存有运行数据的
 
     //private Dictionary<string, TileBase> TileDict;
-
+    [Header("数据引用")]     
     public ItemDatabaseSO ItemDatabase; //wup数据库
     //public TileDatabaseSO TileDatabase; //wup数据库
 
-    public TileBase FarmlandTile;
+    [Header("特殊引用")]     
+    [SerializeField] private TileBase farmlandTile;
+    [SerializeField] private Transform playerTransform;
+
     private static WorldState _instance;
     public static WorldState Instance 
     {
@@ -328,6 +335,35 @@ public class WorldState : MonoBehaviour
     //=========================================================================================
 
 
+    //=========================================================================================
+    //掉落物生成
+    public void SpawnItem(Vector3Int gridPos, int itemID)
+    {
+        var def = ItemRegistry.Get(itemID);
+        if (def == null)
+        {
+            Debug.LogError($"Invalid item ID: {itemID}");
+            return;
+        }
+        Vector3 worldPos = CellToWorld(gridPos);
+        //GameObject obj = Instantiate(def.prefabObj, worldPos, Quaternion.identity);
+        //TODO：掉落物的运行时组件设计与注册
+    }
+    //=========================================================================================
+
+    //=========================================================================================
+    //玩家相关
+    public float PlayerDist(Vector3 pos)
+    {
+        Vector3 playerPos = playerTransform.position;
+        return ((playerPos - pos).magnitude);
+    }
+    //=========================================================================================
+
+
+
+
+
 
 
     public void ItemInteract(Vector3Int targetGridPos, List<ToolType> toolTypes)
@@ -340,7 +376,22 @@ public class WorldState : MonoBehaviour
                 cell.Type = GridType.Farmland;
                 Farmland_Entity entity = (Farmland_Entity)EntityRuntimeFactory.Create(EntityRuntimeKind.Farmland);
                 entity.Init(targetGridPos);
-                PlaceTile(targetGridPos, FarmlandTile, entity,1, out int ID);//放置实体瓦片
+                PlaceTile(targetGridPos, farmlandTile, entity,1, out int ID);//放置实体瓦片
+            }
+        }
+        if (toolTypes.Contains(ToolType.WateringCan))
+        {
+            if (!hasDetail) { return; }
+
+            if (detailedData.EntityID != -1) //有实体
+            {
+                EntityRuntime entity = GetEntity(detailedData.EntityID);
+                if (entity is Farmland_Entity farmland)
+                {
+                    farmland.Water();
+                    Debug.Log("FarmlandWatered!");
+                    DetailedMapData[targetGridPos] = detailedData; //更新详细数据
+                }
             }
         }
     }

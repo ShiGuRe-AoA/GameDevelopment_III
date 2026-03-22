@@ -31,12 +31,39 @@ public class Crops_Entity : EntityRuntime
         cropGenome = (genome == null) ? new Genome() : genome;
         this.needWater = needWater;
         this.seedItem = seedItem;
+        this.farmland_Entity = farmland_Entity;
         canHarvest = false;
+
+        maxGrowthTime = 120f; //默认生长时间为120分钟（2小时），可根据作物类型调整
     }
+
+    public override void OnInteract()
+    {
+        base.OnInteract();
+        if (canHarvest)
+        {
+            //TODO:对接生成掉落物部分
+            Debug.LogError("傻逼，没做这块的TODO就着急测试？！");
+        }
+
+    }
+
     public override void OnMinuteUpdate()
     {
         base.OnMinuteUpdate();
-        currentGrowthTime += 1.0f;
+        if (needWater)
+        {
+            if(farmland_Entity == null)
+            {
+                Debug.LogError($"Crops_Entity {EntityId} has no associated Farmland_Entity!");
+            }
+            if(farmland_Entity.WaterTimeLeft > 0)
+            {
+                Debug.Log($"CropsGrowing:{currentGrowthTime}=={maxGrowthTime}");
+                currentGrowthTime += 1.0f;
+
+            }
+        }
 
         if(currentGrowthTime > maxGrowthTime && !canHarvest)
         {
