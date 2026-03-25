@@ -376,6 +376,7 @@ public class WorldState : MonoBehaviour
                 cell.Type = GridType.Farmland;
                 Farmland_Entity entity = (Farmland_Entity)EntityRuntimeFactory.Create(EntityRuntimeKind.Farmland);
                 entity.Init(targetGridPos);
+                Debug.Log("FarmlandPlaced!");
                 PlaceTile(targetGridPos, farmlandTile, entity,1, out int ID);//∑≈÷√ µÃÂÕﬂ∆¨
             }
         }

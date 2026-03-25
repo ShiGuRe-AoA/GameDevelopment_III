@@ -8314,12 +8314,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MapSize: {x: 100, y: 100}
+  cellSize: {x: 0, y: 0, z: 0}
   MainTile: {fileID: 847385805}
   OverlapTile: {fileID: 2087614840}
   UperTile: {fileID: 129549202}
-  cellSize: {x: 0, y: 0, z: 0}
   ItemDatabase: {fileID: 11400000, guid: 51d52bdd31128614494c6f170d4b663d, type: 2}
-  FarmlandTile: {fileID: 11400000, guid: 265a792bad0c9594182d61a0c6331e36, type: 2}
+  farmlandTile: {fileID: 11400000, guid: 265a792bad0c9594182d61a0c6331e36, type: 2}
+  playerTransform: {fileID: 1707658214}
 --- !u!4 &918951878
 Transform:
   m_ObjectHideFlags: 0
