@@ -94,23 +94,23 @@ PrefabInstance:
       objectReference: {fileID: 21300000, guid: e866b1a39cc79cd47bab5f363af5153b, type: 3}
     - target: {fileID: 5579861913847068275, guid: 844d7fbdf9e8763458b0b8f0e778bcdc, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 127.53
+      value: 84.689
       objectReference: {fileID: 0}
     - target: {fileID: 5579861913847068275, guid: 844d7fbdf9e8763458b0b8f0e778bcdc, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 40.2977
+      value: 30.4946
       objectReference: {fileID: 0}
     - target: {fileID: 5579861913847068275, guid: 844d7fbdf9e8763458b0b8f0e778bcdc, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -12.498
+      value: -11.078
       objectReference: {fileID: 0}
     - target: {fileID: 5579861913847068275, guid: 844d7fbdf9e8763458b0b8f0e778bcdc, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -31.117603
+      value: -21.7298
       objectReference: {fileID: 0}
     - target: {fileID: 5752860497682175427, guid: 844d7fbdf9e8763458b0b8f0e778bcdc, type: 3}
       propertyPath: m_fontSize
-      value: 36.05
+      value: 27.25
       objectReference: {fileID: 0}
     - target: {fileID: 5752860497682175427, guid: 844d7fbdf9e8763458b0b8f0e778bcdc, type: 3}
       propertyPath: m_fontStyle

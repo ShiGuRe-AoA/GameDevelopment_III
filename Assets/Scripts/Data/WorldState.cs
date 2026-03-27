@@ -252,7 +252,7 @@ public class WorldState : MonoBehaviour
     }
     public void SwitchTile(Vector3Int cellPos, TileBase tile)
     {
-        OverlapTile.SetTile(cellPos, tile);
+        UperTile.SetTile(cellPos, tile);
     }
     public BasicCellData GetCell(Vector3Int target, out bool hasDetail, out DetailedCellData detailedData)
     {

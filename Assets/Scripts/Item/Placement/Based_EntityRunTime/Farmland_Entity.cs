@@ -25,8 +25,8 @@ public class Farmland_Entity : EntityRuntime, IPlantable
     public int CropInstanceId { get; private set; } // 0 = none
 
     // 常量（可改为从SO读取）
-    private const float MaxWaterTime = 24f;   // 一天
-    private const float MaxFertTime = 72f;   // 三天
+    private const float MaxWaterTime = 1000f;   
+    private const float MaxFertTime = 1000f;   
 
 
     // 初始化 ----------------------
@@ -89,7 +89,7 @@ public class Farmland_Entity : EntityRuntime, IPlantable
                 //放置地块并获取实体ID
                 WorldState.Instance.PlaceTile(GridPos, seedFeature.SeedTiles[0], newCropsRuntime,2 , out int EntityId);
                 // 初始化作物实例（传入种子物品、实体ID和关联的农田实体）
-                newCropsRuntime.Init(seedItem, EntityId, this); 
+                newCropsRuntime.Init(seedItem, EntityId, this, seedFeature.SeedTiles); 
                 CropInstanceId = EntityId;
             }
         }
