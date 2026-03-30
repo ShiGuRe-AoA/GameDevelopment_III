@@ -9,15 +9,30 @@ public class ShelfContainer : ItemContainer_Base
 
     // Display to customer
     // will be deleted after debug
-    // [SerializeField] private List<ItemSlotUI> _saleSlots = new(); 
-    // public IReadOnlyList<ItemSlotUI> saleSlots { get; private set; }
-    
+    [SerializeField] private List<ItemSlotUI> _saleSlots = new(); 
+    public IReadOnlyList<ItemSlotUI> saleSlots { get; private set; }
+
+    [SerializeField] private int _shelfLevel;
+    public int ShelfLevel
+    {
+        get => _shelfLevel;
+        private set => _shelfLevel = value;
+    }
+
+
     // 售卖槽位占货仓槽位的数量
     // 分为已解锁和未被解锁
-    public int saleSlotCount;
+    [SerializeField] private int _saleSlotCount;
+    public int SaleSlotCount => _saleSlotCount;
+    
     // 已解锁售卖槽位在升级时可被增加
     // 可能需要外部引用商店等级之类的
-    public int enableInteractCount;
+    [SerializeField] private int _interactableSlotCount;
+    public int InteractableSlotCount
+    {
+        get => _interactableSlotCount;
+        private set => _interactableSlotCount = value;
+    }
 
 
     public bool IsOpen { get; private set; }
@@ -26,8 +41,8 @@ public class ShelfContainer : ItemContainer_Base
     {
         base.Awake();
         SlotController.Instance.RefreshAll(container);
-        //saleSlots = Utils.ReadOnly<ItemSlotUI>(UISlots, () => saleSlotCount);
-        //RefreshSaleSlotsDebug();
+        saleSlots = Utils.ReadOnly<ItemSlotUI>(UISlots, () => _saleSlotCount);
+        RefreshSaleSlotsDebug();
     }
 
     private void Start()
@@ -47,20 +62,24 @@ public class ShelfContainer : ItemContainer_Base
     }
 
     // Debug看saleSlots用，之后删
-    //private void RefreshSaleSlotsDebug()
-    //{
-    //    _saleSlots.Clear();
+    private void RefreshSaleSlotsDebug()
+    {
+        _saleSlots.Clear();
 
-    //    for (int i = 0; i < saleSlots.Count; i++)
-    //    {
-    //        _saleSlots.Add(saleSlots[i]);
-    //    }
-    //}
+        for (int i = 0; i < saleSlots.Count; i++)
+        {
+            _saleSlots.Add(saleSlots[i]);
+        }
+    }
 
     // 之后这些似乎需要到InputManager实现交互
     // 或者Input.GetButtonDown然后执行OpenShelf,再次就CloseShelf
     public void OpenShelf()
     {
+        RefreshInteractableSlot();
+        RefreshSaleSlotsDebug();    // will be deleted
+
+        SlotController.Instance.RefreshAll(container);
         ShelfPanel.gameObject.SetActive(true);
         IsOpen = true;
     }
@@ -74,17 +93,23 @@ public class ShelfContainer : ItemContainer_Base
     // 还得有个对外的UI显示, 大概类似于手持虚影那种
     // 就是在saleSlotCount内的为卖品, 对外展示
     
-    // EnableSaleSlot感觉得每次打开的时候刷新一下看看是不是升级了
-    public void EnableSaleSlot()
+    // 每次打开Shelf的时候刷新一下看看是否
+    public void RefreshInteractableSlot()
     {
-        for(int i = 0; i < saleSlotCount; i++)
+        for(int i = 0; i < _saleSlotCount; i++)
         {
             // 这里如果ItemSlotUI有更方便的函数需要改
-            if (i < enableInteractCount)
+            if (i < _interactableSlotCount)
                 UISlots[i].Interactable = true;
             else
                 UISlots[i].Interactable = false;
         }
+    }
+
+    public void UpgradeShelf(int ShelfLevel)
+    {
+        this.ShelfLevel = ShelfLevel; // 因为我感觉Shelf还是得和玩家挂钩
+
     }
 
 }

@@ -27,72 +27,55 @@ public static class Utils
         }
     }
 
-    //public static void CollectComponentsInChildren<T>(Transform root, List<T> results) where T : Component
-    //{
-    //    if (root == null || results == null)
-    //        return;
-
-    //    T component = root.GetComponent<T>();
-    //    if (component != null)
-    //    {
-    //        results.Add(component);
-    //    }
-
-    //    for (int i = 0; i < root.childCount; i++)
-    //    {
-    //        CollectComponentsInChildren(root.GetChild(i), results);
-    //    }
-    //}
-
     /// <summary>
     /// 给 List<T> 创建一个包含前 Count 项的只读窗口
     /// </summary>
     
-    //public static IReadOnlyList<T> ReadOnly<T>(IList<T> origin, Func<int> getCount)
-    //{
-    //    return new ReadOnlyList<T>(origin, getCount);
-    //}
+    public static IReadOnlyList<T> ReadOnly<T>(IList<T> origin, Func<int> getCount)
+    {
+        return new ReadOnlyList<T>(origin, getCount);
+    }
 
-    //private class ReadOnlyList<T> : IReadOnlyList<T>
-    //{
-    //    private readonly IList<T> origin;
-    //    private readonly Func<int> getCount;
+    private class ReadOnlyList<T> : IReadOnlyList<T>
+    {
+        private readonly IList<T> origin;
+        private readonly Func<int> getCount;
 
-    //    public ReadOnlyList(IList<T> _origin, Func<int> _getCount)
-    //    {
-    //        this.origin = _origin ?? throw new ArgumentNullException(nameof(origin));
-    //        this.getCount = _getCount ?? throw new ArgumentNullException(nameof(getCount));
-    //    }
+        public ReadOnlyList(IList<T> _origin, Func<int> _getCount)
+        {
+            this.origin = _origin ?? throw new ArgumentNullException(nameof(origin));
+            this.getCount = _getCount ?? throw new ArgumentNullException(nameof(getCount));
+        }
 
-    //    public int Count
-    //    {
-    //        get
-    //        {
-    //            int count = getCount();
-    //            if (count < 0) return 0;
-    //            if (count > origin.Count) return origin.Count;
-    //            return count;
-    //        }
-    //    }
+        public int Count
+        {
+            get
+            {
+                int count = getCount();
+                if (count < 0) return 0;
+                if (count > origin.Count) return origin.Count;
+                return count;
+            }
+        }
 
-    //    public T this[int index]
-    //    {
-    //        get
-    //        {
-    //            if (index < 0 || index >= Count)
-    //                throw new ArgumentOutOfRangeException(nameof(index));
+        public T this[int index]
+        {
+            get
+            {
+                if (index < 0 || index >= Count)
+                    throw new ArgumentOutOfRangeException(nameof(index));
 
-    //            return origin[index];
-    //        }
-    //    }
+                return origin[index];
+            }
+        }
 
-    //    public IEnumerator<T> GetEnumerator()
-    //    {
-    //        for (int i = 0; i < Count; i++)
-    //            yield return origin[i];
-    //    }
+        public IEnumerator<T> GetEnumerator()
+        {
+            for (int i = 0; i < Count; i++)
+                yield return origin[i];
+        }
 
-    //    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-    //}
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
 
 }
