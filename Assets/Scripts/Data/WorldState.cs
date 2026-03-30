@@ -30,15 +30,36 @@ public struct BasicCellData  //需要通过单元格检索的全部信息
         return new BasicCellData { Type = type, Empty = empty };
     }
 }
-public struct DetailedCellData
+public class DetailedCellData
 {
-    public int EntityID;
+    public List<int> EntityID = new();
     public float WaterTimeLast;   //含水时间（倒计时,单位，游戏分钟）
     public float FertTimeLast;  //肥料剩余时间（倒计时，单位，游戏分钟）
     public float FertRank;      //肥料等级
-    public static DetailedCellData Create(int entityID = -1, float waterTime = 0, float fertTime = 0, float fertRank = 0)
+    public DetailedCellData(int entityID = -1, float waterTime = 0, float fertTime = 0, float fertRank = 0)
     {
-        return new DetailedCellData { EntityID = entityID, WaterTimeLast = waterTime, FertTimeLast = fertTime, FertRank = fertRank };
+        WaterTimeLast = waterTime;
+        FertTimeLast = fertTime;
+        FertRank = fertRank;
+
+        if (entityID != -1)
+        {
+            EntityID.Add(entityID);
+        }
+    }
+
+    public void AddEntity(int entityID)
+    {
+        if (EntityID == null) EntityID = new List<int>();
+        if (!EntityID.Contains(entityID))
+        {
+            EntityID.Add(entityID);
+        }
+    }   
+
+    public bool CheckEmpty()
+    {
+        return EntityID == null || EntityID.Count == 0;
     }
 }
 
@@ -57,18 +78,23 @@ public class WorldState : MonoBehaviour
     [Header("地图存储")]
     private BasicCellData[] BasicMapData;  //全部地图信息，存建筑用ID
     private Dictionary<Vector3Int, DetailedCellData> DetailedMapData = new();    //详细地块信息
-
-
     public Dictionary<int, EntityRuntime> Entitys { get; private set; } = new();  //当前正在运行的设备实例，只存有运行数据的
 
-    //private Dictionary<string, TileBase> TileDict;
     [Header("数据引用")]     
     public ItemDatabaseSO ItemDatabase; //wup数据库
-    //public TileDatabaseSO TileDatabase; //wup数据库
 
     [Header("特殊引用")]     
     [SerializeField] private TileBase farmlandTile;
     [SerializeField] private Transform playerTransform;
+    [SerializeField] private GameObject DroppedItem_Prefab;
+
+
+    [Header("暴露数据")]
+    [SerializeField] private BackpackContainer backpackContainer_Mono;
+    public ItemContainer backpackContainer 
+    {
+        get { return backpackContainer_Mono?.GetContainer(); }
+    }
 
     private static WorldState _instance;
     public static WorldState Instance 
@@ -109,7 +135,7 @@ public class WorldState : MonoBehaviour
         cellSize = MainTile.cellSize;
         Debug.Log("MapInitComplete");
     }
-    private bool RegisterEntity(int id, EntityRuntime rt)//仅允许使用此方法注册物体实例，以确保ID唯一且正确设置反向引用
+    private bool RegisterEntity(int id,Vector3Int pivotPos, EntityRuntime rt)//仅允许使用此方法注册物体实例，以确保ID唯一且正确设置反向引用
     {
         if (Entitys == null) Entitys = new Dictionary<int, EntityRuntime>();
         if (rt == null) return false;
@@ -123,7 +149,7 @@ public class WorldState : MonoBehaviour
         Entitys.Add(id, rt);
 
         // 反向赋值便于查找
-        rt.Init(id, this);
+        rt.Init(id, pivotPos, this);
 
         nextEntityId ++;
         Debug.Log($"EntityRegisteredInID:{id}");
@@ -189,7 +215,7 @@ public class WorldState : MonoBehaviour
                 BasicMapData[index].Empty = false;
             }
         }
-        RegisterEntity(nextEntityId, rt);
+        RegisterEntity(nextEntityId, cellPos, rt);
     }
     public void PlaceEntity(Vector3Int cellPos, string itemID)
     {
@@ -222,7 +248,7 @@ public class WorldState : MonoBehaviour
                 BasicMapData[index].Empty = false;
             }
         }
-        RegisterEntity(nextEntityId, rt);
+        RegisterEntity(nextEntityId, cellPos, rt);
     }
 
     public void PlaceTile(Vector3Int cellPos, TileBase tile,EntityRuntime runtimeSc,int tileLayer, out int EntityID)
@@ -248,11 +274,27 @@ public class WorldState : MonoBehaviour
         targetTilemap.SetTile(cellPos, tile);
         if (!DetailedMapData.ContainsKey(cellPos)) { ApplyDetailedMapData(cellPos, nextEntityId); }
         EntityID = nextEntityId;
-        RegisterEntity(nextEntityId, runtimeSc);
+        RegisterEntity(nextEntityId, cellPos, runtimeSc);
     }
-    public void SwitchTile(Vector3Int cellPos, TileBase tile)
+    public void SwitchTile(Vector3Int cellPos, TileBase tile,int tileLayer)
     {
-        UperTile.SetTile(cellPos, tile);
+        Tilemap targetTilemap;
+        switch (tileLayer)
+        {
+            case 0:
+                targetTilemap = MainTile;
+                break;
+            case 1:
+                targetTilemap = OverlapTile;
+                break;
+            case 2:
+                targetTilemap = UperTile;
+                break;
+            default:
+                Debug.LogError($"Invalid tile layer: {tileLayer}");
+                return;
+        }
+        targetTilemap.SetTile(cellPos, tile);
     }
     public BasicCellData GetCell(Vector3Int target, out bool hasDetail, out DetailedCellData detailedData)
     {
@@ -288,7 +330,7 @@ public class WorldState : MonoBehaviour
         {
             if (!DetailedMapData.ContainsKey(grid))
             {
-                DetailedCellData newCell = DetailedCellData.Create();
+                DetailedCellData newCell = new DetailedCellData();
                 DetailedMapData.Add(grid, newCell);
             }
         }
@@ -297,7 +339,7 @@ public class WorldState : MonoBehaviour
     {
         if (!DetailedMapData.ContainsKey(grid))
         {
-            DetailedCellData newCell = DetailedCellData.Create();
+            DetailedCellData newCell = new DetailedCellData();
             DetailedMapData.Add(grid, newCell);
         }
     }
@@ -307,8 +349,7 @@ public class WorldState : MonoBehaviour
         {
             if (!DetailedMapData.ContainsKey(grid))
             {
-                DetailedCellData newCell = DetailedCellData.Create();
-                newCell.EntityID = entityID;    
+                DetailedCellData newCell = new DetailedCellData(entityID);
                 DetailedMapData.Add(grid, newCell);
             }
         }
@@ -317,8 +358,7 @@ public class WorldState : MonoBehaviour
     {
         if (!DetailedMapData.ContainsKey(grid))
         {
-            DetailedCellData newCell = DetailedCellData.Create();
-            newCell.EntityID = entityID;
+            DetailedCellData newCell = new DetailedCellData(entityID);
             DetailedMapData.Add(grid, newCell);
         }
     }
@@ -333,23 +373,28 @@ public class WorldState : MonoBehaviour
         }
     }
     //=========================================================================================
-
-
-    //=========================================================================================
     //掉落物生成
-    public void SpawnItem(Vector3Int gridPos, int itemID)
+    public void SpawnItem(Vector3Int gridPos, ItemStack stack, float randomOffset = 0.5f)
     {
-        var def = ItemRegistry.Get(itemID);
-        if (def == null)
-        {
-            Debug.LogError($"Invalid item ID: {itemID}");
-            return;
-        }
-        Vector3 worldPos = CellToWorld(gridPos);
-        //GameObject obj = Instantiate(def.prefabObj, worldPos, Quaternion.identity);
-        //TODO：掉落物的运行时组件设计与注册
+        Vector3 dropPosition = CellToWorld(gridPos);
+        Vector3 offset = new Vector3(Random.Range(-randomOffset, randomOffset), Random.Range(-randomOffset, randomOffset), 0);
+        GameObject newDrop = Instantiate(DroppedItem_Prefab, dropPosition + offset, Quaternion.identity);
+        DroppedItem dropScript = newDrop.GetComponent<DroppedItem>();
+        dropScript.Init(stack);
     }
-    //=========================================================================================
+    public void SpawnItem(Vector3Int gridPos, int itemID, int count, float randomOffset = 0.5f)
+    {
+        for (int i = 0; i < count; i++) 
+        { 
+            Vector3 dropPosition = CellToWorld(gridPos);
+            Vector3 offset = new Vector3(Random.Range(-randomOffset, randomOffset), Random.Range(-randomOffset, randomOffset), 0);
+            GameObject newDrop = Instantiate(DroppedItem_Prefab, dropPosition + offset, Quaternion.identity);
+            DroppedItem dropScript = newDrop.GetComponent<DroppedItem>();
+            dropScript.Init(new ItemStack { count = count, itemId = itemID});
+        }
+    }
+
+
 
     //=========================================================================================
     //玩家相关
@@ -358,8 +403,52 @@ public class WorldState : MonoBehaviour
         Vector3 playerPos = playerTransform.position;
         return ((playerPos - pos).magnitude);
     }
-    //=========================================================================================
 
+    public Vector3 PlayerPos()
+    {
+        return playerTransform.position;
+    }
+
+    //=========================================================================================
+    //生命周期
+    public void DestroyEntity(int entityID)
+    {
+        EntityRuntime entityRuntime = GetEntity(entityID);
+        Vector3Int pivotPos = entityRuntime.PivotPos;
+
+        Entitys.Remove(entityID);
+
+        if (DetailedMapData.ContainsKey(pivotPos))
+        {
+            DetailedMapData[pivotPos].EntityID.Remove(entityID);
+            if (DetailedMapData[pivotPos].CheckEmpty())
+            {
+                DetailedMapData.Remove(pivotPos);
+            }
+        }
+    }
+    public void InteractAt(Vector3Int interactPos)
+    {
+        Debug.Log("A1");
+        if (!DetailedMapData.ContainsKey(interactPos)){ return; }
+        Debug.Log("A2");
+
+        DetailedCellData cellData = DetailedMapData[interactPos];
+        Debug.Log("A3");
+        foreach(var entityID in cellData.EntityID)
+        {
+            EntityRuntime entity = GetEntity(entityID);
+            if (entity != null)
+            {
+                Debug.Log("A4");
+                if(entity is IInteractable interactable)
+                {
+                    interactable.OnInteract();
+                }
+            }
+        }
+    }
+    //=========================================================================================
 
 
 
@@ -384,14 +473,17 @@ public class WorldState : MonoBehaviour
         {
             if (!hasDetail) { return; }
 
-            if (detailedData.EntityID != -1) //有实体
+            if (!detailedData.CheckEmpty()) //有实体
             {
-                EntityRuntime entity = GetEntity(detailedData.EntityID);
-                if (entity is Farmland_Entity farmland)
-                {
-                    farmland.Water();
-                    Debug.Log("FarmlandWatered!");
-                    DetailedMapData[targetGridPos] = detailedData; //更新详细数据
+                foreach (var entityID in detailedData.EntityID)
+                { 
+                    EntityRuntime entity = GetEntity(entityID);
+                    if (entity is Farmland_Entity farmland)
+                    {
+                        farmland.Water();
+                        Debug.Log("FarmlandWatered!");
+                        DetailedMapData[targetGridPos] = detailedData; //更新详细数据
+                    }
                 }
             }
         }

@@ -11,7 +11,7 @@ public class Feature_Fertilizer : ItemFeature, IHoldInteract
         WorldState.Instance.GetCell(interactGrid, out bool hasDetail, out DetailedCellData detailedData);
         if (!hasDetail) { return; }
 
-        int entityID = detailedData.EntityID;
+        int entityID = detailedData.EntityID[0];
         if (entityID == 0) { return; }
 
         if (WorldState.Instance.GetEntity(entityID) is Farmland_Entity farmland)

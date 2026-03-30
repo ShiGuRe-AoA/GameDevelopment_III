@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -12,7 +13,7 @@ public interface IPlantable
 
 
 }
-public class Farmland_Entity : EntityRuntime, IPlantable
+public class Farmland_Entity : EntityRuntime, IPlantable, IInteractable
 {
     public Vector3Int GridPos { get; private set; }
 
@@ -94,9 +95,28 @@ public class Farmland_Entity : EntityRuntime, IPlantable
             }
         }
     }
+
+    public bool TryHarvest()
+    {
+        if (CropInstanceId <= 0) { return false; }
+
+        EntityRuntime cropRuntime = WorldState.Instance.GetEntity(CropInstanceId);
+        if (cropRuntime is Crops_Entity cropsEntity && cropsEntity.canHarvest)
+        {
+            int productID = cropsEntity.Product.ID_num;
+            int spawnCount = cropsEntity.harvestedCount;
+
+            WorldState.Instance.SpawnItem(GridPos, productID, spawnCount);
+            WorldState.Instance.DestroyEntity(CropInstanceId);
+            CropInstanceId = 0;
+            WorldState.Instance.SwitchTile(GridPos, null,2); // 恢复为基础地块
+            return true;
+        }
+        return false;
+    }
     public void SwitchTile(TileBase income)
     {
-        WorldState.Instance.SwitchTile(GridPos, income);
+        WorldState.Instance.SwitchTile(GridPos, income, 2);
     }
     public void ClearCrop()
     {
@@ -120,5 +140,12 @@ public class Farmland_Entity : EntityRuntime, IPlantable
     public override void Load()
     {
         // TODO: 从 SaveData 恢复
+    }
+
+    public void OnInteract()
+    {
+        if(CropInstanceId <= 0) { return; }
+
+        TryHarvest();
     }
 }

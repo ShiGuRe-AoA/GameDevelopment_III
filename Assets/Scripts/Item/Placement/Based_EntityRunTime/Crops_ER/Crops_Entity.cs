@@ -22,11 +22,16 @@ public class Crops_Entity : EntityRuntime
     protected List<TileBase> cropTiles = new();
     protected int tileCount => cropTiles.Count;
 
+    public bool canHarvest { get; private set; }  //是否可以收获
+    public ItemBase_SO Product { get; private set; }    //产物ID（对应的物品ID）
+
+    public int harvestedCount { get; private set; } = 4; //产物产量
+
+
     protected float maxGrowthTime;  //生长时间（单位，游戏分钟）
     protected float currentGrowthTime;  //当前生长时间（单位，游戏分钟）
     protected bool needWater;  //是否需要浇水
     protected Farmland_Entity farmland_Entity; //关联的农田实体
-    protected bool canHarvest;  //是否可以收获
     protected ItemBase_SO seedItem; //作物对应的物品ID
 
     public virtual void Init(ItemBase_SO seedItem, int entityId, Farmland_Entity farmland_Entity,List<TileBase> cropTiles ,Genome genome = null, bool needWater = true )
@@ -40,17 +45,14 @@ public class Crops_Entity : EntityRuntime
         canHarvest = false;
 
         maxGrowthTime = 30f; //默认生长时间为120分钟（2小时），可根据作物类型调整
-    }
 
-    public override void OnInteract()
-    {
-        base.OnInteract();
-        if (canHarvest)
+        foreach(var feature in seedItem.Features)
         {
-            //TODO:对接生成掉落物部分
-            Debug.LogError("傻逼，没做这块的TODO就着急测试？！");
+            if(feature is Feature_Seed seedFeature)
+            {
+                Product = seedFeature.Product;
+            }
         }
-
     }
 
     public override void OnMinuteUpdate()
@@ -72,7 +74,7 @@ public class Crops_Entity : EntityRuntime
 
                 int tileIndex = Mathf.Min((int)(growthPercnt / tileDivision), tileCount - 1);
 
-                WorldState.Instance.SwitchTile(farmland_Entity.GridPos, cropTiles[tileIndex]);
+                WorldState.Instance.SwitchTile(farmland_Entity.GridPos, cropTiles[tileIndex],2);
             }
         }
 

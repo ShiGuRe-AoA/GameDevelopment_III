@@ -79,4 +79,9 @@ public class ItemContainer_Base : MonoBehaviour
         this.collectedParent = collectParent;
         InitContainer(true);
     }
+
+    public ItemContainer GetContainer()
+    {
+        return container;
+    }
 }

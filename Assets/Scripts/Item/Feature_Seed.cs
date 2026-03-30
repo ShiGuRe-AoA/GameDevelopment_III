@@ -17,11 +17,11 @@ public class Feature_Seed : ItemFeature, IHoldInteract
         if(itemCount <= 0) { return; }
 
         WorldState.Instance.GetCell(interactGrid, out bool hasDetail, out DetailedCellData detailedData);
-        if(!hasDetail || detailedData.EntityID == 0)
+        if(!hasDetail || detailedData.CheckEmpty())
         {
             return;
         }
-        int entityID = detailedData.EntityID;
+        int entityID = detailedData.EntityID[0];//这可能是个坑
         EntityRuntime entityRuntime = WorldState.Instance.GetEntity(entityID);
         if (entityRuntime is Farmland_Entity farmLand)
         {

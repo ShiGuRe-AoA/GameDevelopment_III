@@ -2,19 +2,21 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public interface IInteractable
+{
+    public void OnInteract();
+}
 public class EntityRuntime
 {
     public int EntityId { get; protected set; }
+    public Vector3Int PivotPos { get; protected set; }
 
-    public virtual void Init(int entityId, WorldState worldState)
+    public virtual void Init(int entityId,Vector3Int pivotPos, WorldState worldState)
     {
         EntityId = entityId;
+        PivotPos = pivotPos;
     }
     public virtual void OnAwake()
-    {
-
-    }
-    public virtual void OnInteract()
     {
 
     }

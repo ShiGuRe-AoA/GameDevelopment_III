@@ -93,6 +93,9 @@ public class InputManager : MonoBehaviour
     private void Interact_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
         Debug.Log("Player Interact");
+
+        Vector3Int interactGrid = playerController.InteractTilePosition;
+        WorldState.Instance.InteractAt(interactGrid);
     }
 
     //============================================================================================
