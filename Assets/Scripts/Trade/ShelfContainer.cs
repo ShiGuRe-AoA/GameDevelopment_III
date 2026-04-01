@@ -12,27 +12,16 @@ public class ShelfContainer : ItemContainer_Base
     [SerializeField] private List<ItemSlotUI> _saleSlots = new(); 
     public IReadOnlyList<ItemSlotUI> saleSlots { get; private set; }
 
-    [SerializeField] private int _shelfLevel;
-    public int ShelfLevel
-    {
-        get => _shelfLevel;
-        private set => _shelfLevel = value;
-    }
-
+    // 仔细想想, shelfLevel不应该放到shelf里面,应该是一个比较全局的变量, 脚本里的应该只能get到全局里的值
+    [SerializeField] private int shelfLevel;
 
     // 售卖槽位占货仓槽位的数量
     // 分为已解锁和未被解锁
-    [SerializeField] private int _saleSlotCount;
-    public int SaleSlotCount => _saleSlotCount;
+    [SerializeField] private int saleSlotCount;
     
     // 已解锁售卖槽位在升级时可被增加
     // 可能需要外部引用商店等级之类的
-    [SerializeField] private int _interactableSlotCount;
-    public int InteractableSlotCount
-    {
-        get => _interactableSlotCount;
-        private set => _interactableSlotCount = value;
-    }
+    [SerializeField] private int interactableSlotCount;
 
 
     public bool IsOpen { get; private set; }
@@ -41,7 +30,7 @@ public class ShelfContainer : ItemContainer_Base
     {
         base.Awake();
         SlotController.Instance.RefreshAll(container);
-        saleSlots = Utils.ReadOnly<ItemSlotUI>(UISlots, () => _saleSlotCount);
+        saleSlots = Utils.ReadOnly<ItemSlotUI>(UISlots, () => saleSlotCount);
         RefreshSaleSlotsDebug();
     }
 
@@ -96,10 +85,10 @@ public class ShelfContainer : ItemContainer_Base
     // 每次打开Shelf的时候刷新一下看看是否
     public void RefreshInteractableSlot()
     {
-        for(int i = 0; i < _saleSlotCount; i++)
+        for(int i = 0; i < saleSlotCount; i++)
         {
             // 这里如果ItemSlotUI有更方便的函数需要改
-            if (i < _interactableSlotCount)
+            if (i < interactableSlotCount)
                 UISlots[i].Interactable = true;
             else
                 UISlots[i].Interactable = false;
@@ -108,7 +97,7 @@ public class ShelfContainer : ItemContainer_Base
 
     public void UpgradeShelf(int ShelfLevel)
     {
-        this.ShelfLevel = ShelfLevel; // 因为我感觉Shelf还是得和玩家挂钩
+        this.shelfLevel = ShelfLevel; // 因为我感觉Shelf还是得和玩家挂钩
 
     }
 

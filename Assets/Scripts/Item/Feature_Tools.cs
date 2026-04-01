@@ -8,6 +8,7 @@ public enum ToolType
     Axe,
     WateringCan
 }
+
 [CreateAssetMenu(menuName = "Game/Feature/Tool")]
 [SerializeField]
 public class Feature_Tools : ItemFeature, IHoldInteract
