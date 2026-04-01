@@ -13,6 +13,11 @@ public class CustomerCreator : MonoBehaviour
 
     private void Awake()
     {
+        if(shelfContainer == null)
+        {
+            shelfContainer = FindObjectOfType<ShelfContainer>()
+                ?? throw new ArgumentNullException(nameof(shelfContainer));
+        }
         if (customerPrefab == null)
         {
             throw new ArgumentNullException(nameof(customerPrefab));

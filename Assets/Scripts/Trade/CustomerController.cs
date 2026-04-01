@@ -4,11 +4,10 @@ using UnityEngine;
 
 public class CustomerController : MonoBehaviour
 {
-    [SerializeField] private ShelfContainer shelfContainer;
+    private ShelfContainer shelfContainer;
 
     private bool isBuyying = false;     // 是不是正在买
-    private bool haveBought = false;    // 买没买过东西
-    private bool isAttracted = false;   // 被没被吸引来
+    private bool canAttract = false;    // 可不可被吸引
 
     // 需要从ShelfContainer里要什么商品, 要几个, 要完设个bool可以离开 canLeave
     // 根据玩家态度(待在原地时长)和获得质量给钱 - 需要设计函数
@@ -16,8 +15,7 @@ public class CustomerController : MonoBehaviour
     private void Awake()
     {
         isBuyying = false;
-        haveBought = false;
-        isAttracted = false;
+        canAttract = false;
     }
 
     public void Init(ShelfContainer _shelfContainer)
@@ -29,19 +27,33 @@ public class CustomerController : MonoBehaviour
     // 或者顾客每次到某些范围内就自动进入一个可被吸引的List,其中有的不会直接排队
     // Trade部分应该会另起一个类, 将顾客放到List里, 然后顾客再引这个list看前面有多少个,随人数和时间欲望递减
     // 可能用WorldState检测站在某个单元格上的顾客可以买
+
+    // canAttract + customer走到一定范围内再执行 Attract()
     public void Attract()
     {
-
+        Trade_Customer.Instance.Attract(this);
+        canAttract = false;
     }
 
-    public void Buy()
+    // customer在List里比较远 + 等待时长久 执行LoseAttract()
+    public void LoseAttract()
     {
-
+        Trade_Customer.Instance.AttractExit(this);
+        canAttract = true;
     }
 
-    public void Leave()
+    // customer在Buy列表里等待时长久, 态度变差, 给钱少
+    public void Buyying()
     {
+        Trade_Customer.Instance.Buy(this);
+        Trade_Customer.Instance.AttractExit(this);
+        // todo: 根据Buy队列前几个的意图推断自己的意图, 从ShelfContainer里找Item
+    }
 
+    public void HaveBought()
+    {
+        Trade_Customer.Instance.BuyExit(this);
+        canAttract = false;
     }
 
     

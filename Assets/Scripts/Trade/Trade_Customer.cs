@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using UnityEngine;
 
 // 顾客买玩家商品
@@ -12,17 +14,13 @@ public class Trade_Customer : MonoBehaviour
         {
             if(_instance == null)
             {
-                _instance = FindObjectOfType<Trade_Customer>();
-                if(_instance == null)
-                {
-                    Debug.LogError("Trade_Customer not found");
-                }
+                _instance = FindObjectOfType<Trade_Customer>()
+                    ?? throw new InvalidOperationException("Trade_Customer not found in scene");
             }
             return _instance;
         }
     }
-    // 可被吸引(不会排队)
-    private List<CustomerController> customers_canBeAttracted = new List<CustomerController>();
+
     // 正在排队(可能会流失)
     private List<CustomerController> customers_beAttracted = new List<CustomerController>();
     // 正在买(不会流失)
@@ -38,5 +36,39 @@ public class Trade_Customer : MonoBehaviour
     void Update()
     {
         
+    }
+
+    public void Clear()
+    {
+        customers_beAttracted.Clear();
+        customers_isBuyying.Clear();
+    }
+
+    public void Attract(CustomerController customer)
+    {
+        var c = customers_beAttracted;
+        if (c.Contains(customer)) return;
+        else c.Add(customer);
+    }
+
+    public void AttractExit(CustomerController customer)
+    {
+        var c = customers_beAttracted;
+        if (c.Contains(customer)) c.Remove(customer);
+        else return;
+    }
+
+    public void Buy(CustomerController customer)
+    {
+        var c = customers_isBuyying;
+        if(c.Contains(customer)) return;
+        else c.Add(customer);
+    }
+
+    public void BuyExit(CustomerController customer)
+    {
+        var c = customers_isBuyying;
+        if(c.Contains(customer)) c.Remove(customer);
+        else return;
     }
 }
