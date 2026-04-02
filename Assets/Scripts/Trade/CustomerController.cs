@@ -25,8 +25,8 @@ public class CustomerController : MonoBehaviour
 
     // todo:被吸引来和离开的函数
     // 或者顾客每次到某些范围内就自动进入一个可被吸引的List,其中有的不会直接排队
-    // Trade部分应该会另起一个类, 将顾客放到List里, 然后顾客再引这个list看前面有多少个,随人数和时间欲望递减
-    // 可能用WorldState检测站在某个单元格上的顾客可以买
+    // Trade 部分应该会另起一个类, 将顾客放到 List 里, 然后顾客再引这个list看前面有多少个, 随人数和时间欲望递减
+    // 可能用 WorldState 检测站在某个单元格上的顾客可以买
 
     // canAttract + customer走到一定范围内再执行 Attract()
     public void Attract()
@@ -48,6 +48,8 @@ public class CustomerController : MonoBehaviour
         Trade_Customer.Instance.Buy(this);
         Trade_Customer.Instance.AttractExit(this);
         // todo: 根据Buy队列前几个的意图推断自己的意图, 从ShelfContainer里找Item
+        //
+        var need = shelfContainer.GetContainer().Items[0];
     }
 
     public void HaveBought()
