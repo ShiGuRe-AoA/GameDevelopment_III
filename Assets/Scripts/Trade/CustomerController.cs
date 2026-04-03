@@ -15,27 +15,45 @@ public class CustomerController : MonoBehaviour
 
     private ShelfContainer shelfContainer;
 
-    private bool isBuyying = false;     // 是不是正在买
-    private bool canAttract = false;    // 可不可被吸引, 可能会被删, 现在是临时条件
+    //private bool isBuyying = false;     // 是不是正在买
+    //private bool canAttract = false;    // 可不可被吸引, 可能会被删, 现在是临时条件
 
     // 需要从ShelfContainer里要什么商品, 要几个, 要完设个bool可以离开 canLeave
 
     // 根据玩家态度(待在原地时长)和获得质量给钱 - 需要设计函数
 
+    [SerializeField] private const float startAttitude = 100;    // 初始态度
     private float attractAttitude;
-    private ComplexTime startAttractTime;
     private float buyAttitude;
+
+    // 买东西最低态度基于初始态度的比例
+    [SerializeField] private float minBuyAttitudeFactor = 0.5f;
+
+    private ComplexTime startAttractTime;
     private ComplexTime startBuyTime;
+
+    // 最低忍耐时长(无列表长度修正), 超过则开始减态度
+    [SerializeField] private float minWaitingTime_Attract = 3;
+    [SerializeField] private float minWaitingTime_Buy;
+
+    // 最高忍耐时长(无列表长度修正), 超过则退出
+    [SerializeField] private float maxWaitingTime_Attract = 10;
+    [SerializeField] private float maxWaitingTime_Buy;
 
     private void Awake()
     {
-        isBuyying = false;
-        canAttract = false;
+        //isBuyying = false;
+        //canAttract = false;
     }
 
     private void Start()
     {
         ChangeState(State.Idle);
+    }
+
+    private void Update()
+    {
+        TickState();
     }
 
     private void ChangeState(State newState)
@@ -154,7 +172,7 @@ public class CustomerController : MonoBehaviour
         Trade_Customer.Instance.AttractExit(this);
         
         startBuyTime = TimeManager.Instance.GetComplexTime();
-        buyAttitude = 100;
+        buyAttitude = startAttitude;
         // todo: 根据Buy队列前几个的意图推断自己的意图, 从ShelfContainer里找Item
         //
         //var need = shelfContainer.GetContainer().Items[0];
@@ -163,7 +181,7 @@ public class CustomerController : MonoBehaviour
 
     public void TickBuying()
     {
-        
+        BuyWill();
     }
 
     public void HaveBought()
@@ -184,6 +202,15 @@ public class CustomerController : MonoBehaviour
     // 购买欲望(付钱的多少) 随时间变化函数
     private void BuyWill()
     {
+        float t = TimeManager.Instance.TimeDistToNow(startBuyTime);
+        var c = minBuyAttitudeFactor;
+        var T = maxWaitingTime_Buy;
+        var a = (1 - c) * startAttitude / (T * T);
+        if (t < T)
+            buyAttitude = startAttitude - a * t * t;
+        else
+            buyAttitude = startAttitude * c;
+        // 钱随buyAttitude的函数
 
     }
     
