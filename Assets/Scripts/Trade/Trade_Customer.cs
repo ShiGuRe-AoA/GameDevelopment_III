@@ -22,9 +22,9 @@ public class Trade_Customer : MonoBehaviour
     }
 
     // 正在排队(可能会流失)
-    private List<CustomerController> customers_beAttracted = new List<CustomerController>();
+    [SerializeField] private List<CustomerController> customers_beAttracted = new List<CustomerController>();
     // 正在买(不会流失)
-    private List<CustomerController> customers_isBuyying = new List<CustomerController>();
+    [SerializeField] private List<CustomerController> customers_isBuyying = new List<CustomerController>();
 
     // Start is called before the first frame update
     void Start()
@@ -56,6 +56,13 @@ public class Trade_Customer : MonoBehaviour
         var c = customers_beAttracted;
         if (c.Contains(customer)) c.Remove(customer);
         else return;
+    }
+
+    // 顾客在Attract列表中的位置
+    public int AttractPlace(CustomerController customer)
+    {
+        var c = customers_beAttracted;
+        return c.IndexOf(customer);
     }
 
     public void Buy(CustomerController customer)
