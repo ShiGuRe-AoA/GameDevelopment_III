@@ -16,7 +16,7 @@ public class CustomerCreator : MonoBehaviour
     // 之后prefab可能需要变成结构体
     // 结构体大概会包含 Animator(使用哪个模型) 之类的
     [SerializeField] private GameObject customerPrefab;
-    [SerializeField] private Animator[] customerAnims;
+    [SerializeField] private RuntimeAnimatorController[] customerAnims;
     [SerializeField] private ShelfContainer shelfContainer;
 
     // 当时间到集市日, customerCount < maxCustomerCount时 为true
@@ -68,7 +68,7 @@ public class CustomerCreator : MonoBehaviour
             ?? throw new ArgumentException(nameof(Animator));
 
         int animOrder = AnimOrder();
-        customerAnim = customerAnims[animOrder];
+        customerAnim.runtimeAnimatorController = customerAnims[animOrder];
         // 将生成的顾客放进当前场景列表里
         curCustomers.Add(BindCustomerAnim(customerCtrl, animOrder));
 
