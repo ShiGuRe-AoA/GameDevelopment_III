@@ -7,6 +7,20 @@ using UnityEngine;
 
 public class CustomerCreator : MonoBehaviour
 {
+
+    private static CustomerCreator _instance;
+    public static CustomerCreator Instance
+    {
+        get
+        {
+            if(_instance == null)
+            {
+                _instance = FindAnyObjectByType<CustomerCreator>()
+                    ?? throw new InvalidOperationException("CustomerCreator not found in scene!");
+            }
+            return _instance;
+        }
+    } 
     private struct Customer_Anim
     {
         public CustomerController customer;
@@ -19,17 +33,26 @@ public class CustomerCreator : MonoBehaviour
     [SerializeField] private RuntimeAnimatorController[] customerAnims;
     [SerializeField] private ShelfContainer shelfContainer;
 
+    // 上一次生成顾客的时间
+    private ComplexTime createTime;
+    // 生成顾客间隔游戏内分钟
+    [SerializeField] private float createDist = 5;
+
     // 当时间到集市日, customerCount < maxCustomerCount时 为true
     private bool canCreate;
 
     // 用于存储场景中有的Anim, 防止同一模型同时出现
-    private List<Customer_Anim> curCustomers;
-    private List<Customer_Anim> leaveCustomers;
+    [SerializeField] private List<Customer_Anim> curCustomers;  // ReadOnly
+    [SerializeField] private List<Customer_Anim> leaveCustomers;    // ReadOnly
+    
     // 离开后重新生成的最小间隔
-    private float minLeaveTime = 10;
+    [SerializeField] private float minLeaveTime = 20;
 
-    private int customerCount = 0;
-    private int maxCustomerCount;
+    [SerializeField] private int customerCount = 0; // ReadOnly
+
+    // 场景中最多同时出现顾客数
+    [SerializeField] private int maxCustomerCount;
+
 
     private void Awake()
     {
@@ -117,7 +140,7 @@ public class CustomerCreator : MonoBehaviour
 
         while (true)
         {
-            randomOrder = UnityEngine.Random.Range(0, maxCustomerCount);
+            randomOrder = UnityEngine.Random.Range(0, customerAnims.Count() - 1);
 
             if (triedOrders.Contains(randomOrder))
             {
@@ -156,7 +179,7 @@ public class CustomerCreator : MonoBehaviour
             }
         }
 
-        result = default(Customer_Anim);
+        result = default;
         return false;
     }
 

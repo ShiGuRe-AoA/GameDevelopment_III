@@ -188,6 +188,8 @@ public class CustomerController : MonoBehaviour
     {
         Trade_Customer.Instance.BuyExit(this);
         //canAttract = false;
+
+        CustomerCreator.Instance.RemoveCustomer(this);
     }
 
 
@@ -210,6 +212,8 @@ public class CustomerController : MonoBehaviour
             buyAttitude = startAttitude - a * t * t;
         else
             buyAttitude = startAttitude * c;
+        
+        
         // Ç®ËæbuyAttitudeµÄº¯Êý
 
     }
