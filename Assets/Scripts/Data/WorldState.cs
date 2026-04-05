@@ -66,6 +66,11 @@ public class DetailedCellData
 
 public class WorldState : MonoBehaviour
 {
+    //========================= ‘›”√
+    [Header("«Æ")]
+    public int coin;
+    //=========================
+
     [Header("µÿÕº…Ë÷√")]
     public Vector2Int MapSize;
     public Vector3 cellSize;

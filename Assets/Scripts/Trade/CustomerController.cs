@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class CustomerController : MonoBehaviour
 {
+    // todo: ¼ÓÑ°Â·Âß¼­
+
     private enum State
     {
         Idle,
