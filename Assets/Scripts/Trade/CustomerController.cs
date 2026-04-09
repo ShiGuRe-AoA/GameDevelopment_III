@@ -42,6 +42,10 @@ public class CustomerController : MonoBehaviour
     [SerializeField] private float maxWaitingTime_Attract = 10;
     [SerializeField] private float maxWaitingTime_Buy;
 
+    // 需要买的, 钱
+    [SerializeField] private float money;
+    [SerializeField] private ItemStack buyItem;
+
     private void Awake()
     {
         //isBuyying = false;
@@ -132,6 +136,8 @@ public class CustomerController : MonoBehaviour
 
     // Buy() 一次
     // Buyying() 持续 -> HaveBought() 一次
+
+    // 如果售罄也要 HaveBought()
 
     public void TickIdle()
     {

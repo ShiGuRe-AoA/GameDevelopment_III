@@ -39,7 +39,7 @@ public class CustomerCreator : MonoBehaviour
     [SerializeField] private float createDist = 5;
 
     // 当时间到集市日, customerCount < maxCustomerCount时 为true
-    private bool canCreate;
+    private bool isTradeDay;  // 是否到集市日
 
     // 用于存储场景中有的Anim, 防止同一模型同时出现
     [SerializeField] private List<Customer_Anim> curCustomers;  // ReadOnly
@@ -67,19 +67,30 @@ public class CustomerCreator : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        createTime = TimeManager.Instance.GetComplexTime();
+    }
+
     // todo: 大概需要某个计时器来执行这个东西
     private void Update()
     {
-        //if (canCreate)
-        //{
-        //    canCreate = false;
-        //    CreateCustomer();
-        //}
+        // isTradeDay 外部获取
+        if (!isTradeDay) return;
+
+        if (customerCount < maxCustomerCount)
+        {
+            if (TimeManager.Instance.TimeDistToNow(createTime) >= createDist)
+                CreateCustomer();
+        }
     }
 
     // 在 Creator 内执行
     public void CreateCustomer()
     {
+        // 标记本次生成顾客的时间点
+        createTime = TimeManager.Instance.GetComplexTime();
+        
         // 生成顾客预制体
         GameObject customer = Instantiate(customerPrefab);
         // 查找顾客的 Controller 组件
