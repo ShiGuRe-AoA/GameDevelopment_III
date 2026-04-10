@@ -181,8 +181,10 @@ public class CustomerController : MonoBehaviour
         
         startBuyTime = TimeManager.Instance.GetComplexTime();
         buyAttitude = startAttitude;
+
         // todo: 根据Buy队列前几个的意图推断自己的意图, 从ShelfContainer里找Item
-        //
+        buyItem = BuyItem();
+        
         //var need = shelfContainer.GetContainer().Items[0];
 
     }
@@ -223,7 +225,46 @@ public class CustomerController : MonoBehaviour
         
         
         // 钱随buyAttitude的函数
+    }
+    
+    // 控制买什么, 随机种子之后可能需要变
+    private ItemStack BuyItem()
+    {
+        var r = Random.Range(0, 100);
 
+        HashSet<int> triedIndex = new HashSet<int>();
+
+        ItemContainer container;
+        int count;
+
+        int randomIndex;
+        
+        if(r > 80)
+        {
+            container = playerStore.shelfContainer.GetContainer();
+            count = playerStore.shelfContainer.GetSlotCount();        
+        }
+        else
+        {
+            container = playerStore.saleContainer.GetContainer();
+            count = playerStore.saleContainer.GetSlotCount();
+        }
+        while (true)
+        {
+            randomIndex = Random.Range(0, count);
+            
+            if (triedIndex.Contains(randomIndex))
+            {
+                continue;
+            }
+            
+            triedIndex.Add(randomIndex);
+            
+            if(SlotController.Instance.TryGetItem(container, randomIndex, out var item))
+            {
+                return item;
+            }
+        }
     }
     
 }

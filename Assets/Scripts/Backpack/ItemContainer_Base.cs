@@ -86,6 +86,11 @@ public class ItemContainer_Base : MonoBehaviour
         return container;
     }
 
+    public int GetSlotCount()
+    {
+        return container.SlotCount;
+    }
+
     public void Refresh()
     {
         SlotController.Instance.RefreshAll(container);
