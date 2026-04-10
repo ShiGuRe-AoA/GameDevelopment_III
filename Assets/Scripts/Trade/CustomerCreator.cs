@@ -31,7 +31,7 @@ public class CustomerCreator : MonoBehaviour
     // 结构体大概会包含 Animator(使用哪个模型) 之类的
     [SerializeField] private GameObject customerPrefab;
     [SerializeField] private RuntimeAnimatorController[] customerAnims;
-    [SerializeField] private ShelfContainer shelfContainer;
+    [SerializeField] private PlayerStoreContainer playerStore;
 
     // 上一次生成顾客的时间
     private ComplexTime createTime;
@@ -56,10 +56,10 @@ public class CustomerCreator : MonoBehaviour
 
     private void Awake()
     {
-        if(shelfContainer == null)
+        if(playerStore == null)
         {
-            shelfContainer = FindObjectOfType<ShelfContainer>()
-                ?? throw new ArgumentNullException(nameof(shelfContainer));
+            playerStore = FindObjectOfType<PlayerStoreContainer>()
+                ?? throw new ArgumentNullException(nameof(playerStore));
         }
         if (customerPrefab == null)
         {
@@ -96,7 +96,7 @@ public class CustomerCreator : MonoBehaviour
         // 查找顾客的 Controller 组件
         CustomerController customerCtrl = customer.GetComponent<CustomerController>()
             ?? throw new ArgumentException(nameof(CustomerController));
-        customerCtrl.Init(shelfContainer);
+        customerCtrl.Init(playerStore);
         // 查找顾客的 Animator 组件并为其赋值
         Animator customerAnim = customer.GetComponent<Animator>()
             ?? throw new ArgumentException(nameof(Animator));

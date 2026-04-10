@@ -15,12 +15,12 @@ public class CustomerController : MonoBehaviour
     }
     private State _state;
 
-    private ShelfContainer shelfContainer;
+    private PlayerStoreContainer playerStore;
 
     //private bool isBuyying = false;     // 是不是正在买
     //private bool canAttract = false;    // 可不可被吸引, 可能会被删, 现在是临时条件
 
-    // 需要从ShelfContainer里要什么商品, 要几个, 要完设个bool可以离开 canLeave
+    // 需要从ShelfContainer里要什么商品, 要几个, 要完设个bool可以离开 canLeave0
 
     // 根据玩家态度(待在原地时长)和获得质量给钱 - 需要设计函数
 
@@ -117,9 +117,9 @@ public class CustomerController : MonoBehaviour
                 break;
         }
     }
-    public void Init(ShelfContainer _shelfContainer)
+    public void Init(PlayerStoreContainer _playerStore)
     {
-        this.shelfContainer = _shelfContainer;
+        this.playerStore = _playerStore;
     }
 
     // todo:被吸引来和离开的函数

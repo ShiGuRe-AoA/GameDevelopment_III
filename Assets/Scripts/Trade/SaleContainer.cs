@@ -2,10 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ShelfContainer : ItemContainer_Base
+public class SaleContainer : ItemContainer_Base
 {
-    // 仔细想想, shelfLevel不应该放到shelf里面,应该是一个比较全局的变量, 脚本里的应该只能get到全局里的值
-    [SerializeField] private int shelfLevel;
+    // 当前可用的数量(表现为 对外展示 ? 个商品)
+    [SerializeField] private int interactableSlotCount;
+
     public bool IsOpen { get; private set; }
 
     protected override void Awake()
