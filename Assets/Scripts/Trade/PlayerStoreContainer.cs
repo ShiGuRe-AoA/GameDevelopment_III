@@ -20,6 +20,9 @@ public class PlayerStoreContainer : MonoBehaviour
     public void OpenShelf()
     {
         StorePanel.gameObject.SetActive(true);
+        shelfContainer.Refresh();
+        saleContainer.Refresh();
+
         IsOpen = true;
     }
 

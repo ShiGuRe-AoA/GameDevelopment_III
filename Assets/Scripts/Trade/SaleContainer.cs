@@ -12,7 +12,6 @@ public class SaleContainer : ItemContainer_Base
     protected override void Awake()
     {
         base.Awake();
-        SlotController.Instance.RefreshAll(container);
     }
 
     private void Start()
@@ -30,4 +29,5 @@ public class SaleContainer : ItemContainer_Base
         SlotController.Instance.TryAddItem("WateringCan_1", 1, container);
 
     }
+
 }
