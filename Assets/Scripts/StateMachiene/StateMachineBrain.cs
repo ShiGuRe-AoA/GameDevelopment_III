@@ -4,5 +4,5 @@ using UnityEngine;
 
 public class StateMachineBrain : MonoBehaviour
 {
-    
+    //public List<StateMachine<>>
 }
