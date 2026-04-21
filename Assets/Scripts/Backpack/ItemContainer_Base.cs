@@ -17,6 +17,7 @@ public class ItemContainer_Base : MonoBehaviour
     protected virtual void Awake()
     {
         InitContainer();
+        Refresh();
     }
 
     private void InitContainer(bool force = false)
@@ -83,5 +84,15 @@ public class ItemContainer_Base : MonoBehaviour
     public ItemContainer GetContainer()
     {
         return container;
+    }
+
+    public int GetSlotCount()
+    {
+        return container.SlotCount;
+    }
+
+    public void Refresh()
+    {
+        SlotController.Instance.RefreshAll(container);
     }
 }

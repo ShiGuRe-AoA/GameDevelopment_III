@@ -126,6 +126,20 @@ public class SlotController : MonoBehaviour
         return slots;
     }
 
+    //获取某单元格物品信息
+    public bool TryGetItem(ItemContainer container, int containerIndex, out ItemStack item)
+    {
+        if (container.Items[containerIndex].IsEmpty)
+        {
+            item = default;
+            return false;
+        }
+        
+        item = container.Items[containerIndex];
+        return true;
+
+    }
+
     //尝试添加物品
     public bool TryAddItem(int newItemID, int count, ItemContainer container)
     {

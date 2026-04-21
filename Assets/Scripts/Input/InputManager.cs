@@ -2,9 +2,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public class PlayerInputContext 
+{ 
+    public Vector2 MoveInput;
+    public bool InteractPressed;
+    public bool OpenBackpackPressed;
+    public bool PausePressed;
+    public bool CompositeOperation;
+}
 public class InputManager : MonoBehaviour
 {
     public static InputManager Instance { get; private set; }
+
+    public readonly PlayerInputContext Context = new();
 
     public InputActionMain inputActions;
     public PlayerController playerController;
@@ -45,7 +55,6 @@ public class InputManager : MonoBehaviour
 
         inputActions.Enable();
     }
-
     private void OnDisable()
     {
         if (inputActions != null)
@@ -64,12 +73,14 @@ public class InputManager : MonoBehaviour
     //============================================================================================
     private void PlayerMove_canceled(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
+        Context.MoveInput = Vector2.zero;
         if (playerController != null)
             playerController.SetMoveInput(Vector2.zero);
     }
 
     private void PlayerMove_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
+        Context.MoveInput = obj.ReadValue<Vector2>();
         if (playerController != null)
             playerController.SetMoveInput(obj.ReadValue<Vector2>());
     }
@@ -117,11 +128,13 @@ public class InputManager : MonoBehaviour
     private void CompositeOperation_started(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
         CompositeOperation = true;
+        Context.CompositeOperation = true;
     }
 
     private void CompositeOperation_canceled(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
         CompositeOperation = false;
+        Context.CompositeOperation = false;
     }
 
     private void Update()

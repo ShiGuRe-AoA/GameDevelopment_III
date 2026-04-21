@@ -35,12 +35,29 @@ public class PlayerController : MonoBehaviour
 
     public Rigidbody2D rb;
     private SpriteRenderer spriteRenderer;
+    private PlayerInputContext playerInputContext;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
-        InitialFacingDirection();
+
+        PlayerContext machineContext = new PlayerContext();
+
+        machineContext.PlayerController = this;
+        machineContext.InputContext = playerInputContext;
+        machineContext.Player = transform;
+        //context.Animator
+        machineContext.Rb = rb;
+        machineContext.MoveSpeed = MaxSpeed;
+
+        StateMachine<PlayerContext> playerStateMachine = new(machineContext);
+        playerStateMachine.ChangeState(new State_Idle(playerStateMachine, machineContext));
+        StateMachineBrain.Instance.RegistryMachine(playerStateMachine, transform);
+
+
+
+    InitialFacingDirection();
     }
 
     private void Start()
