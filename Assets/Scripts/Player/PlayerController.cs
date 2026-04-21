@@ -1,105 +1,149 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
 public class FacingDirectionCompanion
 {
+    public Vector3Int Offset;
+    public Sprite Sprite;
+
     public FacingDirectionCompanion(Vector3Int offset, Sprite sprite)
     {
-        this.offset = offset;
-        this.sprite = sprite;
+        Offset = offset;
+        Sprite = sprite;
     }
-
-    public Vector3Int offset;
-    public Sprite sprite;
 }
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerController : MonoBehaviour
 {
-    private Dictionary<Direction, FacingDirectionCompanion> facingDirection = new();
+    #region Inspector
+
+    [Header("场景引用信息")]
+    [SerializeField] private Tilemap mainTile;
+    [SerializeField] private List<Sprite> facingSprites = new();
+
+    [Header("移动信息")]
+    [SerializeField] private float maxDirectionChange = 10f;
+    [SerializeField] private float maxSpeed = 5f;
+
+    [Header("运行动态引用")]
+    [SerializeField] private PlayerInputContext playerInputContext;
+
+    #endregion
+
+    #region 组件引用
+
+    private Rigidbody2D rb;
+    private SpriteRenderer spriteRenderer;
+
+    #endregion
+
+    #region 状态
+
+    private StateMachine<PlayerContext> playerStateMachine;
+
+    public bool canMove;
+    public bool canInteract;
+
+    #endregion
+
+    #region 动画
+
+    private readonly Dictionary<Direction, FacingDirectionCompanion> facingDirectionMap = new();
+    private Direction playerFacingDir = Direction.Down;
     private Vector3Int interactOffset = Vector3Int.up;
 
-    private Vector3Int TilePosition => MainTile.WorldToCell(rb.position);
-    public Vector3Int InteractTilePosition => MainTile.WorldToCell(rb.position) + interactOffset;
+    #endregion
 
-    public List<Sprite> FacingSprites = new List<Sprite>();
-    public float MaxDirectionChange;
-    public float MaxSpeed;
-    public Tilemap MainTile;
+    #region 动态存储数据
 
-    private Vector2 playerMoveDir_cur;
-    private Vector2 playerMoveDir_exp;
-    private Direction playerFacingDir = Direction.Down;
+    private Vector2 playerMoveDirCur;
+    private Vector2 playerMoveDirExp;
 
-    public Rigidbody2D rb;
-    private SpriteRenderer spriteRenderer;
-    private PlayerInputContext playerInputContext;
+    #endregion
+
+    #region Properties
+
+    public Rigidbody2D Rb => rb;
+    public Tilemap MainTile => mainTile;
+    public float MaxSpeed => maxSpeed;
+    public float MaxDirectionChange => maxDirectionChange;
+    public Direction PlayerFacingDir => playerFacingDir;
+
+    private Vector3Int TilePosition => mainTile.WorldToCell(rb.position);
+    public Vector3Int InteractTilePosition => mainTile.WorldToCell(rb.position) + interactOffset;
+
+    #endregion
+
+
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
 
-        PlayerContext machineContext = new PlayerContext();
-
-        machineContext.PlayerController = this;
-        machineContext.InputContext = playerInputContext;
-        machineContext.Player = transform;
-        //context.Animator
-        machineContext.Rb = rb;
-        machineContext.MoveSpeed = MaxSpeed;
-
-        StateMachine<PlayerContext> playerStateMachine = new(machineContext);
-        playerStateMachine.ChangeState(new State_Idle(playerStateMachine, machineContext));
-        StateMachineBrain.Instance.RegistryMachine(playerStateMachine, transform);
-
-
-
-    InitialFacingDirection();
-    }
-
-    private void Start()
-    {
+        InitializeFacingDirection();
+        InitializeStateMachine();
     }
 
     private void Update()
     {
-        UpdateMoveDirection(playerMoveDir_exp);
+        UpdateMoveDirection();
     }
 
     private void FixedUpdate()
     {
-        UpdatePosition(playerMoveDir_cur);
+        UpdatePosition();
     }
 
-    private void InitialFacingDirection()
+    private void InitializeStateMachine()
     {
-        FacingDirectionCompanion upCompanion = new(
-            new Vector3Int(0, 1),
-            FacingSprites[0]
-        );
+        PlayerContext machineContext = new PlayerContext
+        {
+            PlayerController = this,
+            InputContext = playerInputContext,
+            Player = transform,
+            Rb = rb
+        };
 
-        FacingDirectionCompanion leftCompanion = new(
-            new Vector3Int(-1, 0),
-            FacingSprites[1]
-        );
+        playerStateMachine = new StateMachine<PlayerContext>(machineContext);
+        playerStateMachine.ChangeState(new State_Idle(playerStateMachine, machineContext));
 
-        FacingDirectionCompanion downCompanion = new(
-            new Vector3Int(0, -1),
-            FacingSprites[2]
-        );
+        //StateMachineBrain.Instance.RegistryMachine(playerStateMachine, transform);
+    }
 
-        FacingDirectionCompanion rightCompanion = new(
-            new Vector3Int(1, 0),
-            FacingSprites[3]
-        );
+    private void InitializeFacingDirection()
+    {
+        if (facingSprites == null || facingSprites.Count < 4)
+        {
+            Debug.LogError("FacingSprites 至少需要按顺序配置 4 张：Up / Left / Down / Right", this);
+            return;
+        }
 
-        facingDirection.Add(Direction.Up, upCompanion);
-        facingDirection.Add(Direction.Left, leftCompanion);
-        facingDirection.Add(Direction.Down, downCompanion);
-        facingDirection.Add(Direction.Right, rightCompanion);
+        facingDirectionMap.Clear();
+
+        facingDirectionMap.Add(Direction.Up, new FacingDirectionCompanion(
+            new Vector3Int(0, 1, 0),
+            facingSprites[0]
+        ));
+
+        facingDirectionMap.Add(Direction.Left, new FacingDirectionCompanion(
+            new Vector3Int(-1, 0, 0),
+            facingSprites[1]
+        ));
+
+        facingDirectionMap.Add(Direction.Down, new FacingDirectionCompanion(
+            new Vector3Int(0, -1, 0),
+            facingSprites[2]
+        ));
+
+        facingDirectionMap.Add(Direction.Right, new FacingDirectionCompanion(
+            new Vector3Int(1, 0, 0),
+            facingSprites[3]
+        ));
+
+        ApplyFacing(Direction.Down);
     }
 
     /// <summary>
@@ -107,62 +151,85 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void SetMoveInput(Vector2 input)
     {
-        input = input.normalized;
-        playerMoveDir_exp = input;
+        playerMoveDirExp = input.normalized;
 
-        // 只有在有输入时才更新朝向
-        if (input != Vector2.zero)
+        if (playerMoveDirExp.sqrMagnitude > 0.0001f)
         {
-            Direction curFacingDir = GetFacingDirection();
-            playerFacingDir = curFacingDir;
-            interactOffset = facingDirection[curFacingDir].offset;
-            spriteRenderer.sprite = facingDirection[curFacingDir].sprite;
+            Direction facing = GetFacingDirection(playerMoveDirExp);
+            ApplyFacing(facing);
         }
     }
 
-    private void UpdateMoveDirection(Vector2 input)
+    public void ClearMoveInput()
     {
-        Vector2 dir = (playerMoveDir_exp - playerMoveDir_cur).normalized;
-        float dist = (playerMoveDir_exp - playerMoveDir_cur).magnitude;
+        playerMoveDirExp = Vector2.zero;
+    }
 
-        float thisChange = MaxDirectionChange * Time.deltaTime;
+    private void ApplyFacing(Direction direction)
+    {
+        if (!canMove){ return;}
+        playerFacingDir = direction;
+
+        if (!facingDirectionMap.TryGetValue(direction, out var companion))
+            return;
+
+        interactOffset = companion.Offset;
+
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.sprite = companion.Sprite;
+        }
+    }
+
+    private void UpdateMoveDirection()
+    {
+        Vector2 delta = playerMoveDirExp - playerMoveDirCur;
+        float dist = delta.magnitude;
+        float thisChange = maxDirectionChange * Time.deltaTime;
+
+        if (dist <= 0.0001f)
+            return;
 
         if (dist < thisChange)
         {
-            playerMoveDir_cur = playerMoveDir_exp;
+            playerMoveDirCur = playerMoveDirExp;
         }
         else
         {
-            playerMoveDir_cur += thisChange * dir;
+            Vector2 dir = delta / dist;
+            playerMoveDirCur += thisChange * dir;
         }
 
-        if (playerMoveDir_cur.magnitude > 1)
+        if (playerMoveDirCur.sqrMagnitude > 1f)
         {
-            playerMoveDir_cur = playerMoveDir_cur.normalized;
+            playerMoveDirCur = playerMoveDirCur.normalized;
         }
     }
 
-    private void UpdatePosition(Vector2 dir)
+    private void UpdatePosition()
     {
-        rb.MovePosition(rb.position + dir * MaxSpeed * Time.fixedDeltaTime);
+        if (!canMove) { return; }
+        Debug.Log("Moving Position");
+        rb.MovePosition(rb.position + playerMoveDirCur * maxSpeed * Time.fixedDeltaTime);
     }
 
-    private Direction GetFacingDirection()
+    private Direction GetFacingDirection(Vector2 moveDir)
     {
-        if (Mathf.Abs(playerMoveDir_exp.x) >= Mathf.Abs(playerMoveDir_exp.y))
-            return playerMoveDir_exp.x >= 0f ? Direction.Right : Direction.Left;
+        if (Mathf.Abs(moveDir.x) >= Mathf.Abs(moveDir.y))
+            return moveDir.x >= 0f ? Direction.Right : Direction.Left;
         else
-            return playerMoveDir_exp.y >= 0f ? Direction.Up : Direction.Down;
+            return moveDir.y >= 0f ? Direction.Up : Direction.Down;
     }
 
     private void OnDrawGizmos()
     {
-        if (MainTile == null || rb == null) return;
+        if (mainTile == null || rb == null)
+            return;
 
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(MainTile.GetCellCenterWorld(TilePosition), 0.25f);
+        Gizmos.DrawWireSphere(mainTile.GetCellCenterWorld(TilePosition), 0.25f);
 
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(MainTile.GetCellCenterWorld(InteractTilePosition), 0.25f);
+        Gizmos.DrawWireSphere(mainTile.GetCellCenterWorld(InteractTilePosition), 0.25f);
     }
 }

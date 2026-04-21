@@ -4,8 +4,17 @@ using UnityEngine;
 
 public class State_BasicMove : State<PlayerContext>
 {
+
     public State_BasicMove(StateMachine<PlayerContext> machine, PlayerContext ctx) : base(machine, ctx)
     {
+    }
+
+
+    public override void Enter()
+    {
+        base.Enter();
+        Ctx.PlayerController.canMove = true;
+        Ctx.PlayerController.canInteract = true;
     }
     public override void Update()
     {
@@ -18,14 +27,21 @@ public class State_BasicMove : State<PlayerContext>
         {
             Ctx.PlayerController.SetMoveInput(Ctx.InputContext.MoveInput);
         }
+
+
     }
-    
 }
 
 public class State_Idle : State<PlayerContext>
 {
     public State_Idle(StateMachine<PlayerContext> machine, PlayerContext ctx) : base(machine, ctx)
     {
+    }
+    public override void Enter()
+    {
+        base.Enter();
+        Ctx.PlayerController.canMove = true;
+        Ctx.PlayerController.canInteract = true;
     }
     public override void Update()
     {
@@ -37,6 +53,12 @@ public class State_Idle : State<PlayerContext>
     }
 }
 
+
+
+public enum InteractPhase
+{
+
+}
 public class State_Interact : State<PlayerContext>
 {
     public State_Interact(StateMachine<PlayerContext> machine, PlayerContext ctx) : base(machine, ctx)
@@ -46,6 +68,8 @@ public class State_Interact : State<PlayerContext>
     public override void Enter()
     {
         base.Enter();
+        Ctx.PlayerController.canMove = false;
+        Ctx.PlayerController.canInteract = false;
     }
     public override void Exit()
     {

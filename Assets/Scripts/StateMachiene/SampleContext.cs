@@ -9,5 +9,7 @@ public class PlayerContext
     public Transform Player;
     public Animator Animator;
     public Rigidbody2D Rb;
-    public float MoveSpeed;
+    //public float MoveSpeed;
+    //public Direction FacingDirection;
+    //public float MaxDirectionChange;
 }

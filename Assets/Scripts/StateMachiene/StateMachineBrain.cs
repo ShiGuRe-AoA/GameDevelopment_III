@@ -25,7 +25,7 @@ public class StateMachineBrain : MonoBehaviour
     {
         if (statemachine_Dict.ContainsKey(obj))
         {
-            Debug.Log($"Multy Machine Detected: {obj.name}");
+            Debug.Log($"Multiple Machine Detected: {obj.name}");
             return false;
         }
 
