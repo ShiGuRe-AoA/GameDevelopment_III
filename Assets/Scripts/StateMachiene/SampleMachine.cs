@@ -15,6 +15,34 @@ public class State_BasicMove : State<PlayerContext>
         base.Enter();
         Ctx.PlayerController.canMove = true;
         Ctx.PlayerController.canInteract = true;
+
+        //TODO: 收到美术的移动动画后进行替换
+        string State_IdelUp = "Player_Idel_Up";
+        string State_IdelLeft = "Player_Idel_Left";
+        string State_IdelDown = "Player_Idel_Down";
+        string State_IdelRight = "Player_Idel_Right";
+
+        string curDirAnima;
+        switch (Ctx.PlayerController.PlayerFacingDir)
+        {
+            case Direction.Up:
+                curDirAnima = State_IdelUp;
+                break;
+            case Direction.Left:
+                curDirAnima = State_IdelLeft;
+                break;
+            case Direction.Down:
+                curDirAnima = State_IdelDown;
+                break;
+            case Direction.Right:
+                curDirAnima = State_IdelRight;
+                break;
+            default:
+                curDirAnima = State_IdelDown;
+                break;
+        }
+
+        Ctx.Animator.Play(curDirAnima);
     }
     public override void Update()
     {
@@ -42,6 +70,33 @@ public class State_Idle : State<PlayerContext>
         base.Enter();
         Ctx.PlayerController.canMove = true;
         Ctx.PlayerController.canInteract = true;
+
+        string State_IdelUp = "Player_Idel_Up";
+        string State_IdelLeft = "Player_Idel_Left";
+        string State_IdelDown = "Player_Idel_Down";
+        string State_IdelRight = "Player_Idel_Right";
+
+        string curDirAnima;
+        switch (Ctx.PlayerController.PlayerFacingDir)
+        {
+            case Direction.Up:
+                curDirAnima = State_IdelUp;
+                break;
+            case Direction.Left:
+                curDirAnima = State_IdelLeft;
+                break;
+            case Direction.Down:
+                curDirAnima = State_IdelDown;
+                break;
+            case Direction.Right:
+                curDirAnima = State_IdelRight;
+                break;
+            default:
+                curDirAnima = State_IdelDown;
+                break;
+        }
+
+        Ctx.Animator.Play(curDirAnima);
     }
     public override void Update()
     {
@@ -70,6 +125,8 @@ public class State_Interact : State<PlayerContext>
         base.Enter();
         Ctx.PlayerController.canMove = false;
         Ctx.PlayerController.canInteract = false;
+
+        
     }
     public override void Exit()
     {

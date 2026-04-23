@@ -22,6 +22,7 @@ public class PlayerController : MonoBehaviour
     [Header("场景引用信息")]
     [SerializeField] private Tilemap mainTile;
     [SerializeField] private List<Sprite> facingSprites = new();
+    [SerializeField] private Animator animator;
 
     [Header("移动信息")]
     [SerializeField] private float maxDirectionChange = 10f;
@@ -104,13 +105,14 @@ public class PlayerController : MonoBehaviour
             PlayerController = this,
             InputContext = playerInputContext,
             Player = transform,
+            Animator = animator,
             Rb = rb
         };
 
         playerStateMachine = new StateMachine<PlayerContext>(machineContext);
         playerStateMachine.ChangeState(new State_Idle(playerStateMachine, machineContext));
 
-        //StateMachineBrain.Instance.RegistryMachine(playerStateMachine, transform);
+        StateMachineBrain.Instance.RegistryMachine(playerStateMachine, transform);
     }
 
     private void InitializeFacingDirection()
