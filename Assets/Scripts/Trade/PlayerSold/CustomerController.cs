@@ -266,5 +266,9 @@ public class CustomerController : MonoBehaviour
             }
         }
     }
+
+
+    // 感觉得把 ItemStack 翻译成 ItemBase_SO 存储的物品信息
+    // 然后用 ShopData_SO 的 price 定价
     
 }

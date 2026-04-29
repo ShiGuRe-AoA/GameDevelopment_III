@@ -7,6 +7,8 @@ public class SaleContainer : ItemContainer_Base
     // 当前可用的数量(表现为 对外展示 ? 个商品)
     [SerializeField] private int interactableSlotCount;
 
+    SaleItem[] saleItems;
+
     public bool IsOpen { get; private set; }
 
     protected override void Awake()
@@ -28,6 +30,17 @@ public class SaleContainer : ItemContainer_Base
         SlotController.Instance.TryAddItem("Hoe_1", 1, container);
         SlotController.Instance.TryAddItem("WateringCan_1", 1, container);
 
+    }
+
+    private void Init()
+    {
+        for(int i = 0; i < interactableSlotCount; i++)
+        {
+            saleItems[i].currentSlot = i;
+
+            
+
+        }
     }
 
 }
