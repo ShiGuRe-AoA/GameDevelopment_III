@@ -136,6 +136,7 @@ public class SlotController : MonoBehaviour
         }
         
         item = container.Items[containerIndex];
+
         return true;
 
     }

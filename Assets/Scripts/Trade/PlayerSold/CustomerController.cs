@@ -43,7 +43,7 @@ public class CustomerController : MonoBehaviour
     [SerializeField] private float maxWaitingTime_Buy;
 
     // 需要买的, 钱
-    [SerializeField] private float money;
+    [SerializeField] private float price;
     [SerializeField] private ItemStack buyItem;
 
     private void Awake()
@@ -270,5 +270,10 @@ public class CustomerController : MonoBehaviour
 
     // 感觉得把 ItemStack 翻译成 ItemBase_SO 存储的物品信息
     // 然后用 ShopData_SO 的 price 定价
+    private void TranslateBuyItem()
+    {
+        
+    }
+
     
 }
