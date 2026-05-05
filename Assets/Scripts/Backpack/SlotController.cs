@@ -17,6 +17,11 @@ public struct ItemStack
         count = 0;
         extra = 0;
     }
+    public int GetPrice()
+    {
+        var def = ItemRegistry.Get(itemId);
+        return def.BasePrice;
+    }
 }
 public class ContainerView
 {

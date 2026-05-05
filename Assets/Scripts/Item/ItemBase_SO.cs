@@ -19,6 +19,8 @@ public class ItemBase_SO : ScriptableObject
     public string ID_str;   //开发者使用的字符ID避免混淆
     public string Name; //UI名称
     public int StackAmount; //最大堆叠
+    public int BasePrice;   //基础售价  
+    public bool HasRank;    //应用星级体系
     public Sprite ItemSprite;   //物品贴图，暂定同时用于物品栏显示和掉落物显示
 
     public List<ScriptableObject> Features; //物品类别
