@@ -396,6 +396,11 @@ public class SlotController : MonoBehaviour
         for (int i = 0; i < container.SlotCount; i++)
             RefreshSlot(container, i);
     }
+    public void ClearSlot(ItemContainer container, int containerIndex)
+    {
+        container.Items[containerIndex].Clear();
+        RefreshSlot(container, containerIndex);
+    }
 
     //清空手持物
     public void ClearHoldingItem()
