@@ -22,6 +22,13 @@ public struct ItemStack
         var def = ItemRegistry.Get(itemId);
         return def.BasePrice;
     }
+
+    // 获取物品最大堆叠
+    public int GetStackAmount()
+    {
+        var def = ItemRegistry.Get(itemId);
+        return def.StackAmount;
+    }
 }
 public class ContainerView
 {
@@ -145,6 +152,42 @@ public class SlotController : MonoBehaviour
         return true;
 
     }
+
+    //遍历container, 检测是否所有单元格为空
+    public bool TryGetItem(ItemContainer container, out List<ItemStack> items)
+    {
+        items = new List<ItemStack>();
+        
+        for(int i = 0; i < container.SlotCount; i++)
+        {
+            if (!container.Items[i].IsEmpty)
+            {
+                items.Add(container.Items[i]);
+            }
+        }
+
+        return items.Count > 0;
+    }
+
+    //遍历container, 检测是否所有单元格为空, 并记录下标
+    public bool TryGetItem(ItemContainer container, out List<ItemStack> items, out List<int> stackIndex)
+    {
+        items = new List<ItemStack>();
+        stackIndex = new List<int>();
+
+        for (int i = 0; i < container.SlotCount; i++)
+        {
+            if (!container.Items[i].IsEmpty)
+            {
+                items.Add(container.Items[i]);
+                stackIndex.Add(i);
+            }
+        }
+
+        return items.Count > 0;
+    }
+
+
 
     //尝试添加物品
     public bool TryAddItem(int newItemID, int count, ItemContainer container)

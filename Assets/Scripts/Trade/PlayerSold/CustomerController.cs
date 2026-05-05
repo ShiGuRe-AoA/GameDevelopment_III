@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class CustomerController : MonoBehaviour
 {
@@ -24,7 +26,7 @@ public class CustomerController : MonoBehaviour
 
     // 根据玩家态度(待在原地时长)和获得质量给钱 - 需要设计函数
 
-    [SerializeField] private const float startAttitude = 100;    // 初始态度
+    [SerializeField] private const float startAttitude = 1;    // 初始态度
     private float attractAttitude;
     private float buyAttitude;
 
@@ -42,8 +44,11 @@ public class CustomerController : MonoBehaviour
     [SerializeField] private float maxWaitingTime_Attract = 10;
     [SerializeField] private float maxWaitingTime_Buy;
 
-    // 需要买的, 钱
-    [SerializeField] private float price;
+    // 需要买的, 价格及数量
+    [SerializeField] private int price;
+    [SerializeField] private int count;
+    private int curPrice;
+
     [SerializeField] private ItemStack buyItem;
 
     private void Awake()
@@ -158,10 +163,10 @@ public class CustomerController : MonoBehaviour
     public void TickAttracting()
     {
         // todo: 写等待执行 -> LostAttract() 还是 Buy() 逻辑
-        // if a
+        // if a - attractAttitude -> 0
         LoseAttract();
         ChangeState(State.Idle);
-        // if b
+        // if b - attractAttitude > 0
         Buy();
         ChangeState(State.Buying);
 
@@ -182,16 +187,36 @@ public class CustomerController : MonoBehaviour
         startBuyTime = TimeManager.Instance.GetComplexTime();
         buyAttitude = startAttitude;
 
-        // todo: 根据Buy队列前几个的意图推断自己的意图, 从ShelfContainer里找Item
-        buyItem = BuyItem();
+        if (TryBuyItem(out ItemStack _buyItem))
+        {
+            buyItem = _buyItem;
+        }
+        else ChangeState(State.Quit);
         
         //var need = shelfContainer.GetContainer().Items[0];
+        // 上面这行我啥时候加的我忘了, 不过应该就是为了todo: buyItem = BuyItem()
+
+        // 初始化预期数目和价格
+        price = GetItemPrice(buyItem);
+        count = GetItemCount(buyItem);
+
 
     }
 
     public void TickBuying()
     {
-        BuyWill();
+        if (!IsBuyItemValid(buyItem))
+        {
+            if (TryBuyItem(out ItemStack _buyItem))
+            {
+                buyItem = _buyItem;
+                price = GetItemPrice(buyItem);
+                count = GetItemCount(buyItem);
+            }
+            else ChangeState(State.Quit);
+        }
+        //if(buyItem)
+        BuyWill(price, count);
     }
 
     public void HaveBought()
@@ -212,8 +237,9 @@ public class CustomerController : MonoBehaviour
     }
 
     // 购买欲望(付钱的多少) 随时间变化函数
-    private void BuyWill()
+    private void BuyWill(int _price, int _count)
     {
+
         float t = TimeManager.Instance.TimeDistToNow(startBuyTime);
         var c = minBuyAttitudeFactor;
         var T = maxWaitingTime_Buy;
@@ -222,58 +248,102 @@ public class CustomerController : MonoBehaviour
             buyAttitude = startAttitude - a * t * t;
         else
             buyAttitude = startAttitude * c;
-        
-        
-        // 钱随buyAttitude的函数
+
+
+        // 价格随buyAttitude的函数
+        curPrice = Mathf.FloorToInt(_price * (1 + buyAttitude));
     }
     
     // 控制买什么, 随机种子之后可能需要变
-    private ItemStack BuyItem()
+    // 控制的是哪个ItemStack, 具体买多少还要另加函数
+
+    // 当前期望购买物品是否合法
+    private bool IsBuyItemValid(ItemStack item)
     {
+        return !item.IsEmpty;
+    }
+    // 不合法时重新选择商品
+    private bool TryBuyItem(out ItemStack item)
+    {
+        item = ItemStack.Empty;
+
         var r = Random.Range(0, 100);
 
-        HashSet<int> triedIndex = new HashSet<int>();
+        ItemContainer aContainer;
+        int aCount;  // 槽位数
 
-        ItemContainer container;
-        int count;
+        ItemContainer bContainer;
+        int bCount;
 
         int randomIndex;
         
-        if(r > 80)
+        if(r >= 80)
         {
-            container = playerStore.shelfContainer.GetContainer();
-            count = playerStore.shelfContainer.GetSlotCount();        
+            aContainer = playerStore.shelfContainer.GetContainer();
+            aCount = playerStore.shelfContainer.GetSlotCount();
+
+            bContainer = playerStore.saleContainer.GetContainer();
+            bCount = playerStore.saleContainer.GetSlotCount();
         }
         else
         {
-            container = playerStore.saleContainer.GetContainer();
-            count = playerStore.saleContainer.GetSlotCount();
+            aContainer = playerStore.saleContainer.GetContainer();
+            aCount = playerStore.saleContainer.GetSlotCount();
+
+            bContainer = playerStore.shelfContainer.GetContainer();
+            bCount = playerStore.shelfContainer.GetSlotCount();
         }
-        while (true)
+
+        if(SlotController.Instance.TryGetItem(aContainer, out List<ItemStack> aItems))
         {
-            randomIndex = Random.Range(0, count);
-            
-            if (triedIndex.Contains(randomIndex))
-            {
-                continue;
-            }
-            
-            triedIndex.Add(randomIndex);
-            
-            if(SlotController.Instance.TryGetItem(container, randomIndex, out var item))
-            {
-                return item;
-            }
+            randomIndex = Random.Range(0, aItems.Count);
+            item = aItems[randomIndex];
+            return true;
         }
+
+        if(SlotController.Instance.TryGetItem(bContainer, out List<ItemStack> bItems))
+        {
+            randomIndex = Random.Range(0, bItems.Count);
+            item = bItems[randomIndex];
+            return true;
+        }
+
+        item = ItemStack.Empty;
+        return false;
     }
 
-
-    // 感觉得把 ItemStack 翻译成 ItemBase_SO 存储的物品信息
-    // 然后用 ShopData_SO 的 price 定价
-    private void TranslateBuyItem()
+    // 初始化购买物品的价格
+    private int GetItemPrice(ItemStack _buyItem)
     {
-        
+        return _buyItem.GetPrice();
     }
 
+    // 初始化购买物品的数量
+    private int GetItemCount(ItemStack _buyitem)
+    {
+        int max = _buyitem.GetStackAmount();    // 最大堆叠数
+        int count = _buyitem.count;               // 实际物品数
+        Vector2Int range = InitItemCountRange(max);
+        
+        // Random.Range(a,b) -> [a,b)
+        int buyCount = Random.Range(range.x, range.y + 1);
+
+        // 在顾客初始期望和实际物品数取较小值
+        return Mathf.Min(buyCount, count);
+    }
+    private Vector2Int InitItemCountRange(int max)
+    {
+        // 按最大堆叠的百分之多少计
+        // 3 的 10% 是 0.3 就向上取整
+        if (max <= 1) return new Vector2Int(1, 1);
+        if (max <= 10) return new Vector2Int(1, 2);
+        if (max <= 30) return new Vector2Int(2, 5);
+        if (max <= 50) return new Vector2Int(4, 10);
+        if (max <= 100) return new Vector2Int(5, 20);
+        if (max <= 300) return new Vector2Int(10, 30);
+
+        return new Vector2Int(10, 30);
+    }
     
+
 }
