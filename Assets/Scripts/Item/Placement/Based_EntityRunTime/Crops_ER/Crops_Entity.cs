@@ -44,7 +44,7 @@ public class Crops_Entity : EntityRuntime
         this.cropTiles = cropTiles;
         canHarvest = false;
 
-        maxGrowthTime = 30f; //默认生长时间为120分钟（2小时），可根据作物类型调整
+        maxGrowthTime = 2f; //默认生长时间为120分钟（2小时），可根据作物类型调整
 
         foreach(var feature in seedItem.Features)
         {

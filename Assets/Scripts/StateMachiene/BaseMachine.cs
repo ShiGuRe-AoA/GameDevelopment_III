@@ -102,6 +102,8 @@ public abstract class State<TContext> : IState
     public virtual void Update() { }
     public virtual void FixedUpdate() { }
     public virtual void HandleEvent(FsmEvent evt) { }
+
+
 }
 
 public interface IStateMachineRunner

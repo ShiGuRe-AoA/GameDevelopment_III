@@ -14480,10 +14480,36 @@ MonoBehaviour:
   - {fileID: 503451291, guid: 06609aebcbd71e145befd41c8ce174e9, type: 3}
   - {fileID: -27372737, guid: 06609aebcbd71e145befd41c8ce174e9, type: 3}
   - {fileID: 948672376, guid: 06609aebcbd71e145befd41c8ce174e9, type: 3}
+  animator: {fileID: 1816312204}
   maxDirectionChange: 10
   maxSpeed: 5
   canMove: 0
   canInteract: 0
+  IdelAction:
+  - {fileID: 11400000, guid: fd1abc3d6bdd7444e955d501fe24a1cc, type: 2}
+  - {fileID: 11400000, guid: 482b5de9fd1fd204b9854baf1d4ff704, type: 2}
+  - {fileID: 11400000, guid: 88f2df26920127942ac5e972332772f6, type: 2}
+  - {fileID: 11400000, guid: 908bcaa30753c714a88c171fc13bcf55, type: 2}
+  MoveAction:
+  - {fileID: 11400000, guid: 39afa52de5e448c46b0d6e540ac5928f, type: 2}
+  - {fileID: 11400000, guid: 3cb625ff8ccac444399469cd789c842e, type: 2}
+  - {fileID: 11400000, guid: 36584f1b3ed767f4381970652f26184b, type: 2}
+  - {fileID: 11400000, guid: e1189aa3620488e4092e75b7d6e0c956, type: 2}
+  TillingAction:
+  - {fileID: 11400000, guid: 26d06e1d826968d4e8c6d8aa1986dc15, type: 2}
+  - {fileID: 11400000, guid: 47a685a867d0fe44798607f285284aab, type: 2}
+  - {fileID: 11400000, guid: 0798df64b3a4236419d15d9ea8cbdf18, type: 2}
+  - {fileID: 11400000, guid: e9824e9a83be291499bb30d6d9401f65, type: 2}
+  WateringAction:
+  - {fileID: 11400000, guid: 915b4c58f7a8d084fa6b5ae5233fc947, type: 2}
+  - {fileID: 11400000, guid: 58246cc6e0f92234b950880436414372, type: 2}
+  - {fileID: 11400000, guid: f7d5d918447b2e844a98fd356914e968, type: 2}
+  - {fileID: 11400000, guid: 0cd4f83c79873bd4a86f589b7bc128ad, type: 2}
+  HarvestAction:
+  - {fileID: 11400000, guid: 015cbc1718b0beb4b93e544e21718319, type: 2}
+  - {fileID: 11400000, guid: 82e0d9c5d5eaf9b4c8bf3c4541d8b37c, type: 2}
+  - {fileID: 11400000, guid: 580867b214cdb0d48b7fad8d3627e8d8, type: 2}
+  - {fileID: 11400000, guid: 499d886699aedf04b9dd48a8838a996a, type: 2}
 --- !u!114 &1707658217
 MonoBehaviour:
   m_ObjectHideFlags: 0

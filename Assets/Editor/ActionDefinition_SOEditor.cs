@@ -94,6 +94,13 @@ public class ActionDefinition_SOEditor : Editor
         if (EditorGUI.EndChangeCheck())
         {
             previewTime = 0f;
+            SyncAnimatorStateNameFromClip();
+        }
+
+        if (GUILayout.Button("使用 Clip 文件名作为 StateName"))
+        {
+            Undo.RecordObject(target, "Sync Animator State Name From Clip");
+            SyncAnimatorStateNameFromClip();
         }
 
         EditorGUILayout.PropertyField(lockMoveProp);
@@ -107,7 +114,19 @@ public class ActionDefinition_SOEditor : Editor
             EditorGUILayout.FloatField("Duration", duration);
         }
     }
+    private void SyncAnimatorStateNameFromClip()
+    {
+        AnimationClip clip = clipProp.objectReferenceValue as AnimationClip;
+        if (clip == null) return;
 
+        string assetPath = AssetDatabase.GetAssetPath(clip);
+        string fileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(assetPath);
+
+        if (string.IsNullOrEmpty(fileNameWithoutExtension))
+            fileNameWithoutExtension = clip.name;
+
+        animatorStateNameProp.stringValue = fileNameWithoutExtension;
+    }
     private void DrawDefaultInspectorLists()
     {
         EditorGUILayout.Space(4);
@@ -168,7 +187,7 @@ public class ActionDefinition_SOEditor : Editor
         Rect centerTrackRect = new Rect(rect.x, rect.y + CenterLineY - rect.y - TrackHeight * 0.5f, rect.width, TrackHeight);
 
         EditorGUI.DrawRect(headerRect, new Color(0.20f, 0.20f, 0.20f, 1f));
-        EditorGUI.DrawRect(centerTrackRect, new Color(0.22f, 0.22f, 0.22f, 1f));
+        //EditorGUI.DrawRect(centerTrackRect, new Color(0.22f, 0.22f, 0.22f, 1f));
 
         Handles.color = new Color(0.45f, 0.45f, 0.45f, 1f);
         float y = rect.y + (CenterLineY - rect.y);

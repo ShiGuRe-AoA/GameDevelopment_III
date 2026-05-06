@@ -95,7 +95,17 @@ public class Farmland_Entity : EntityRuntime, IPlantable, IInteractable
             }
         }
     }
+    public bool CanHarvest()
+    {
+        if (CropInstanceId <= 0) { return false; }
 
+        EntityRuntime cropRuntime = WorldState.Instance.GetEntity(CropInstanceId);
+        if (cropRuntime is Crops_Entity cropsEntity && cropsEntity.canHarvest)
+        {
+            return true;
+        }
+        return false;
+    }
     public bool TryHarvest()
     {
         if (CropInstanceId <= 0) { return false; }
@@ -147,5 +157,14 @@ public class Farmland_Entity : EntityRuntime, IPlantable, IInteractable
         if(CropInstanceId <= 0) { return; }
 
         TryHarvest();
+    }
+
+    public InteractPhase OnInteractDetected()
+    {
+        if (CanHarvest())
+        {
+            return InteractPhase.Harvest;
+        }
+        return InteractPhase.None;
     }
 }

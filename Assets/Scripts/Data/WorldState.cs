@@ -434,24 +434,39 @@ public class WorldState : MonoBehaviour
     }
     public void InteractAt(Vector3Int interactPos)
     {
-        Debug.Log("A1");
+;
         if (!DetailedMapData.ContainsKey(interactPos)){ return; }
-        Debug.Log("A2");
 
         DetailedCellData cellData = DetailedMapData[interactPos];
-        Debug.Log("A3");
         foreach(var entityID in cellData.EntityID)
         {
             EntityRuntime entity = GetEntity(entityID);
             if (entity != null)
             {
-                Debug.Log("A4");
                 if(entity is IInteractable interactable)
                 {
                     interactable.OnInteract();
                 }
             }
         }
+    }
+    public InteractPhase DetectInteract(Vector3Int interactPos)
+    {
+        if (!DetailedMapData.ContainsKey(interactPos)) { return InteractPhase.None; }
+
+        DetailedCellData cellData = DetailedMapData[interactPos];
+        foreach (var entityID in cellData.EntityID)
+        {
+            EntityRuntime entity = GetEntity(entityID);
+            if (entity != null)
+            {
+                if (entity is IInteractable interactable)
+                {
+                    return interactable.OnInteractDetected();
+                }
+            }
+        }
+        return InteractPhase.None;
     }
     //=========================================================================================
 

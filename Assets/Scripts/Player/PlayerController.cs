@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -29,7 +30,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float maxSpeed = 5f;
 
     [Header("运行动态引用")]
-    [SerializeField] private PlayerInputContext playerInputContext;
+    [SerializeField] private PlayerInputContext playerInputContext = new();
 
     #endregion
 
@@ -43,6 +44,7 @@ public class PlayerController : MonoBehaviour
     #region 状态
 
     private StateMachine<PlayerContext> playerStateMachine;
+    private PlayerContext machineContext;
 
     public bool canMove;
     public bool canInteract;
@@ -50,7 +52,11 @@ public class PlayerController : MonoBehaviour
     #endregion
 
     #region 动画
-
+    [SerializeField] private List<ActionDefinition_SO> IdelAction = new();
+    [SerializeField] private List<ActionDefinition_SO> MoveAction = new();
+    [SerializeField] private List<ActionDefinition_SO> TillingAction = new();
+    [SerializeField] private List<ActionDefinition_SO> WateringAction = new();
+    [SerializeField] private List<ActionDefinition_SO> HarvestAction = new();
     private readonly Dictionary<Direction, FacingDirectionCompanion> facingDirectionMap = new();
     private Direction playerFacingDir = Direction.Down;
     private Vector3Int interactOffset = Vector3Int.up;
@@ -100,7 +106,7 @@ public class PlayerController : MonoBehaviour
 
     private void InitializeStateMachine()
     {
-        PlayerContext machineContext = new PlayerContext
+        machineContext = new PlayerContext
         {
             PlayerController = this,
             InputContext = playerInputContext,
@@ -113,6 +119,12 @@ public class PlayerController : MonoBehaviour
         playerStateMachine.ChangeState(new State_Idle(playerStateMachine, machineContext));
 
         StateMachineBrain.Instance.RegistryMachine(playerStateMachine, transform);
+
+        ActionRegistry.RegistryAction(ActionRegistry.PlayerAction, IdelAction);
+        ActionRegistry.RegistryAction(ActionRegistry.PlayerAction, MoveAction);
+        ActionRegistry.RegistryAction(ActionRegistry.PlayerAction, TillingAction);
+        ActionRegistry.RegistryAction(ActionRegistry.PlayerAction, WateringAction);
+        ActionRegistry.RegistryAction(ActionRegistry.PlayerAction, HarvestAction);
     }
 
     private void InitializeFacingDirection()
@@ -167,6 +179,17 @@ public class PlayerController : MonoBehaviour
         playerMoveDirExp = Vector2.zero;
     }
 
+    public void SetInputInfo(Vector2 moveInput)
+    {
+        playerInputContext.MoveInput = moveInput;
+    }
+
+    public bool TryInteract()
+    {
+        playerStateMachine.PushState(new State_Interact(playerStateMachine, machineContext));
+        return true;
+    }
+
     private void ApplyFacing(Direction direction)
     {
         if (!canMove){ return;}
@@ -211,7 +234,7 @@ public class PlayerController : MonoBehaviour
     private void UpdatePosition()
     {
         if (!canMove) { return; }
-        Debug.Log("Moving Position");
+        //Debug.Log("Moving Position");
         rb.MovePosition(rb.position + playerMoveDirCur * maxSpeed * Time.fixedDeltaTime);
     }
 

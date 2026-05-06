@@ -13,8 +13,18 @@ MonoBehaviour:
   m_Name: ActionDefinition_SO 2
   m_EditorClassIdentifier: Assembly-CSharp::ActionDefinition_SO
   AnimatorStateName: 
-  Clip: {fileID: 0}
-  Events: []
-  Ranges: []
+  Clip: {fileID: 7400000, guid: 0c439d97ea5c27747a54f265ca731b46, type: 2}
+  Events:
+  - name: EffectTime
+    time: 0.25
+  - name: CancelStart
+    time: 0.375
+  Ranges:
+  - name: Windup
+    start: 0
+    end: 0.25
+  - name: Recover
+    start: 0.25
+    end: 0.5
   LockMove: 1
   LockInteract: 1

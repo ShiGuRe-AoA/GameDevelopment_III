@@ -74,15 +74,17 @@ public class InputManager : MonoBehaviour
     private void PlayerMove_canceled(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
         Context.MoveInput = Vector2.zero;
-        if (playerController != null)
-            playerController.SetMoveInput(Vector2.zero);
+        playerController.SetInputInfo(Context.MoveInput);
+        //if (playerController != null)
+        //    playerController.SetMoveInput(Vector2.zero);
     }
 
     private void PlayerMove_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
         Context.MoveInput = obj.ReadValue<Vector2>();
-        if (playerController != null)
-            playerController.SetMoveInput(obj.ReadValue<Vector2>());
+        playerController.SetInputInfo(Context.MoveInput);
+        // if (playerController != null)
+        //     playerController.SetMoveInput(obj.ReadValue<Vector2>());
     }
 
     //============================================================================================
@@ -106,7 +108,7 @@ public class InputManager : MonoBehaviour
         Debug.Log("Player Interact");
 
         Vector3Int interactGrid = playerController.InteractTilePosition;
-        WorldState.Instance.InteractAt(interactGrid);
+        playerController.TryInteract();
     }
 
     //============================================================================================
