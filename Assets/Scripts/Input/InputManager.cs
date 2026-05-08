@@ -108,7 +108,7 @@ public class InputManager : MonoBehaviour
         Debug.Log("Player Interact");
 
         Vector3Int interactGrid = playerController.InteractTilePosition;
-        playerController.TryInteract();
+        playerController.SimpleInteract();
     }
 
     //============================================================================================

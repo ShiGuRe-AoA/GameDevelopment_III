@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 67704a72f97a1ef4a84c3db68cc8b0a0, type: 3}
-  m_Name: Player_Idel_Up
+  m_Name: Player_Idle_Right
   m_EditorClassIdentifier: Assembly-CSharp::ActionDefinition_SO
-  AnimatorStateName: Player_Idel_Up
-  Clip: {fileID: 7400000, guid: 4cbfbdcc354b5f84d89401c4cb028cc3, type: 2}
+  AnimatorStateName: Player_Idle_Right
+  Clip: {fileID: 7400000, guid: c3dd8e935391ffd4ba4f00407c7e992a, type: 2}
   Events:
   - name: CancelStart
     time: 0

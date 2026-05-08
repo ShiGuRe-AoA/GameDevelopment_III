@@ -184,9 +184,14 @@ public class PlayerController : MonoBehaviour
         playerInputContext.MoveInput = moveInput;
     }
 
-    public bool TryInteract()
+    public bool SimpleInteract()
     {
         playerStateMachine.PushState(new State_Interact(playerStateMachine, machineContext));
+        return true;
+    }
+    public bool ToolInteract(List<ToolType> tools)
+    {
+        playerStateMachine.PushState(new State_UseTool(playerStateMachine, machineContext, tools));
         return true;
     }
 

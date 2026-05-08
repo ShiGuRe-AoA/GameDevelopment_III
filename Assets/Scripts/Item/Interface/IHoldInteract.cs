@@ -8,6 +8,7 @@ public struct HoldInteractContext
     public Vector3Int InteractGrid;
     public bool isValid;
     public ItemContainer backpackContainer;
+    public PlayerController playerController;
     public int ItemID;
     public int containerIndex;
 }

@@ -16,6 +16,8 @@ public class Feature_Tools : ItemFeature, IHoldInteract
     public List<ToolType> ToolTypes = new();
     public void OnHoldInteract(HoldInteractContext context)
     {
-        WorldState.Instance.ItemInteract(context.InteractGrid, ToolTypes);
+        //WorldState.Instance.ItemInteract(context.InteractGrid, ToolTypes);
+        
+        context.playerController.ToolInteract(ToolTypes);
     }
 }

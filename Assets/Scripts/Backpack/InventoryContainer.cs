@@ -60,28 +60,31 @@ public class InventoryContainer : MonoBehaviour
         //TODO:鼠标位置后续一定通过InputManger储存，并从中调用，严谨私自获取输入信息
         MousePos =  Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
+        if (CurrentItem == null)
+        {
+            return;
+        }
+
         if (Input.GetMouseButtonUp(0))
         {
             Debug.Log("MouseUp");
             //调用交互接口
             holdInteractContext.isValid = isValid;
-            if (CurrentItem != null)
-            {
-                foreach (var feature in CurrentItem.Features)
-                {
-                    if (feature is IHoldInteract i)
-                    {
-                        holdInteractContext.ItemID = CurrentStack.itemId;
-                        holdInteractContext.containerIndex = currentSlot;
-                        holdInteractContext.InteractGrid = playerController.InteractTilePosition;
-                        i.OnHoldInteract(holdInteractContext);
 
-                        if(CurrentStack.count <= 0)
+            foreach (var feature in CurrentItem.Features)
+            {
+                if (feature is IHoldInteract i)
+                {
+                    holdInteractContext.ItemID = CurrentStack.itemId;
+                    holdInteractContext.containerIndex = currentSlot;
+                    holdInteractContext.InteractGrid = playerController.InteractTilePosition;
+                    i.OnHoldInteract(holdInteractContext);
+
+                    if (CurrentStack.count <= 0)
+                    {
+                        if (feature is IExitSelect j)
                         {
-                            if (feature is IExitSelect j)
-                            {
-                                j.ExitSelect(exitSelectContext, ref PlacementInstance, ref CellInstance);
-                            }
+                            j.ExitSelect(exitSelectContext, ref PlacementInstance, ref CellInstance);
                         }
                     }
                 }
@@ -89,16 +92,13 @@ public class InventoryContainer : MonoBehaviour
         }
 
         //调用帧更新接口
-        if(CurrentItem != null)
+        foreach (var feature in CurrentItem.Features)
         {
-            foreach (var feature in CurrentItem.Features)
+            if(feature is IHoldTick i)
             {
-                if(feature is IHoldTick i)
-                {
-                    holdTickContext.PlacementInstance = PlacementInstance;
-                    holdTickContext.CellInstance = CellInstance;
-                    i.OnHoldTick(holdTickContext, out isValid);
-                }
+                holdTickContext.PlacementInstance = PlacementInstance;
+                holdTickContext.CellInstance = CellInstance;
+                i.OnHoldTick(holdTickContext, out isValid);
             }
         }
     }
@@ -118,6 +118,7 @@ public class InventoryContainer : MonoBehaviour
 
         holdInteractContext = new HoldInteractContext();
         holdInteractContext.backpackContainer = backpackContainer;
+        holdInteractContext.playerController = playerController;
 
 
         exitSelectContext = new ExitSelectContext();
