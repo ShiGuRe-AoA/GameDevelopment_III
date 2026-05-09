@@ -184,6 +184,7 @@ public enum InteractPhase
 {
     None,
     Harvest,
+    OpenDoor,
 }
 
 /// <summary>

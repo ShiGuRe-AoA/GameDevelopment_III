@@ -21,7 +21,7 @@ public class EntityRuntime
     {
 
     }
-    public virtual void OnTickUpdate()
+    public virtual void OnTickUpdate(float deltaTime)
     {
 
     }

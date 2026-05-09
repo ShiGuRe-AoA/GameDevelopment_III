@@ -1,22 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-
-public struct ComplexTime
-{
-    public ComplexTime(Season season, int date, int hour, int minute)
-    {
-        Season = season;
-        Date = date;
-        Hour = hour;
-        Minute = minute;
-    }
-
-    public Season Season;
-    public int Date;
-    public int Hour;
-    public int Minute;
-}
 
 public enum Season
 {
@@ -26,6 +8,67 @@ public enum Season
     Winter
 }
 
+[System.Serializable]
+public class ComplexTime
+{
+    public Season Season;
+    public int Date;
+    public int Hour;
+    public int Minute;
+
+    public ComplexTime()
+    {
+    }
+
+    public ComplexTime(Season season, int date, int hour, int minute)
+    {
+        Season = season;
+        Date = date;
+        Hour = hour;
+        Minute = minute;
+    }
+
+    public ComplexTime Copy()
+    {
+        return new ComplexTime(Season, Date, Hour, Minute);
+    }
+
+    public void AddMinute(int dayEndHour, int dayBeginHour, int dateOfSeason)
+    {
+        Minute++;
+
+        if (Minute >= 60)
+        {
+            Minute = 0;
+            Hour++;
+        }
+
+        if (Hour >= dayEndHour)
+        {
+            NextDay(dayBeginHour, dateOfSeason);
+        }
+    }
+
+    public void NextDay(int dayBeginHour, int dateOfSeason)
+    {
+        Date++;
+        Hour = dayBeginHour;
+        Minute = 0;
+
+        if (Date > dateOfSeason)
+        {
+            Date = 1;
+            NextSeason();
+        }
+    }
+
+    private void NextSeason()
+    {
+        Season = Season == Season.Winter
+            ? Season.Spring
+            : Season + 1;
+    }
+}
 public class TimeManager : MonoBehaviour
 {
     public static TimeManager Instance { get; private set; }
@@ -33,8 +76,10 @@ public class TimeManager : MonoBehaviour
     [Header("初始设置，后续从SO表读入")]
     [SerializeField] private int DateOfSeason = 28;
     [SerializeField] public int dayBeginHour { get; private set; }
-    [SerializeField] private int dayEndHour;
+    [SerializeField] private int dayEndHour = 24;
     [SerializeField] private float minuteTransferRate = 1f;
+
+    private ComplexTime currentTime;
 
     private int dayCount;
     private int minuteCount;
@@ -42,62 +87,7 @@ public class TimeManager : MonoBehaviour
 
     public bool IsPause { get; private set; }
 
-    private float nextMintuteTick => (minuteCount + 1) * minuteTransferRate;
-
-    private Season season;
-
-    private int _date;
-    private int date
-    {
-        get { return _date; }
-        set
-        {
-            if (value > DateOfSeason)
-            {
-                _date = 1;
-                NextSeason();
-            }
-            else
-            {
-                _date = value;
-            }
-        }
-    }
-
-    private int _hour;
-    private int hour
-    {
-        get { return _hour; }
-        set
-        {
-            if (value >= dayEndHour)
-            {
-                NextDay();
-            }
-            else
-            {
-                _hour = value;
-            }
-        }
-    }
-
-    private int _minute;
-    private int minute
-    {
-        get { return _minute; }
-        set
-        {
-            if (value >= 60)
-            {
-                _minute = 0;
-                hour++;
-            }
-            else
-            {
-                _minute = value;
-            }
-        }
-    }
+    private float nextMinuteTick => (minuteCount + 1) * minuteTransferRate;
 
     private void Awake()
     {
@@ -108,9 +98,6 @@ public class TimeManager : MonoBehaviour
         }
 
         Instance = this;
-        // 如果你希望切场景后也保留，再打开这一行
-        // DontDestroyOnLoad(gameObject);
-
         Init();
     }
 
@@ -118,13 +105,27 @@ public class TimeManager : MonoBehaviour
     {
         if (IsPause) return;
 
-        realTimeCount += Time.deltaTime;
-        TickUpdate();
-        if (realTimeCount >= nextMintuteTick)
+        float deltaTime = Time.deltaTime;
+
+        realTimeCount += deltaTime;
+        TickUpdate(deltaTime);
+
+        if (realTimeCount >= nextMinuteTick)
         {
             MinuteUpdate();
+
             minuteCount++;
-            minute++;
+
+            int oldDate = currentTime.Date;
+            Season oldSeason = currentTime.Season;
+
+            currentTime.AddMinute(dayEndHour, dayBeginHour, DateOfSeason);
+
+            // 如果 AddMinute 导致跨天，则触发日期更新
+            if (currentTime.Date != oldDate || currentTime.Season != oldSeason)
+            {
+                OnNextDay();
+            }
         }
     }
 
@@ -134,33 +135,28 @@ public class TimeManager : MonoBehaviour
         minuteCount = 0;
         realTimeCount = 0f;
 
-        season = Season.Spring;
-        date = 1;
-        hour = dayBeginHour;
-        minute = 0;
+        currentTime = new ComplexTime(
+            Season.Spring,
+            1,
+            dayBeginHour,
+            0
+        );
     }
 
     public void NextDay()
     {
-        dayCount++;
-        date++;
-        _hour = dayBeginHour;
-        _minute = 0;
-        realTimeCount = 0f;
-        DateUpdate();
-        // TODO: 存档
+        currentTime.NextDay(dayBeginHour, DateOfSeason);
+        OnNextDay();
     }
 
-    private void NextSeason()
+    private void OnNextDay()
     {
-        if (season == Season.Winter)
-        {
-            season = Season.Spring;
-        }
-        else
-        {
-            season = (Season)((int)season + 1);
-        }
+        dayCount++;
+        realTimeCount = 0f;
+
+        DateUpdate();
+
+        // TODO: 存档
     }
 
     public int TransferTimeR2M(float realTime)
@@ -175,7 +171,7 @@ public class TimeManager : MonoBehaviour
 
     public ComplexTime GetComplexTime()
     {
-        return new ComplexTime(season, date, hour, minute);
+        return currentTime.Copy();
     }
 
     public float GetRealTime()
@@ -188,24 +184,52 @@ public class TimeManager : MonoBehaviour
         return minuteCount;
     }
 
-    public float TimeDistant(ComplexTime Atime, ComplexTime BTime)   //计算Atime与BTime的时间差，单位为游戏分钟
+    /// <summary>
+    /// 计算 BTime - Atime 的时间差，单位：游戏分钟。
+    /// </summary>
+    public float TimeDistant(ComplexTime Atime, ComplexTime BTime)
     {
-        float DateDistant = (Atime.Season - BTime.Season) * DateOfSeason + (Atime.Date - BTime.Date);
+        float dateDistant =
+            (BTime.Season - Atime.Season) * DateOfSeason +
+            (BTime.Date - Atime.Date);
 
-        float HourDistant = Atime.Hour - BTime.Hour;
+        float hourDistant = BTime.Hour - Atime.Hour;
+        float minuteDistant = BTime.Minute - Atime.Minute;
 
-        float MinuteDistant = Atime.Minute - BTime.Minute;
-
-        return (DateDistant * 24 + HourDistant) * 60 + MinuteDistant;
+        return (dateDistant * 24 + hourDistant) * 60 + minuteDistant;
     }
-    public float TimeDistant(int Ahour, int Bhour)  //计算单日内Ahour与Bhour的时间差，单位为游戏分钟
+
+    /// <summary>
+    /// 计算单日内 Ahour 到 Bhour 的时间差，单位：游戏分钟。
+    /// 如果 Bhour 小于 Ahour，则视为跨天。
+    /// </summary>
+    public float TimeDistant(int Ahour, int Bhour)
     {
-        if (Bhour < Ahour) { Bhour += 24; }
+        if (Bhour < Ahour)
+        {
+            Bhour += 24;
+        }
+
         return (Bhour - Ahour) * 60;
     }
-    public float TimeDistToNow(ComplexTime Atime)   //计算Atime与当前时间的时间差，单位为游戏分钟
+
+    /// <summary>
+    /// 计算 Atime 到当前时间的时间差，单位：游戏分钟。
+    /// </summary>
+    public float TimeDistToNow(ComplexTime Atime)
     {
         return TimeDistant(Atime, GetComplexTime());
+    }
+
+    /// <summary>
+    /// 计算 Atime 到下一天开始时的时间差，单位：游戏分钟。
+    /// </summary>
+    public float TimeDistToNextDay(ComplexTime Atime)
+    {
+        ComplexTime nextDayTime = Atime.Copy();
+        nextDayTime.NextDay(dayBeginHour, DateOfSeason);
+
+        return TimeDistant(Atime, nextDayTime);
     }
 
     public void PauseGame()
@@ -219,14 +243,22 @@ public class TimeManager : MonoBehaviour
         IsPause = false;
         Time.timeScale = 1f;
     }
-
-    public void TickUpdate()
+    public float TickToMinuteFloat(float tickTime)
     {
-        foreach(var pair in WorldState.Instance.Entitys)
+        if (minuteTransferRate <= 0f)
+            return 0f;
+
+        return tickTime / minuteTransferRate;
+    }
+
+    public void TickUpdate(float deltaTime)
+    {
+        foreach (var pair in WorldState.Instance.Entitys)
         {
-            pair.Value.OnTickUpdate();
+            pair.Value.OnTickUpdate(deltaTime);
         }
     }
+
     public void MinuteUpdate()
     {
         foreach (var pair in WorldState.Instance.Entitys)
@@ -234,6 +266,7 @@ public class TimeManager : MonoBehaviour
             pair.Value.OnMinuteUpdate();
         }
     }
+
     public void DateUpdate()
     {
         foreach (var pair in WorldState.Instance.Entitys)
