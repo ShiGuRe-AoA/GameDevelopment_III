@@ -14,8 +14,11 @@ public class Trade_Customer : MonoBehaviour
         {
             if(_instance == null)
             {
-                _instance = FindObjectOfType<Trade_Customer>()
-                    ?? throw new InvalidOperationException("Trade_Customer not found in scene");
+                _instance = FindAnyObjectByType<Trade_Customer>();
+                if(_instance == null)
+                {
+                    Debug.LogError("Trade_Customer not found in scene.");
+                }
             }
             return _instance;
         }

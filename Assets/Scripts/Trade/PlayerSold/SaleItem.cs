@@ -1,11 +1,12 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class SaleItem : MonoBehaviour
 {
-
-    public SpriteRenderer saleItemSprite;
+    public SpriteRenderer itemSr;
+    private Sprite oldItemSprite;   // 存未更改时的sprite
 
     //public ItemContainer saleContainer;
 
@@ -23,7 +24,11 @@ public class SaleItem : MonoBehaviour
 
     private void Awake()
     {
-        saleItemSprite = GetComponent<SpriteRenderer>();
+        itemSr = GetComponent<SpriteRenderer>();
+        if(itemSr == null)
+        {
+            Debug.LogError("Sprite Renderer on Sale Item not found", this);
+        }
     }
 
     // Start is called before the first frame update
