@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class SaleItem : MonoBehaviour
 {
-
-    public SpriteRenderer saleItemSprite;
+    public SpriteRenderer itemSr;
+    private Sprite oldItemSprite;   // 存未更改时的sprite
 
     //public ItemContainer saleContainer;
 
@@ -23,7 +23,7 @@ public class SaleItem : MonoBehaviour
 
     private void Awake()
     {
-        saleItemSprite = GetComponent<SpriteRenderer>();
+        itemSr = GetComponent<SpriteRenderer>();
     }
 
     // Start is called before the first frame update
