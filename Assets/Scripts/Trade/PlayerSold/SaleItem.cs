@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -24,6 +25,10 @@ public class SaleItem : MonoBehaviour
     private void Awake()
     {
         itemSr = GetComponent<SpriteRenderer>();
+        if(itemSr == null)
+        {
+            Debug.LogError("Sprite Renderer on Sale Item not found", this);
+        }
     }
 
     // Start is called before the first frame update

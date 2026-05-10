@@ -15,8 +15,11 @@ public class CustomerCreator : MonoBehaviour
         {
             if(_instance == null)
             {
-                _instance = FindAnyObjectByType<CustomerCreator>()
-                    ?? throw new InvalidOperationException("CustomerCreator not found in scene!");
+                _instance = FindAnyObjectByType<CustomerCreator>();
+                if(_instance = null)
+                {
+                    Debug.LogError("Customer Creator not found in scene.");
+                }
             }
             return _instance;
         }
@@ -58,12 +61,15 @@ public class CustomerCreator : MonoBehaviour
     {
         if(playerStore == null)
         {
-            playerStore = FindObjectOfType<PlayerStoreContainer>()
-                ?? throw new ArgumentNullException(nameof(playerStore));
+            playerStore = FindObjectOfType<PlayerStoreContainer>();
+            if(playerStore == null)
+            {
+                Debug.LogError("Player Store Container not found in scene.");
+            }
         }
         if (customerPrefab == null)
         {
-            throw new ArgumentNullException(nameof(customerPrefab));
+            Debug.LogError("customer Prefab not found.");
         }
     }
 
@@ -94,12 +100,18 @@ public class CustomerCreator : MonoBehaviour
         // 生成顾客预制体
         GameObject customer = Instantiate(customerPrefab);
         // 查找顾客的 Controller 组件
-        CustomerController customerCtrl = customer.GetComponent<CustomerController>()
-            ?? throw new ArgumentException(nameof(CustomerController));
+        CustomerController customerCtrl = customer.GetComponent<CustomerController>();
+        if (customerCtrl == null)
+        {
+            Debug.LogError($"Customer Controller on customer: {customer.name} not found", customer);
+        }
         customerCtrl.Init(playerStore);
         // 查找顾客的 Animator 组件并为其赋值
-        Animator customerAnim = customer.GetComponent<Animator>()
-            ?? throw new ArgumentException(nameof(Animator));
+        Animator customerAnim = customer.GetComponent<Animator>();
+        if (customerAnim == null)
+        {
+            Debug.LogError($"Animator on customer: {customer.name} not found", customer);
+        }
 
         int animOrder = AnimOrder();
         customerAnim.runtimeAnimatorController = customerAnims[animOrder];
