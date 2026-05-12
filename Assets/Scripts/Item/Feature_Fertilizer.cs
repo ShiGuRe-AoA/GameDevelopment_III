@@ -1,4 +1,4 @@
-using System.Collections;
+锘縰sing System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,21 +9,18 @@ public class Feature_Fertilizer : ItemFeature, IHoldInteract
     {
         Vector3Int interactGrid = context.InteractGrid;
         WorldState.Instance.GetCell(interactGrid, out bool hasDetail, out DetailedCellData detailedData);
-        if (!hasDetail) { return; }
+        if (!hasDetail || detailedData.CheckEmpty()) { return; }
 
-        int entityID = detailedData.EntityID[0];
-        if (entityID == 0) { return; }
-
-        if (WorldState.Instance.GetEntity(entityID) is Farmland_Entity farmland)
+        if (WorldState.Instance.TryGetEntityOnCell(interactGrid, out Farmland_Entity farmland))
         {
             farmland.ApplyFertilizer(1);
-            //TODO:尚未处理肥料等级和持续时间的逻辑
+            WorldState.Instance.RefreshDetailedState(interactGrid);
             int itemCount = context.backpackContainer.Items[context.containerIndex].count;
             if (itemCount > 0)
             {
                 SlotController.Instance.SetItemCount(context.backpackContainer, context.containerIndex, itemCount - 1);
             }
         }
-
     }
 }
+

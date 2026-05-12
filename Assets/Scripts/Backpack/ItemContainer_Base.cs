@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -16,21 +16,29 @@ public class ItemContainer_Base : MonoBehaviour
 
     protected virtual void Awake()
     {
-        InitContainer();
-        Refresh();
+        if (InitContainer())
+        {
+            Refresh();
+        }
     }
 
-    private void InitContainer(bool force = false)
+    private bool InitContainer(bool force = false)
     {
         if (force) { UISlots.Clear(); }
         if(UISlots.Count <= 0)
         {
             if (collectedParent == null)
             {
-                return;
+                return false;
             }
             Utils.CollectComponentsInChildren<ItemSlotUI>(collectedParent, UISlots);
         }
+
+        if (UISlots.Count <= 0)
+        {
+            return false;
+        }
+
         container = new ItemContainer(UISlots.Count, "backpackContainer");
 
         view = new ContainerView(container, UISlots);
@@ -40,6 +48,7 @@ public class ItemContainer_Base : MonoBehaviour
             view.UISlots[uiIndex].Bind(container, view, uiIndex, this);
         }
         container.RegistryView(view);
+        return true;
     }
     
     public void OnLeftClick(ItemContainer container, int containerIndex)
@@ -78,7 +87,10 @@ public class ItemContainer_Base : MonoBehaviour
     public void SetColletParent(Transform collectParent)
     {
         this.collectedParent = collectParent;
-        InitContainer(true);
+        if (InitContainer(true))
+        {
+            Refresh();
+        }
     }
 
     public ItemContainer GetContainer()
@@ -88,11 +100,15 @@ public class ItemContainer_Base : MonoBehaviour
 
     public int GetSlotCount()
     {
+        if (container == null) { return 0; }
         return container.SlotCount;
     }
 
     public void Refresh()
     {
+        if (container == null) { return; }
+        if (SlotController.Instance == null) { return; }
         SlotController.Instance.RefreshAll(container);
     }
 }
+

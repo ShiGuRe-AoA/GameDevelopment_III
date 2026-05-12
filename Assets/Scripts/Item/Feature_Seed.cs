@@ -1,4 +1,4 @@
-using System.Collections;
+锘縰sing System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -14,27 +14,24 @@ public class Feature_Seed : ItemFeature, IHoldInteract
     {
         Vector3Int interactGrid = context.InteractGrid;
         int itemCount = context.backpackContainer.Items[context.containerIndex].count;
-        if(itemCount <= 0) { return; }
+        if (itemCount <= 0) { return; }
 
         WorldState.Instance.GetCell(interactGrid, out bool hasDetail, out DetailedCellData detailedData);
-        if(!hasDetail || detailedData.CheckEmpty())
+        if (!hasDetail || detailedData.CheckEmpty())
         {
             return;
         }
-        int entityID = detailedData.EntityID[0];//这可能是个坑
-        IEntityRuntime entityRuntime = WorldState.Instance.GetEntity(entityID);
-        if (entityRuntime is Farmland_Entity farmLand)
+
+        if (WorldState.Instance.TryGetEntityOnCell(interactGrid, out Farmland_Entity farmLand))
         {
             if (!farmLand.CanPlant(parent))
             {
                 return;
             }
-            else
-            {
-                farmLand.Plant(parent);
-                SlotController.Instance.SetItemCount(context.backpackContainer, context.containerIndex, itemCount - 1);
-            }
-        }
 
+            farmLand.Plant(parent);
+            SlotController.Instance.SetItemCount(context.backpackContainer, context.containerIndex, itemCount - 1);
+        }
     }
 }
+

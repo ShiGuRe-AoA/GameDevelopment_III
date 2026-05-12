@@ -26,10 +26,12 @@ public abstract class EntityRuntimeBase : IEntityRuntime, ISaveableEntity
 
     public void OnAwake()
     {
-        //throw new System.NotImplementedException();
+        //throw new System.NotImplementedException();   
+        RuntimeRegisterUtility.RegisterAll(this);
     }
     public void OnDestroy()
     {
         //throw new System.NotImplementedException();
+        RuntimeRegisterUtility.UnregisterAll(this);
     }
 }

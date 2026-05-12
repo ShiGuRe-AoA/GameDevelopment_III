@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -15,14 +15,32 @@ public class BackpackContainer : ItemContainer_Base
     protected override void Awake()
     {
         base.Awake();
-        inventoryContainer.Init(container);
-        SlotController.Instance.RefreshAll(container);
+        if (container == null)
+        {
+            Debug.LogWarning("BackpackContainer initialization skipped because no item slots were found.");
+            return;
+        }
+
+        if (inventoryContainer != null)
+        {
+            inventoryContainer.Init(container);
+        }
+
+        if (SlotController.Instance != null)
+        {
+            SlotController.Instance.RefreshAll(container);
+        }
         Debug.Log($"BackpackSlotsInitialized");
     }
 
     private void Start()
     {
-        // ²âÊÔ
+        if (container == null || SlotController.Instance == null)
+        {
+            return;
+        }
+
+        // æµ‹è¯•
         SlotController.Instance.TryAddItem(10100, 36, container);
         Debug.Log($"DebugItemAddComplete");
         SlotController.Instance.TryAddItem(10100, 12, container);
