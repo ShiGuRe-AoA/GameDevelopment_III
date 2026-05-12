@@ -13,7 +13,7 @@ public interface IPlantable
 
 
 }
-public class Farmland_Entity : EntityRuntime, IPlantable, IInteractable
+public class Farmland_Entity : EntityRuntimeBase, IPlantable, IInteractable, IMinuteUpdatable, IDateUpdatable
 {
     public Vector3Int GridPos { get; private set; }
 
@@ -39,9 +39,8 @@ public class Farmland_Entity : EntityRuntime, IPlantable, IInteractable
 
     // 更新 ----------------------
 
-    public override void OnMinuteUpdate()
+    public void OnMinuteUpdate()
     {
-        base.OnMinuteUpdate();
         if (WaterTimeLeft > 0)
             WaterTimeLeft = Mathf.Max(0, WaterTimeLeft - 1f);
 
@@ -49,9 +48,8 @@ public class Farmland_Entity : EntityRuntime, IPlantable, IInteractable
             FertTimeLeft = Mathf.Max(0, FertTimeLeft - 1f);
     }
 
-    public override void OnDateUpdate(ComplexTime curTime)
+    public void OnDateUpdate(ComplexTime curTime)
     {
-        base.OnDateUpdate(curTime);
         // 可选：跨天处理（如完全干涸、作物死亡判定等）
         if (CropInstanceId != 0 && WaterTimeLeft <= 0)
         {
@@ -83,23 +81,34 @@ public class Farmland_Entity : EntityRuntime, IPlantable, IInteractable
 
         foreach (var feature in seedItem.Features)
         {
-            if (feature is Feature_Seed seedFeature)
+            if (feature is not Feature_Seed seedFeature)
+                continue;
+
+            if (EntityRuntimeFactory.Create(seedFeature.CropRuntimeKind) is not Crops_Entity newCropsRuntime)
             {
-                //创建农作物实例
-                Crops_Entity newCropsRuntime = (Crops_Entity)EntityRuntimeFactory.Create(seedFeature.CropRuntimeKind);
-                //放置地块并获取实体ID
-                WorldState.Instance.PlaceTile(GridPos, seedFeature.SeedTiles[0], newCropsRuntime,2 , out int EntityId);
-                // 初始化作物实例（传入种子物品、实体ID和关联的农田实体）
-                newCropsRuntime.Init(seedItem, EntityId, this, seedFeature.SeedTiles); 
-                CropInstanceId = EntityId;
+                Debug.LogError($"创建作物失败：{seedFeature.CropRuntimeKind} 不是 Crops_Entity 类型");
+                return;
             }
+
+            WorldState.Instance.PlaceTile(
+                GridPos,
+                seedFeature.SeedTiles[0],
+                newCropsRuntime,
+                2,
+                out int entityId
+            );
+
+            newCropsRuntime.Init(seedItem, entityId, this, seedFeature.SeedTiles);
+            CropInstanceId = entityId;
+
+            return;
         }
     }
     public bool CanHarvest()
     {
         if (CropInstanceId <= 0) { return false; }
 
-        EntityRuntime cropRuntime = WorldState.Instance.GetEntity(CropInstanceId);
+        IEntityRuntime cropRuntime = WorldState.Instance.GetEntity(CropInstanceId);
         if (cropRuntime is Crops_Entity cropsEntity && cropsEntity.canHarvest)
         {
             return true;
@@ -110,7 +119,7 @@ public class Farmland_Entity : EntityRuntime, IPlantable, IInteractable
     {
         if (CropInstanceId <= 0) { return false; }
 
-        EntityRuntime cropRuntime = WorldState.Instance.GetEntity(CropInstanceId);
+        IEntityRuntime cropRuntime = WorldState.Instance.GetEntity(CropInstanceId);
         if (cropRuntime is Crops_Entity cropsEntity && cropsEntity.canHarvest)
         {
             int productID = cropsEntity.Product.ID_num;
@@ -140,18 +149,6 @@ public class Farmland_Entity : EntityRuntime, IPlantable, IInteractable
         FertRank = 0;
         CropInstanceId = 0;
     }
-
-    // 存档（示意）
-    public override void Save()
-    {
-        // TODO: 写入 SaveData（位置、状态、CropInstanceId 等）
-    }
-
-    public override void Load()
-    {
-        // TODO: 从 SaveData 恢复
-    }
-
     public void OnInteract()
     {
         if(CropInstanceId <= 0) { return; }

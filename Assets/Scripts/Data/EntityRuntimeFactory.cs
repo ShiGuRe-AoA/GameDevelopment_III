@@ -10,16 +10,25 @@ public enum EntityRuntimeKind
 
 public static class EntityRuntimeFactory
 {
-    private static readonly Dictionary<EntityRuntimeKind, System.Func<EntityRuntime>> map
+    private static readonly Dictionary<EntityRuntimeKind, System.Func<IEntityRuntime>> map
         = new()
         {
             { EntityRuntimeKind.Farmland, () => new Farmland_Entity() },
             { EntityRuntimeKind.Crop, () => new Crops_Entity() },
-
         };
 
-    public static EntityRuntime Create(EntityRuntimeKind kind)
+    public static IEntityRuntime Create(EntityRuntimeKind kind)
     {
-        return map.TryGetValue(kind, out var ctor) ? ctor() : null;
+        if (!map.TryGetValue(kind, out var ctor))
+        {
+            Debug.LogError($"Unknown EntityRuntimeKind: {kind}");
+            return null;
+        }
+
+        IEntityRuntime entity = ctor();
+
+        RuntimeRegisterUtility.RegisterAll(entity);
+
+        return entity;
     }
 }

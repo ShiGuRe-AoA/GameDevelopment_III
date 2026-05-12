@@ -34,7 +34,7 @@ public class Production
         return recipe;
     }
 }
-public class Factory_Entity : EntityRuntime, IInteractable
+public class Factory_Entity : EntityRuntimeBase, IInteractable,ITickUpdatable,IDateUpdatable
 {
     private ItemContainer resourcesContainer;
     private ItemContainer productsContainer;
@@ -72,9 +72,8 @@ public class Factory_Entity : EntityRuntime, IInteractable
 
         producePause = false;
     }
-    public override void OnTickUpdate(float deltaTime)
+    public void OnTickUpdate(float deltaTime)
     {
-        base.OnTickUpdate(deltaTime);
 
         if (producePause)
         {
@@ -99,9 +98,8 @@ public class Factory_Entity : EntityRuntime, IInteractable
             }
         }
     }
-    public override void OnDateUpdate(ComplexTime curTime)
+    public void OnDateUpdate(ComplexTime curTime)
     {
-        base.OnDateUpdate(curTime);
 
         if (producePause)
         {

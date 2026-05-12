@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public enum Season
 {
@@ -79,6 +81,11 @@ public class TimeManager : MonoBehaviour
     [SerializeField] private int dayEndHour = 24;
     [SerializeField] private float minuteTransferRate = 1f;
 
+
+    private readonly List<ITickUpdatable> tickUpdatables = new();
+    private readonly List<IMinuteUpdatable> minuteUpdatables = new();
+    private readonly List<IDateUpdatable> dateUpdatables = new();
+
     private ComplexTime currentTime;
 
     private int dayCount;
@@ -141,6 +148,29 @@ public class TimeManager : MonoBehaviour
             dayBeginHour,
             0
         );
+    }
+    public void Register(object obj)
+    {
+        if (obj is ITickUpdatable tick && !tickUpdatables.Contains(tick))
+            tickUpdatables.Add(tick);
+
+        if (obj is IMinuteUpdatable minute && !minuteUpdatables.Contains(minute))
+            minuteUpdatables.Add(minute);
+
+        if (obj is IDateUpdatable date && !dateUpdatables.Contains(date))
+            dateUpdatables.Add(date);
+    }
+
+    public void Unregister(object obj)
+    {
+        if (obj is ITickUpdatable tick)
+            tickUpdatables.Remove(tick);
+
+        if (obj is IMinuteUpdatable minute)
+            minuteUpdatables.Remove(minute);
+
+        if (obj is IDateUpdatable date)
+            dateUpdatables.Remove(date);
     }
 
     public void NextDay()
@@ -253,25 +283,25 @@ public class TimeManager : MonoBehaviour
 
     public void TickUpdate(float deltaTime)
     {
-        foreach (var pair in WorldState.Instance.Entitys)
+        foreach (var tick in tickUpdatables)
         {
-            pair.Value.OnTickUpdate(deltaTime);
+            tick.OnTickUpdate(deltaTime);
         }
     }
 
     public void MinuteUpdate()
     {
-        foreach (var pair in WorldState.Instance.Entitys)
+        foreach (var minute in minuteUpdatables)
         {
-            pair.Value.OnMinuteUpdate();
+            minute.OnMinuteUpdate();
         }
     }
 
     public void DateUpdate()
     {
-        foreach (var pair in WorldState.Instance.Entitys)
+        foreach (var date in dateUpdatables)
         {
-            pair.Value.OnDateUpdate(GetComplexTime());
+            date.OnDateUpdate(GetComplexTime());
         }
     }
 }

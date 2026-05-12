@@ -16,7 +16,7 @@ public class Genome
         Genes = new();
     }
 }
-public class Crops_Entity : EntityRuntime
+public class Crops_Entity : EntityRuntimeBase, IMinuteUpdatable,IDateUpdatable
 {
     protected Genome cropGenome;
     protected List<TileBase> cropTiles = new();
@@ -55,9 +55,8 @@ public class Crops_Entity : EntityRuntime
         }
     }
 
-    public override void OnMinuteUpdate()
+    public void OnMinuteUpdate()
     {
-        base.OnMinuteUpdate();
         if (needWater)
         {
             if(farmland_Entity == null)
@@ -83,9 +82,8 @@ public class Crops_Entity : EntityRuntime
             canHarvest = true;
         }
     }
-    public override void OnDateUpdate(ComplexTime curTime)
+    public void OnDateUpdate(ComplexTime curTime)
     {
-        base.OnDateUpdate(curTime);
         float TimeDeltaTime = TimeManager.Instance.TimeDistant(curTime.Hour, TimeManager.Instance.dayBeginHour);
         currentGrowthTime += TimeDeltaTime;
 

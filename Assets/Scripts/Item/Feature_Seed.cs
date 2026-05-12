@@ -22,7 +22,7 @@ public class Feature_Seed : ItemFeature, IHoldInteract
             return;
         }
         int entityID = detailedData.EntityID[0];//这可能是个坑
-        EntityRuntime entityRuntime = WorldState.Instance.GetEntity(entityID);
+        IEntityRuntime entityRuntime = WorldState.Instance.GetEntity(entityID);
         if (entityRuntime is Farmland_Entity farmLand)
         {
             if (!farmLand.CanPlant(parent))

@@ -83,7 +83,7 @@ public class WorldState : MonoBehaviour
     [Header("地图存储")]
     private BasicCellData[] BasicMapData;  //全部地图信息，存建筑用ID
     private Dictionary<Vector3Int, DetailedCellData> DetailedMapData = new();    //详细地块信息
-    public Dictionary<int, EntityRuntime> Entitys { get; private set; } = new();  //当前正在运行的设备实例，只存有运行数据的
+    public Dictionary<int, IEntityRuntime> Entitys { get; private set; } = new();  //当前正在运行的设备实例，只存有运行数据的
 
     [Header("数据引用")]     
     public ItemDatabaseSO ItemDatabase; //wup数据库
@@ -140,9 +140,9 @@ public class WorldState : MonoBehaviour
         cellSize = MainTile.cellSize;
         Debug.Log("MapInitComplete");
     }
-    private bool RegisterEntity(int id,Vector3Int pivotPos, EntityRuntime rt)//仅允许使用此方法注册物体实例，以确保ID唯一且正确设置反向引用
+    private bool RegisterEntity(int id,Vector3Int pivotPos, IEntityRuntime rt)//仅允许使用此方法注册物体实例，以确保ID唯一且正确设置反向引用
     {
-        if (Entitys == null) Entitys = new Dictionary<int, EntityRuntime>();
+        if (Entitys == null) Entitys = new Dictionary<int, IEntityRuntime>();
         if (rt == null) return false;
 
         if (Entitys.ContainsKey(id))
@@ -198,7 +198,7 @@ public class WorldState : MonoBehaviour
         }
         Vector3 worldPos = feature.GetCenterWorldFromPivot(cellPos);
         GameObject obj = Instantiate(feature.prefabObj, worldPos, Quaternion.identity);
-        EntityRuntime rt = obj.GetComponent<EntityRuntime>();
+        IEntityRuntime rt = obj.GetComponent<IEntityRuntime>();
         for(int i = 0; i < feature.Length; i++)
         {
             for(int j = 0; j < feature.Height; j++)
@@ -237,7 +237,7 @@ public class WorldState : MonoBehaviour
         }
         Vector3 worldPos = feature.GetCenterWorldFromPivot(cellPos);
         GameObject obj = Instantiate(feature.prefabObj, worldPos, Quaternion.identity);
-        EntityRuntime rt = obj.GetComponent<EntityRuntime>();
+        IEntityRuntime rt = obj.GetComponent<IEntityRuntime>();
         for (int i = 0; i < feature.Length; i++)
         {
             for (int j = 0; j < feature.Height; j++)
@@ -256,7 +256,7 @@ public class WorldState : MonoBehaviour
         RegisterEntity(nextEntityId, cellPos, rt);
     }
 
-    public void PlaceTile(Vector3Int cellPos, TileBase tile,EntityRuntime runtimeSc,int tileLayer, out int EntityID)
+    public void PlaceTile(Vector3Int cellPos, TileBase tile,IEntityRuntime runtimeSc,int tileLayer, out int EntityID)
     {
         Tilemap targetTilemap;
         switch (tileLayer)
@@ -317,7 +317,7 @@ public class WorldState : MonoBehaviour
 
         return BasicMapData[index];
     }
-    public EntityRuntime GetEntity(int entityID)
+    public IEntityRuntime GetEntity(int entityID)
     {
         if (Entitys != null && Entitys.TryGetValue(entityID, out var runtime))
         {
@@ -418,7 +418,7 @@ public class WorldState : MonoBehaviour
     //生命周期
     public void DestroyEntity(int entityID)
     {
-        EntityRuntime entityRuntime = GetEntity(entityID);
+        IEntityRuntime entityRuntime = GetEntity(entityID);
         Vector3Int pivotPos = entityRuntime.PivotPos;
 
         Entitys.Remove(entityID);
@@ -440,7 +440,7 @@ public class WorldState : MonoBehaviour
         DetailedCellData cellData = DetailedMapData[interactPos];
         foreach(var entityID in cellData.EntityID)
         {
-            EntityRuntime entity = GetEntity(entityID);
+            IEntityRuntime entity = GetEntity(entityID);
             if (entity != null)
             {
                 if(entity is IInteractable interactable)
@@ -457,7 +457,7 @@ public class WorldState : MonoBehaviour
         DetailedCellData cellData = DetailedMapData[interactPos];
         foreach (var entityID in cellData.EntityID)
         {
-            EntityRuntime entity = GetEntity(entityID);
+            IEntityRuntime entity = GetEntity(entityID);
             if (entity != null)
             {
                 if (entity is IInteractable interactable)
@@ -497,7 +497,7 @@ public class WorldState : MonoBehaviour
             {
                 foreach (var entityID in detailedData.EntityID)
                 { 
-                    EntityRuntime entity = GetEntity(entityID);
+                    IEntityRuntime entity = GetEntity(entityID);
                     if (entity is Farmland_Entity farmland)
                     {
                         farmland.Water();
