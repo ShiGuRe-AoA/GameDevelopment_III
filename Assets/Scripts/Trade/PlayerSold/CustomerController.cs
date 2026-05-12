@@ -4,7 +4,7 @@ using System.Net;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-public class CustomerController : MonoBehaviour
+public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatable
 {
     // todo: 加寻路逻辑
 
@@ -19,9 +19,6 @@ public class CustomerController : MonoBehaviour
 
     private PlayerStoreContainer playerStore;
 
-    //private bool isBuyying = false;     // 是不是正在买
-    //private bool canAttract = false;    // 可不可被吸引, 可能会被删, 现在是临时条件
-
     // 需要从ShelfContainer里要什么商品, 要几个, 要完设个bool可以离开 canLeave0
 
     // 根据玩家态度(待在原地时长)和获得质量给钱 - 需要设计函数
@@ -33,8 +30,12 @@ public class CustomerController : MonoBehaviour
     // 买东西最低态度基于初始态度的比例
     [SerializeField] private float minBuyAttitudeFactor = 0.5f;
 
-    private ComplexTime startAttractTime;
-    private ComplexTime startBuyTime;
+
+    // 吸引排队时间和购买排队时间
+    //private ComplexTime startAttractTime;
+    //private ComplexTime startBuyTime;
+    private float attractingTime;
+    private float buyingTime;
 
     // 最低忍耐时长(无列表长度修正), 超过则开始减态度
     [SerializeField] private float minWaitingTime_Attract = 3;
@@ -53,8 +54,7 @@ public class CustomerController : MonoBehaviour
 
     private void Awake()
     {
-        //isBuyying = false;
-        //canAttract = false;
+        
     }
 
     private void Start()
@@ -62,9 +62,15 @@ public class CustomerController : MonoBehaviour
         ChangeState(State.Idle);
     }
 
-    private void Update()
+    public void OnTickUpdate(float deltaTime)
     {
+        // 这里的 TickState 有大概率要改成用 OnMinuteUpdate() 更新
         TickState();
+    }
+
+    public void OnMinuteUpdate()
+    {
+        MinuteState();
     }
 
     private void ChangeState(State newState)
@@ -107,6 +113,7 @@ public class CustomerController : MonoBehaviour
         }
     }
 
+
     private void TickState()
     {
         switch (_state)
@@ -119,6 +126,19 @@ public class CustomerController : MonoBehaviour
                 break;
             case State.Buying:
                 TickBuying();
+                break;
+        }
+    }
+
+    private void MinuteState()
+    {
+        switch (_state)
+        {
+            case State.Attracting:
+                MinuteAttracting();
+                break;
+            case State.Buying: 
+                // todo: MinuteBuying();
                 break;
         }
     }
@@ -144,24 +164,33 @@ public class CustomerController : MonoBehaviour
 
     // 如果售罄也要 HaveBought()
 
+
+    // Tick感觉可以做寻路运动之类的, Minute用于计算态度函数之类的
+    // 感觉Tick还是得用于检测状态
+
     public void TickIdle()
     {
-        // 顾客到货架一定范围内随机被吸引, 如果摇铃一定被吸引
         // canAttract = ...
-        // 里面要放寻路逻辑
+        // todo: 顾客到货架一定范围内随机被吸引, 如果摇铃一定被吸引
         ChangeState(State.Attracting);
+
+        // todo: 放徘徊寻路逻辑
     }
 
+    // Enter Attract
     public void Attract()
     {
         Trade_Customer.Instance.Attract(this);
-        
-        startAttractTime = TimeManager.Instance.GetComplexTime();
+
+        //startAttractTime = TimeManager.Instance.GetComplexTime();
+        attractingTime = 0;
         attractAttitude = 100;
     }
 
     public void TickAttracting()
     {
+        // todo: 写Tick排队寻路
+
         // todo: 写等待执行 -> LostAttract() 还是 Buy() 逻辑
         // if a - attractAttitude -> 0
         LoseAttract();
@@ -172,6 +201,12 @@ public class CustomerController : MonoBehaviour
 
     }
 
+    public void MinuteAttracting()
+    {
+        // Attracting态度函数
+        AttractWill();
+    }
+
     // customer在List里比较远 + 等待时长久 执行LoseAttract()
     public void LoseAttract()
     {
@@ -179,12 +214,15 @@ public class CustomerController : MonoBehaviour
     }
 
     // customer在Buy列表里等待时长久, 态度变差, 给钱少
+    // Enter Buy
     public void Buy()
     {
         Trade_Customer.Instance.Buy(this);
         Trade_Customer.Instance.AttractExit(this);
-        
-        startBuyTime = TimeManager.Instance.GetComplexTime();
+
+        // 要改
+        //startBuyTime = TimeManager.Instance.GetComplexTime();
+        buyingTime = 0;
         buyAttitude = startAttitude;
 
         if (TryBuyItem(out ItemStack _buyItem))
@@ -203,6 +241,7 @@ public class CustomerController : MonoBehaviour
 
     }
 
+    // 实时检测购买状态
     public void TickBuying()
     {
         if (!IsBuyItemValid(buyItem))
@@ -215,7 +254,12 @@ public class CustomerController : MonoBehaviour
             }
             else ChangeState(State.Quit);
         }
-        //if(buyItem)
+        
+    }
+
+    public void MinuteBuying()
+    {
+        // todo: Buy态度函数
         BuyWill(price, count);
     }
 
@@ -234,13 +278,17 @@ public class CustomerController : MonoBehaviour
     private void AttractWill()
     {
         int currentListPlace = Trade_Customer.Instance.AttractPlace(this);
+        // todo: 吸引函数
     }
 
     // 购买欲望(付钱的多少) 随时间变化函数
     private void BuyWill(int _price, int _count)
     {
 
-        float t = TimeManager.Instance.TimeDistToNow(startBuyTime);
+        //float t = TimeManager.Instance.TimeDistToNow(startBuyTime);
+        buyingTime++;
+        float t = buyingTime;
+
         var c = minBuyAttitudeFactor;
         var T = maxWaitingTime_Buy;
         var a = (1 - c) * startAttitude / (T * T);

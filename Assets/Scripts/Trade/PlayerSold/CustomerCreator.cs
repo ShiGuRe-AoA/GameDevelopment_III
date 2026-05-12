@@ -5,7 +5,7 @@ using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class CustomerCreator : MonoBehaviour
+public class CustomerCreator : MonoBehaviour, IMinuteUpdatable
 {
 
     private static CustomerCreator _instance;
@@ -24,7 +24,7 @@ public class CustomerCreator : MonoBehaviour
             return _instance;
         }
     } 
-    private struct Customer_Anim
+    private class Customer_Anim
     {
         public CustomerController customer;
         public int animOrder;
@@ -38,6 +38,7 @@ public class CustomerCreator : MonoBehaviour
 
     // 上一次生成顾客的时间
     private ComplexTime createTime;
+    //private float createTime;
     // 生成顾客间隔游戏内分钟
     [SerializeField] private float createDist = 5;
 
@@ -76,14 +77,15 @@ public class CustomerCreator : MonoBehaviour
     private void Start()
     {
         createTime = TimeManager.Instance.GetComplexTime();
+        //createTime = 0;
     }
 
-    // todo: 大概需要某个计时器来执行这个东西
-    private void Update()
+
+    public void OnMinuteUpdate()
     {
-        // isTradeDay 外部获取
         if (!isTradeDay) return;
 
+        //createTime++;
         if (customerCount < maxCustomerCount)
         {
             if (TimeManager.Instance.TimeDistToNow(createTime) >= createDist)
@@ -96,6 +98,7 @@ public class CustomerCreator : MonoBehaviour
     {
         // 标记本次生成顾客的时间点
         createTime = TimeManager.Instance.GetComplexTime();
+        //createTime = 0;
         
         // 生成顾客预制体
         GameObject customer = Instantiate(customerPrefab);
@@ -128,8 +131,11 @@ public class CustomerCreator : MonoBehaviour
         var cur = curCustomers;
         var leave = leaveCustomers;
 
-        leave.Add(CurCustomer2CurBind(customer));
-        cur.Remove(CurCustomer2CurBind(customer));
+        var curBind = CurCustomer2CurBind(customer);
+        var leaveTime = TimeManager.Instance.GetComplexTime();
+
+        leave.Add(AddLeaveTime2CurBind(curBind, leaveTime));
+        cur.Remove(curBind);
 
         customerCount--;
     }
@@ -137,8 +143,17 @@ public class CustomerCreator : MonoBehaviour
     // 将分散的 CustomerController 与 Animator 绑定
     private Customer_Anim BindCustomerAnim(CustomerController _customer, int _animOrder)
     {
-        Customer_Anim result = new Customer_Anim { customer = _customer, animOrder = _animOrder };
+        Customer_Anim result = new Customer_Anim 
+        {   customer = _customer, 
+            animOrder = _animOrder 
+        };
         return result;
+    }
+
+    private Customer_Anim AddLeaveTime2CurBind(Customer_Anim _customer_Anim, ComplexTime _leaveTime)
+    {
+        _customer_Anim.leaveTime = _leaveTime;
+        return _customer_Anim;
     }
 
     // 在 curCustomers 列表中寻找某 CustomerController 对应的 Customer_Anim

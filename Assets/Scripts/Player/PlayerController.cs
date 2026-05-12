@@ -165,7 +165,7 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void SetMoveInput(Vector2 input)
     {
-        playerMoveDirExp = input.normalized;
+        playerMoveDirExp = input;
 
         if (playerMoveDirExp.sqrMagnitude > 0.0001f)
         {
