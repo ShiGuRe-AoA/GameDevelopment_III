@@ -28,7 +28,7 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
     private float buyAttitude;
 
     // 买东西最低态度基于初始态度的比例
-    [SerializeField] private float minBuyAttitudeFactor = 0.5f;
+    [SerializeField] private const float minBuyAttitudeFactor = 0.5f;
 
 
     // 吸引排队时间和购买排队时间
@@ -38,12 +38,12 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
     private float buyingTime;
 
     // 最低忍耐时长(无列表长度修正), 超过则开始减态度
-    [SerializeField] private float minWaitingTime_Attract = 3;
-    [SerializeField] private float minWaitingTime_Buy;
+    [SerializeField] private const float minWaitingTime_Attract = 3;
+    //[SerializeField] private const float minWaitingTime_Buy;
 
     // 最高忍耐时长(无列表长度修正), 超过则退出
-    [SerializeField] private float maxWaitingTime_Attract = 10;
-    [SerializeField] private float maxWaitingTime_Buy;
+    [SerializeField] private const float maxWaitingTime_Attract = 10;
+    [SerializeField] private const float maxWaitingTime_Buy = 10;
 
     // 需要买的, 价格及数量
     [SerializeField] private int price;
@@ -52,14 +52,14 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
 
     [SerializeField] private ItemStack buyItem;
 
-    private void Awake()
+    // 初始化
+    public void Init(PlayerStoreContainer _playerStore)
     {
-        
-    }
+        this.playerStore = _playerStore;
 
-    private void Start()
-    {
         ChangeState(State.Idle);
+        
+        buyItem = ItemStack.Empty;
     }
 
     public void OnTickUpdate(float deltaTime)
@@ -142,10 +142,8 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
                 break;
         }
     }
-    public void Init(PlayerStoreContainer _playerStore)
-    {
-        this.playerStore = _playerStore;
-    }
+    
+    
 
     // todo:被吸引来和离开的函数
     // 或者顾客每次到某些范围内就自动进入一个可被吸引的List,其中有的不会直接排队
@@ -268,7 +266,9 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
         Trade_Customer.Instance.BuyExit(this);
         //canAttract = false;
 
+        // todo: 有必要让其渐隐再离队
         CustomerCreator.Instance.RemoveCustomer(this);
+
     }
 
 
