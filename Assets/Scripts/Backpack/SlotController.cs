@@ -65,6 +65,7 @@ public class ItemContainer
     public string Name { get; set; }
     public readonly ItemStack[] Items;
     public List<ViewMapPair> ViewMaps = new();
+    public bool enableInteract = true;
     public int SlotCount => Items.Length;
 
     public ItemContainer(int slotCount, string name)

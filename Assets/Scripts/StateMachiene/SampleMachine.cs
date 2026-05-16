@@ -251,6 +251,13 @@ public class State_Interact : State_PlayerBase
                 "Player_Harvest_Up"
             ),
 
+            InteractPhase.OpenDoor => GetDirectionAction(
+                dir,
+                "Player_Harvest_Down",
+                "Player_Harvest_Left",
+                "Player_Harvest_Right",
+                "Player_Harvest_Up"
+            ),
             _ => string.Empty
         };
     }

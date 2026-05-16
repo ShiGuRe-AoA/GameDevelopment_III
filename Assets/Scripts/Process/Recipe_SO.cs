@@ -1,11 +1,61 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Recipe_SO : MonoBehaviour
+[System.Serializable]
+public struct ItemStackVis
 {
-    public List<ItemStack> Resources { get; private set; } = new();
-    public List<ItemStack> Products { get; private set; } = new();
-    public float TimeCost { get; private set; } = 1f;
+    public ItemBase_SO def;
+    public int count;
+}
+
+[CreateAssetMenu(menuName = "Game/Item/Recipe_SO")]
+public class Recipe_SO : ScriptableObject
+{
+    [HideInInspector] public List<ItemStack> Resources = new();
+    [HideInInspector] public List<ItemStack> Products = new();
+
+    public List<ItemStackVis> Resources_vis = new();
+    public List<ItemStackVis> Products_vis = new();
+
+    public float TimeCost = 1f;
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        SyncRuntimeStacks();
+    }
+#endif
+
+    private void SyncRuntimeStacks()
+    {
+        Resources.Clear();
+        Products.Clear();
+
+        foreach (var vis in Resources_vis)
+        {
+            if (vis.def == null)
+                continue;
+
+            Resources.Add(TransStack(vis));
+        }
+
+        foreach (var vis in Products_vis)
+        {
+            if (vis.def == null)
+                continue;
+
+            Products.Add(TransStack(vis));
+        }
+    }
+
+    private ItemStack TransStack(ItemStackVis vis)
+    {
+        ItemStack newStack = new();
+        newStack.itemId = vis.def.ID_num;
+        newStack.count = vis.count;
+
+        return newStack;
+    }
 
     /// <summary>
     /// 只检查物品种类是否匹配，不检查数量。

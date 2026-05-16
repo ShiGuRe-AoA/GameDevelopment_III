@@ -3,37 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-public class Production
-{
-    private float timeCount;
-    private Recipe_SO recipe;
-    public Production(Recipe_SO recipe)
-    {
-        this.recipe = recipe;
-    }
-    public void Update(float tickTime, out bool isFinish)
-    {
-        timeCount += TimeManager.Instance.TickToMinuteFloat(tickTime);
-
-        if(timeCount > recipe.TimeCost)
-        {
-            isFinish = true;
-        }
-        isFinish = false;
-    }
-    public List<ItemStack> GetProducts()
-    {
-        return recipe.Products;
-    }
-    public float GetProgress()
-    {
-        return Mathf.Clamp01(timeCount / recipe.TimeCost);
-    }
-    public Recipe_SO GetRecipe()
-    {
-        return recipe;
-    }
-}
 public class Factory_Entity : EntityRuntimeBase, IInteractable,ITickUpdatable,IDateUpdatable
 {
     private ItemContainer resourcesContainer;
@@ -63,7 +32,7 @@ public class Factory_Entity : EntityRuntimeBase, IInteractable,ITickUpdatable,ID
         ItemContainer productsContainer
         )
     {
-        base.Init(entityId, pivotPos, worldState);
+        base.EntityInit(entityId, pivotPos, worldState);
 
         this.resourcesContainer = resourcesContainer;
         this.productsContainer = productsContainer;

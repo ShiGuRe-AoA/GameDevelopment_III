@@ -136,7 +136,7 @@ public class WorldState : MonoBehaviour
         Debug.Log("MapInitComplete");
     }
 
-    private bool RegisterEntity(int id, Vector3Int pivotPos, IEntityRuntime rt)
+    public bool RegisterEntity(int id, Vector3Int pivotPos, IEntityRuntime rt)
     {
         if (Entitys == null)
         {
@@ -155,10 +155,62 @@ public class WorldState : MonoBehaviour
         }
 
         Entitys.Add(id, rt);
-        rt.Init(id, pivotPos, this);
+        rt.EntityInit(id, pivotPos, this);
         nextEntityId++;
         Debug.Log($"EntityRegisteredInID:{id}");
         return true;
+    }
+    public bool RegisterEntity(object obj)
+    {
+        if(obj is IEntityRuntime runtime)
+        {
+            int id = runtime.EntityId;
+            Vector3Int pivotPos = runtime.PivotPos;
+            IEntityRuntime rt = runtime;
+            if (Entitys == null)
+            {
+                Entitys = new Dictionary<int, IEntityRuntime>();
+            }
+
+            if (rt == null)
+            {
+                return false;
+            }
+
+            if (Entitys.ContainsKey(id))
+            {
+                Debug.LogError($"Duplicate EntityId: {id}");
+                return false;
+            }
+
+            Entitys.Add(id, rt);
+            rt.EntityInit(id, pivotPos, this);
+            nextEntityId++;
+            Debug.Log($"EntityRegisteredInID:{id}");
+            return true;
+        }
+        return false;
+    }
+    public bool UnRegisterEntity(int id)
+    {
+        if (Entitys.ContainsKey(id))
+        {
+            Entitys.Remove(id);
+            return true;
+        }
+        return false;
+    }
+    public bool UnRegisterEntity(object obj)
+    {
+        if (obj is IEntityRuntime runtime)
+        {
+            if (Entitys.ContainsKey(runtime.EntityId))
+            {
+                Entitys.Remove(runtime.EntityId);
+                return true;
+            }
+        }
+        return false;
     }
 
     public Vector3Int WorldToCell(Vector3 worldPos)
@@ -315,6 +367,7 @@ public class WorldState : MonoBehaviour
 
     private List<Vector3Int> BuildOccupiedCells(Vector3Int pivotPos, int length, int height)
     {
+
         List<Vector3Int> occupiedCells = new List<Vector3Int>(length * height);
         for (int x = 0; x < length; x++)
         {
@@ -326,7 +379,6 @@ public class WorldState : MonoBehaviour
                     Debug.LogError($"Cell position out of bounds: {pos}");
                     return null;
                 }
-
                 occupiedCells.Add(pos);
             }
         }
@@ -384,8 +436,37 @@ public class WorldState : MonoBehaviour
 
         TrackEntityCells(nextEntityId, occupiedCells);
         RegisterEntity(nextEntityId, cellPos, rt);
+        rt.EntityInit(nextEntityId, cellPos, this);
     }
+    public void PlaceEntity(Vector3Int cellPos, IEntityRuntime rt, int length, int height)
+    {
 
+        if (rt == null)
+        {
+            Debug.LogError($"Placed object is missing IEntityRuntime.");
+            return;
+        }
+
+        List<Vector3Int> occupiedCells = BuildOccupiedCells(cellPos, length, height);
+        if (occupiedCells == null)
+        {
+            return;
+        }
+        Debug.Log(2);
+
+        foreach (Vector3Int pos in occupiedCells)
+        {
+            AddEntityToDetailedMapData(pos, nextEntityId);
+            SetCellEmpty(pos, false);
+        }
+
+        Debug.Log(3);
+        TrackEntityCells(nextEntityId, occupiedCells);
+        Debug.Log(4);
+        RegisterEntity(nextEntityId, cellPos, rt);
+        Debug.Log(5);
+        rt.EntityInit(nextEntityId, cellPos, this);
+    }
     public void PlaceEntity(Vector3Int cellPos, string itemID)
     {
         var def = ItemRegistry.Get(itemID);
@@ -426,6 +507,7 @@ public class WorldState : MonoBehaviour
 
         TrackEntityCells(nextEntityId, occupiedCells);
         RegisterEntity(nextEntityId, cellPos, rt);
+        rt.EntityInit(nextEntityId, cellPos, this);
     }
 
     public void PlaceTile(Vector3Int cellPos, TileBase tile, IEntityRuntime runtimeSc, int tileLayer, out int EntityID)

@@ -18,7 +18,7 @@ public abstract class EntityRuntimeBase : IEntityRuntime, ISaveableEntity
         PivotPos = data.PivotPos;
     }
 
-    public void Init(int entityId, Vector3Int pivotPos, WorldState worldState)
+    public void EntityInit(int entityId, Vector3Int pivotPos, WorldState worldState)
     {
         EntityId = entityId;
         PivotPos = pivotPos;

@@ -9,7 +9,9 @@ public static class RuntimeRegisterUtility
     {
         if (obj == null) return;
 
+        Debug.Log($"Register Entity: {obj.ToString()}");
         TimeManager.Instance?.Register(obj);
+        //WorldState.Instance?.RegisterEntity(obj);
 
     }
 
@@ -18,6 +20,7 @@ public static class RuntimeRegisterUtility
         if (obj == null) return;
 
         TimeManager.Instance?.Unregister(obj);
+        //WorldState.Instance?.UnRegisterEntity(obj);
 
     }
 }
