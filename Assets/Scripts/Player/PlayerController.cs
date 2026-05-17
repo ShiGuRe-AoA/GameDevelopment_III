@@ -57,6 +57,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private List<ActionDefinition_SO> TillingAction = new();
     [SerializeField] private List<ActionDefinition_SO> WateringAction = new();
     [SerializeField] private List<ActionDefinition_SO> HarvestAction = new();
+    [SerializeField] private List<ActionDefinition_SO> FishingAction = new();
+
     private readonly Dictionary<Direction, FacingDirectionCompanion> facingDirectionMap = new();
     private Direction playerFacingDir = Direction.Down;
     private Vector3Int interactOffset = Vector3Int.up;
@@ -125,6 +127,7 @@ public class PlayerController : MonoBehaviour
         ActionRegistry.RegistryAction(ActionRegistry.PlayerAction, TillingAction);
         ActionRegistry.RegistryAction(ActionRegistry.PlayerAction, WateringAction);
         ActionRegistry.RegistryAction(ActionRegistry.PlayerAction, HarvestAction);
+        ActionRegistry.RegistryAction(ActionRegistry.PlayerAction, FishingAction);
     }
 
     private void InitializeFacingDirection()
@@ -194,6 +197,55 @@ public class PlayerController : MonoBehaviour
         playerStateMachine.PushState(new State_UseTool(playerStateMachine, machineContext, tools));
         return true;
     }
+
+    #region Еігу
+    public bool StartFishingWait()
+    {
+        if (playerStateMachine == null || machineContext == null)
+        {
+            return false;
+        }
+
+        return playerStateMachine.PushState(
+            new State_FishingWait(playerStateMachine, machineContext)
+        );
+    }
+
+    public bool StartFishingBite()
+    {
+        if (playerStateMachine == null || machineContext == null)
+        {
+            return false;
+        }
+
+        return playerStateMachine.PushState(
+            new State_FishingBite(playerStateMachine, machineContext)
+        );
+    }
+
+    public bool StartFishingGame(FishingSession session)
+    {
+        if (playerStateMachine == null || machineContext == null)
+        {
+            return false;
+        }
+
+        return playerStateMachine.PushState(
+            new State_FishingGame(playerStateMachine, machineContext, session)
+        );
+    }
+
+    public bool FinishFishing()
+    {
+        if (playerStateMachine == null)
+        {
+            return false;
+        }
+
+        return playerStateMachine.PopState();
+    }
+    #endregion
+
 
     private void ApplyFacing(Direction direction)
     {

@@ -322,8 +322,126 @@ public class State_UseTool : State_PlayerBase
                 "Player_Watering_Right",
                 "Player_Watering_Up"
             ),
+            ToolType.FishingRod => GetDirectionAction(
+                dir,
+                "Player_Fishing_Down",
+                "Player_Fishing_Left",
+                "Player_Fishing_Right",
+                "Player_Fishing_Up"
+            ),
 
             _ => string.Empty
         };
     }
 }
+
+#region Еігу
+public class State_FishingWait : State_PlayerBase
+{
+    public State_FishingWait(
+        StateMachine<PlayerContext> machine,
+        PlayerContext ctx
+    ) : base(machine, ctx)
+    {
+    }
+
+    public override void Enter()
+    {
+        base.Enter();
+
+        SetControl(canMove: false, canInteract: false);
+        PlayAction(GetFishingWaitAction(PlayerDirection));
+    }
+
+    public override void Update()
+    {
+        base.Update();
+        TickAction();
+    }
+
+    private string GetFishingWaitAction(Direction dir)
+    {
+        return GetDirectionAction(
+            dir,
+            "Player_FishingWait_Down",
+            "Player_FishingWait_Left",
+            "Player_FishingWait_Right",
+            "Player_FishingWait_Up"
+        );
+    }
+}
+
+public class State_FishingBite : State_PlayerBase
+{
+    public State_FishingBite(
+        StateMachine<PlayerContext> machine,
+        PlayerContext ctx
+    ) : base(machine, ctx)
+    {
+    }
+
+    public override void Enter()
+    {
+        base.Enter();
+
+        SetControl(canMove: false, canInteract: false);
+        PlayAction(GetFishingBiteAction(PlayerDirection));
+    }
+
+    public override void Update()
+    {
+        base.Update();
+        TickAction();
+    }
+
+    private string GetFishingBiteAction(Direction dir)
+    {
+        return GetDirectionAction(
+            dir,
+            "Player_FishingBite_Down",
+            "Player_FishingBite_Left",
+            "Player_FishingBite_Right",
+            "Player_FishingBite_Up"
+        );
+    }
+}
+
+public class State_FishingGame : State_PlayerBase
+{
+    private readonly FishingSession session;
+
+    public State_FishingGame(
+        StateMachine<PlayerContext> machine,
+        PlayerContext ctx,
+        FishingSession session
+    ) : base(machine, ctx)
+    {
+        this.session = session;
+    }
+
+    public override void Enter()
+    {
+        base.Enter();
+
+        SetControl(canMove: false, canInteract: false);
+        PlayAction(GetFishingGameAction(PlayerDirection));
+    }
+
+    public override void Update()
+    {
+        base.Update();
+        TickAction();
+    }
+
+    private string GetFishingGameAction(Direction dir)
+    {
+        return GetDirectionAction(
+            dir,
+            "Player_FishingGame_Down",
+            "Player_FishingGame_Left",
+            "Player_FishingGame_Right",
+            "Player_FishingGame_Up"
+        );
+    }
+}
+#endregion

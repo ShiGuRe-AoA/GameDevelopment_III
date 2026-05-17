@@ -789,6 +789,7 @@ public class WorldState : MonoBehaviour
     public void ItemInteract(Vector3Int targetGridPos, List<ToolType> toolTypes)
     {
         BasicCellData cell = GetCell(targetGridPos, out bool hasDetail, out DetailedCellData detailedData);
+        
         if (toolTypes.Contains(ToolType.Hoe))
         {
             if (cell.Type == GridType.Soil && CheckEmpty(targetGridPos))
@@ -818,6 +819,15 @@ public class WorldState : MonoBehaviour
             farmland.Water();
             SyncDetailedStateWithRuntime(targetGridPos);
             Debug.Log("FarmlandWatered!");
+        }
+
+        if (toolTypes.Contains(ToolType.FishingRod))
+        {
+            if (cell.Type != GridType.Water)
+            {
+                return;
+            }
+
         }
     }
 }

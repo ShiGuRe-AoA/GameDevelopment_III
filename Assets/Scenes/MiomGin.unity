@@ -2538,9 +2538,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e2df8d0c0230e724a84732c9d4414c94, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  UISlots: []
-  collectedParent: {fileID: 2098624124}
-  enableInteract: 1
+  collectedParents: []
+  enableInteract: 
   interactableSlotCount: 0
 --- !u!114 &415339340
 MonoBehaviour:
@@ -2554,9 +2553,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4214f9b469a34e946aea221f0a9bd70a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  UISlots: []
-  collectedParent: {fileID: 1914531218}
-  enableInteract: 1
+  collectedParents: []
+  enableInteract: 
   shelfLevel: 0
 --- !u!4 &415339341
 Transform:
@@ -9613,9 +9611,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f40e55ee05fce14192f4e9a292017d6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  UISlots: []
-  collectedParent: {fileID: 864354097}
-  enableInteract: 1
+  collectedParents: []
+  enableInteract: 
   BackpackPanel: {fileID: 1849675795}
   inventoryContainer: {fileID: 918951881}
 --- !u!114 &918951880
@@ -10781,6 +10778,56 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6317324281a691149a4d8ab1a42ad07d, type: 3}
+--- !u!1 &1071579795
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1071579797}
+  - component: {fileID: 1071579796}
+  m_Layer: 0
+  m_Name: FishingSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1071579796
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1071579795}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d11b7c6932c8c440ae72d6a2cf8fa6c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  defaultLootTable: {fileID: 0}
+  fishingGameView: {fileID: 0}
+  minHookWaitMinutes: 2
+  maxHookWaitMinutes: 5
+  hookChance: 0.8
+  maxBiteTime: 1.5
+--- !u!4 &1071579797
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1071579795}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1072764658
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13150,6 +13197,7 @@ MonoBehaviour:
   TillingAction: []
   WateringAction: []
   HarvestAction: []
+  FishingAction: []
 --- !u!114 &1707658217
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16200,3 +16248,4 @@ SceneRoots:
   - {fileID: 1109969414}
   - {fileID: 2067176271362691605}
   - {fileID: 135221093}
+  - {fileID: 1071579797}

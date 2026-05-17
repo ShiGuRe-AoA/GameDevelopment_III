@@ -6,7 +6,8 @@ public enum ToolType
 {
     Hoe,
     Axe,
-    WateringCan
+    WateringCan,
+    FishingRod
 }
 
 [CreateAssetMenu(menuName = "Game/Feature/Tool")]
