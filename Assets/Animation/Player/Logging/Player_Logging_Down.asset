@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67704a72f97a1ef4a84c3db68cc8b0a0, type: 3}
+  m_Name: Player_Logging_Down
+  m_EditorClassIdentifier: 
+  AnimatorStateName: Player_Logging_Down
+  Clip: {fileID: 7400000, guid: a6f1376b472635844b329140018a87e0, type: 2}
+  Events:
+  - name: EffectTime
+    time: 0.17500001
+  - name: CancelStart
+    time: 0.26250002
+  Ranges:
+  - name: Windup
+    start: 0
+    end: 0.17500001
+  - name: Recover
+    start: 0.17500001
+    end: 0.35000002
+  LockMove: 1
+  LockInteract: 1

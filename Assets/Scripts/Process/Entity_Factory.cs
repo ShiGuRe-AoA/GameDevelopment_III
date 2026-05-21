@@ -55,6 +55,8 @@ public class Entity_Factory : ItemContainer_Base, IEntityRuntime, IMinuteUpdatab
 
     public Vector3Int PivotPos { get; private set; }
 
+    public List<GameObject> RelativeObj { get; private set; }
+
     public void EntityInit(int entityId, Vector3Int pivotPos, WorldState worldState)
     {
         EntityId = entityId;

@@ -185,6 +185,7 @@ public enum InteractPhase
     None,
     Harvest,
     OpenDoor,
+    Logging
 }
 
 /// <summary>
@@ -328,6 +329,13 @@ public class State_UseTool : State_PlayerBase
                 "Player_Fishing_Left",
                 "Player_Fishing_Right",
                 "Player_Fishing_Up"
+            ),
+            ToolType.Axe => GetDirectionAction(
+                dir,
+                "Player_Logging_Down",
+                "Player_Logging_Left",
+                "Player_Logging_Right",
+                "Player_Logging_Up"
             ),
 
             _ => string.Empty

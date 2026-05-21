@@ -707,6 +707,7 @@ public class WorldState : MonoBehaviour
 
     public void DestroyEntity(int entityID)
     {
+
         IEntityRuntime entityRuntime = GetEntity(entityID);
         if (entityRuntime == null)
         {
@@ -757,7 +758,9 @@ public class WorldState : MonoBehaviour
         List<int> entityIdsSnapshot = new List<int>(cellData.EntityID);
         foreach (int entityID in entityIdsSnapshot)
         {
+            Debug.Log(5);
             IEntityRuntime entity = GetEntity(entityID);
+            Debug.Log(6);
             if (entity is IInteractable interactable)
             {
                 interactable.OnInteract();
@@ -819,6 +822,23 @@ public class WorldState : MonoBehaviour
             farmland.Water();
             SyncDetailedStateWithRuntime(targetGridPos);
             Debug.Log("FarmlandWatered!");
+        }
+
+        if (toolTypes.Contains(ToolType.Axe))
+        {
+            if (!hasDetail || detailedData.CheckEmpty())
+            {
+                return;
+            }
+
+            if (!TryGetEntityOnCell(targetGridPos, out Tree_Entity tree))
+            {
+                return;
+            }
+
+            tree.Logging();
+            SyncDetailedStateWithRuntime(targetGridPos);
+            Debug.Log("Logging!");
         }
 
         if (toolTypes.Contains(ToolType.FishingRod))

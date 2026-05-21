@@ -58,6 +58,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private List<ActionDefinition_SO> WateringAction = new();
     [SerializeField] private List<ActionDefinition_SO> HarvestAction = new();
     [SerializeField] private List<ActionDefinition_SO> FishingAction = new();
+    [SerializeField] private List<ActionDefinition_SO> LoggingAction = new();
 
     private readonly Dictionary<Direction, FacingDirectionCompanion> facingDirectionMap = new();
     private Direction playerFacingDir = Direction.Down;

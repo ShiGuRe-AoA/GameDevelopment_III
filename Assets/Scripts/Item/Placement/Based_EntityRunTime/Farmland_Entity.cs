@@ -119,15 +119,20 @@ public class Farmland_Entity : EntityRuntimeBase, IPlantable, IInteractable, IMi
     {
         if (CropInstanceId <= 0) { return false; }
 
+        Debug.Log("0");
         IEntityRuntime cropRuntime = WorldState.Instance.GetEntity(CropInstanceId);
+        Debug.Log("1");
         if (cropRuntime is Crops_Entity cropsEntity && cropsEntity.canHarvest)
         {
             int productID = cropsEntity.Product.ID_num;
+        Debug.Log("2");
             int spawnCount = cropsEntity.harvestedCount;
 
             WorldState.Instance.SpawnItem(GridPos, productID, spawnCount);
+        Debug.Log("3");
             WorldState.Instance.DestroyEntity(CropInstanceId);
             CropInstanceId = 0;
+        Debug.Log("4");
             WorldState.Instance.SwitchTile(GridPos, null,2); // »Ö¸´Îª»ù´¡µØ¿é
             return true;
         }

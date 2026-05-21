@@ -6,6 +6,7 @@ public enum EntityRuntimeKind
 {
     Farmland,
     Crop,
+    Tree
 }
 
 public static class EntityRuntimeFactory
@@ -15,6 +16,7 @@ public static class EntityRuntimeFactory
         {
             { EntityRuntimeKind.Farmland, () => new Farmland_Entity() },
             { EntityRuntimeKind.Crop, () => new Crops_Entity() },
+            { EntityRuntimeKind.Tree, () => new Tree_Entity() },
         };
 
     public static IEntityRuntime Create(EntityRuntimeKind kind)
