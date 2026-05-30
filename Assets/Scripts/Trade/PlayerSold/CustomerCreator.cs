@@ -24,19 +24,9 @@ public class CustomerCreator : MonoBehaviour, IMinuteUpdatable
             return _instance;
         }
     } 
-    private class Customer_Anim
-    {
-        public Customer_Anim(CustomerController _customer, int _animOrder)
-        {
-            customer = _customer;
-            animOrder = _animOrder;
-            leaveTime = new ComplexTime();
-        }
 
-        public CustomerController customer;
-        public int animOrder;
-        public ComplexTime leaveTime;
-    }
+    Dictionary<CustomerController, int> _Customer_Anim;
+    Dictionary<int, ComplexTime> _Anim_LeaveTime;
 
     // 之后prefab可能需要变成结构体
     // 结构体大概会包含 Animator(使用哪个模型) 之类的
@@ -53,14 +43,12 @@ public class CustomerCreator : MonoBehaviour, IMinuteUpdatable
     // 当时间到集市日, customerCount < maxCustomerCount时 为true
     private bool isTradeDay;  // 是否到集市日
 
-    // 用于存储场景中有的Anim, 防止同一模型同时出现
-    [SerializeField] private List<Customer_Anim> curCustomers = new List<Customer_Anim>();      // ReadOnly
-    [SerializeField] private List<Customer_Anim> leaveCustomers = new List<Customer_Anim>();    // ReadOnly
+    [SerializeField] private HashSet<int> activeAnims = new();
+    [SerializeField] private HashSet<CustomerController> activeCustomers = new();
+    [SerializeField] private Queue<CustomerController> pooledCustomers = new();
     
     // 离开后重新生成的最小间隔
     [SerializeField] private float minLeaveTime = 20;
-
-    [SerializeField] private int customerCount = 0; // ReadOnly
 
     // 场景中最多同时出现顾客数
     [SerializeField] private int maxCustomerCount; // 一定要 <= customerAnims
@@ -85,8 +73,7 @@ public class CustomerCreator : MonoBehaviour, IMinuteUpdatable
     private void Start()
     {
         createTime = TimeManager.Instance.GetComplexTime();
-        //createTime = 0;
-
+        
         maxCustomerCount = Mathf.Min(maxCustomerCount, anims.Length);
     }
 
@@ -96,186 +83,141 @@ public class CustomerCreator : MonoBehaviour, IMinuteUpdatable
         if (!isTradeDay) return;
 
         //createTime++;
-        if (customerCount < maxCustomerCount)
+        if (activeCustomers.Count < maxCustomerCount)
         {
             if (TimeManager.Instance.TimeDistToNow(createTime) >= createDist)
                 CreateCustomer();
         }
     }
 
-    // 在 Creator 内执行
     public void CreateCustomer()
     {
-        // 标记本次生成顾客的时间点
+        if (!TryGetAvailableAnimOrder(out int animOrder)) return;
+
+        CustomerController ctrl = GetAvailableCustomerController();
+        if (ctrl == null) return;
+
+        ApplyAnimOrder(ctrl, animOrder);
+
+        activeCustomers.Add(ctrl);
+        activeAnims.Add(animOrder);
+        _Customer_Anim[ctrl] = animOrder;
+
+        ctrl.gameObject.SetActive(true);
+
         createTime = TimeManager.Instance.GetComplexTime();
-        //createTime = 0;
-        
-        // 生成顾客预制体
-        GameObject customer = Instantiate(customerPrefab);
-        // 查找顾客的 Controller 组件
-        CustomerController ctrl = customer.GetComponent<CustomerController>();
-        if (ctrl == null)
-        {
-            Debug.LogError($"Customer Controller on customer: {customer.name} not found", customer);
-        }
-        ctrl.Init(playerStore);
-        // 查找顾客的 Animator 组件并为其赋值
-        Animator anim = customer.GetComponent<Animator>();
-        if (anim == null)
-        {
-            Debug.LogError($"Animator on customer: {customer.name} not found", customer);
-        }
-
-        int animOrder = AnimOrder();
-        anim.runtimeAnimatorController = anims[animOrder];
-        // 将生成的顾客放进当前场景列表里
-        curCustomers.Add(BindCustomerAnim(ctrl, animOrder));
-
-        customerCount++;
     }
 
-    
-    public void CreateCustomerTest()
+    private CustomerController GetAvailableCustomerController()
     {
-        // create时还要在几个生成点位分配
-        createTime = TimeManager.Instance.GetComplexTime();
-
-        var cur = curCustomers;
-        var leave = leaveCustomers;
-
-        // 假如场景里的不够多则实例化, 否则重新调用
-        if(cur.Count + leave.Count < maxCustomerCount)
+        // 从对象池内获取 Ctrl
+        if (pooledCustomers.Count > 0)
         {
-            GameObject customer = Instantiate(customerPrefab);
-            
-            CustomerController ctrl = customer.GetComponent<CustomerController>();
-            if (ctrl == null)
-            {
-                Debug.LogError($"Customer Controller on customer: {customer.name} not found", customer);
-            }
-            ctrl.Init(playerStore);
+            CustomerController ctrl = pooledCustomers.Dequeue();
 
-            Animator anim = customer.GetComponent<Animator>();
-            if (anim == null)
-            {
-                Debug.LogError($"Animator on customer: {customer.name} not found", customer);
-            }
-
-            int animOrder = AnimOrder();
-            anim.runtimeAnimatorController = anims[animOrder];
-
-            curCustomers.Add(BindCustomerAnim(ctrl, animOrder));
+            ctrl.gameObject.SetActive(true);
+            return ctrl;
         }
-        else
-        {
-            int animOrder = AnimOrder();
-            var bind = CustomerOrAnim2Bind(animOrder, leave);
-            
-            leave.Remove(bind);
-            cur.Add(bind);
-        }
+        
+        // 当前场景 Ctrl 总数足够则不获取
+        if (activeCustomers.Count + pooledCustomers.Count >= maxCustomerCount)
+            return null;
 
-        customerCount++;
+        // 若允许则新生成 Ctrl
+        GameObject customerObj = Instantiate(customerPrefab);
+
+        CustomerController newCtrl = customerObj.GetComponent<CustomerController>();
+
+        newCtrl.Init(playerStore);
+
+        return newCtrl;
     }
 
-    // 让 CustomerController 自己执行 Remove
+    // 从 anims 中随机一个当前未在场, 冷却完成的 animOrder
+    private bool TryGetAvailableAnimOrder(out int animOrder)
+    {
+        // 候选
+        List<int> candidates = new();
+
+        // 所有可选的 animOrder
+        for(int i = 0; i < anims.Length; i++)
+        {
+            // anim 在场景已存在
+            if (activeAnims.Contains(i))
+                continue;
+
+            // anim 满足 离场后过了一定时间的条件
+            if (_Anim_LeaveTime.TryGetValue(i, out ComplexTime leaveTime))
+            {
+                float leaveDist = TimeManager.Instance.TimeDistToNow(leaveTime);
+
+                if (leaveDist < minLeaveTime)
+                    continue;
+            }
+
+            candidates.Add(i);
+        }
+
+        // 无候选
+        if(candidates.Count == 0)
+        {
+            animOrder = -1;
+            return false;
+        }
+
+        // 候选里随机
+        int randomIndex = UnityEngine.Random.Range(0, candidates.Count);
+        animOrder = candidates[randomIndex];
+        return true;
+    }
+
+    // 给 ctrl 用本次生成的 animOrder
+    private void ApplyAnimOrder(CustomerController ctrl, int animOrder)
+    {
+        Animator anim = ctrl.GetComponent<Animator>();
+        anim.runtimeAnimatorController = anims[animOrder];
+    }
+
+    // 播过出场动画后执行
     public void RemoveCustomer(CustomerController customer)
     {
-        // todo: 从场景删除角色
-        var cur = curCustomers;
-        var leave = leaveCustomers;
+        activeCustomers.Remove(customer);
 
-        var curBind = CustomerOrAnim2Bind(customer, cur);
-        var leaveTime = TimeManager.Instance.GetComplexTime();
+        int animOrder = _Customer_Anim[customer];
+        activeAnims.Remove(animOrder);
 
-        leave.Add(AddLeaveTime2CurBind(curBind, leaveTime));
-        cur.Remove(curBind);
+        _Customer_Anim.Remove(customer);
 
-        customerCount--;
+        ComplexTime leaveTime = TimeManager.Instance.GetComplexTime();
+        _Anim_LeaveTime[animOrder] = leaveTime;
+
+        ReturnCustomerToPool(customer);
+
     }
 
-    // 将分散的 CustomerController 与 Animator 绑定
-    private Customer_Anim BindCustomerAnim(CustomerController _customer, int _animOrder)
+    // Return 2 Pool 时必须在场景内有过自然的出场动画, 或者范围内不可见
+    private void ReturnCustomerToPool(CustomerController customer)
     {
-        Customer_Anim result = new Customer_Anim(_customer, _animOrder);
-        return result;
+        if (customer == null) return;
+
+        customer.gameObject.SetActive(false);
+        pooledCustomers.Enqueue(customer);
     }
 
-    private Customer_Anim AddLeaveTime2CurBind(Customer_Anim _customer_Anim, ComplexTime _leaveTime)
+    /// <summary>
+    /// 调试用：检查某个 animOrder 是否正在场上。
+    /// </summary>
+    public bool IsAnimOrderActive(int animOrder)
     {
-        _customer_Anim.leaveTime = _leaveTime;
-        return _customer_Anim;
+        return activeAnims.Contains(animOrder);
     }
 
-    // 在 curCustomers 列表中寻找某 CustomerController 对应的 Customer_Anim
-    private Customer_Anim CustomerOrAnim2Bind(CustomerController _customer, List<Customer_Anim> binds)
+    /// <summary>
+    /// 调试用：获取当前某个顾客使用的 animOrder。
+    /// </summary>
+    public bool TryGetCurrentAnimOrder(CustomerController customer, out int animOrder)
     {
-        return binds.FirstOrDefault(a => a.customer == _customer);
-    }
-
-    private Customer_Anim CustomerOrAnim2Bind(int _animOrder, List<Customer_Anim> binds)
-    {
-        return binds.FirstOrDefault(a => a.animOrder == _animOrder);
-    }
-
-
-
-    // 寻找合适的 Animator
-    private int AnimOrder()
-    {
-        var cur = curCustomers;
-        var leave = leaveCustomers;
-
-        // 用表存已经试过的 Animator
-        HashSet<int> triedOrders = new HashSet<int>();
-
-        int randomOrder;
-        Customer_Anim curResult;
-        Customer_Anim leaveResult;
-
-        while (true)
-        {
-            randomOrder = UnityEngine.Random.Range(0, anims.Count());
-
-            if (triedOrders.Contains(randomOrder))
-            {
-                continue;
-            }
-
-            triedOrders.Add(randomOrder);
-
-            // 如果当前场景不存在 Order
-            if (!TryGetAnim(cur, randomOrder, out curResult))
-            {
-                return randomOrder;
-            }
-
-            // 如果当前场景存在 Order, 则看已滚蛋的人里有没有 Order
-            if(TryGetAnim(leave, randomOrder, out leaveResult))
-            {
-                // 滚蛋了一定时长后就当生面孔了
-                if (TimeManager.Instance.TimeDistToNow(leaveResult.leaveTime) > minLeaveTime)
-                {
-                    return randomOrder;
-                }
-            }
-        }
-    }
-
-    // 查找有无符合条件的 animOrder, 顺便找其对应的 Customer_Anim
-    private bool TryGetAnim(List<Customer_Anim> customers, int targetOrder, out Customer_Anim result)
-    {
-        foreach(var c in customers)
-        {
-            if(c.animOrder == targetOrder)
-            {
-                result = c;
-                return true;
-            }
-        }
-
-        result = default;
-        return false;
+        return _Customer_Anim.TryGetValue(customer, out animOrder);
     }
 
 
