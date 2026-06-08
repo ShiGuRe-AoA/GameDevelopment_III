@@ -138,5 +138,11 @@ public class ItemContainer_Base : MonoBehaviour
         if (SlotController.Instance == null) { return; }
         SlotController.Instance.RefreshAll(containers[containerID]);
     }
+
+    public void Refresh(ItemContainer _container)
+    {
+        if (SlotController.Instance == null) { return; }
+        SlotController.Instance.RefreshAll(_container);
+    }
 }
 

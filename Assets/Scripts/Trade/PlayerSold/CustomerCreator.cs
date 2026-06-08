@@ -32,7 +32,7 @@ public class CustomerCreator : MonoBehaviour, IMinuteUpdatable
     // 结构体大概会包含 Animator(使用哪个模型) 之类的
     [SerializeField] private GameObject customerPrefab;
     [SerializeField] private RuntimeAnimatorController[] anims;
-    [SerializeField] private PlayerStoreContainer playerStore;
+    [SerializeField] private PlayerStore_Entity storeEntity;
 
     // 上一次生成顾客的时间
     private ComplexTime createTime;
@@ -46,6 +46,8 @@ public class CustomerCreator : MonoBehaviour, IMinuteUpdatable
     [SerializeField] private HashSet<int> activeAnims = new();
     [SerializeField] private HashSet<CustomerController> activeCustomers = new();
     [SerializeField] private Queue<CustomerController> pooledCustomers = new();
+
+    public IReadOnlyCollection<CustomerController> ActiveCustomers => activeCustomers;
     
     // 离开后重新生成的最小间隔
     [SerializeField] private float minLeaveTime = 20;
@@ -56,12 +58,12 @@ public class CustomerCreator : MonoBehaviour, IMinuteUpdatable
 
     private void Awake()
     {
-        if(playerStore == null)
+        if(storeEntity == null)
         {
-            playerStore = FindObjectOfType<PlayerStoreContainer>();
-            if(playerStore == null)
+            storeEntity = FindObjectOfType<PlayerStore_Entity>();
+            if(storeEntity == null)
             {
-                Debug.LogError("Player Store Container not found in scene.");
+                Debug.LogError("Player Store Entity not found in scene.");
             }
         }
         if (customerPrefab == null)
@@ -115,6 +117,7 @@ public class CustomerCreator : MonoBehaviour, IMinuteUpdatable
         {
             CustomerController ctrl = pooledCustomers.Dequeue();
 
+            ctrl.Init(storeEntity);
             ctrl.gameObject.SetActive(true);
             return ctrl;
         }
@@ -128,7 +131,7 @@ public class CustomerCreator : MonoBehaviour, IMinuteUpdatable
 
         CustomerController newCtrl = customerObj.GetComponent<CustomerController>();
 
-        newCtrl.Init(playerStore);
+        newCtrl.Init(storeEntity);
 
         return newCtrl;
     }

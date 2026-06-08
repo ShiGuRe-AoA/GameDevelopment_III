@@ -294,7 +294,7 @@ public class State_UseTool : State_PlayerBase
         // 动画到达效果帧时执行一次交互逻辑
         if (actionRuntime.CanApplyEffect())
         {
-            WorldState.Instance.ItemInteract(InteractTilePosition, curTools);
+            WorldState.Instance.ItemInteract(InteractTilePosition, curTools, Ctx);
 
             actionRuntime.MarkEffectApplied();
         }
@@ -336,6 +336,13 @@ public class State_UseTool : State_PlayerBase
                 "Player_Logging_Left",
                 "Player_Logging_Right",
                 "Player_Logging_Up"
+            ),
+            ToolType.Bell => GetDirectionAction(
+                dir,
+                "Player_RingBell_Down",
+                "Player_RingBell_Left",
+                "Player_RingBell_Right",
+                "Player_RingBell_Up"
             ),
 
             _ => string.Empty

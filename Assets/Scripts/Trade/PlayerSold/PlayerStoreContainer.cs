@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// ÒÑÆúÓÃ
 public class PlayerStoreContainer : MonoBehaviour
 {
     [Header("Shelf Panel")]

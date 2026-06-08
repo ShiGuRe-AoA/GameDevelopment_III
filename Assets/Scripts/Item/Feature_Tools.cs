@@ -7,7 +7,8 @@ public enum ToolType
     Hoe,
     Axe,
     WateringCan,
-    FishingRod
+    FishingRod,
+    Bell
 }
 
 [CreateAssetMenu(menuName = "Game/Feature/Tool")]
@@ -18,7 +19,7 @@ public class Feature_Tools : ItemFeature, IHoldInteract
     public void OnHoldInteract(HoldInteractContext context)
     {
         //WorldState.Instance.ItemInteract(context.InteractGrid, ToolTypes);
-        
-        context.playerController.ToolInteract(ToolTypes);
+        var player = context.playerController;
+        player.ToolInteract(ToolTypes);
     }
 }

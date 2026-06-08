@@ -24,7 +24,23 @@ public enum FishingPhase
 
 public class FishingSystem : MonoBehaviour, IMinuteUpdatable, ITickUpdatable
 {
-    public static FishingSystem Instance { get; private set; }
+    private static FishingSystem _instance;
+    public static FishingSystem Instance
+    {
+        get
+        {
+            if (_instance == null)
+            {
+                // 你可以根据需要在这里处理实例化逻辑
+                _instance = FindObjectOfType<FishingSystem>();
+                if (_instance == null)
+                {
+                    Debug.LogError("SlotController not found in the scene!");
+                }
+            }
+            return _instance;
+        }
+    }
 
     [SerializeField] private FishingLootTable_SO defaultLootTable;
     [SerializeField] private FishingGameView fishingGameView;
@@ -37,10 +53,13 @@ public class FishingSystem : MonoBehaviour, IMinuteUpdatable, ITickUpdatable
     [Header("Bite / 现实秒")]
     [SerializeField] private float maxBiteTime = 1.5f;
 
+    // 鱼咬钩等待玩家操作
     public bool IsWaitingForPull => isFishing && phase == FishingPhase.Bite;
 
+    // 玩家钓鱼等待鱼咬钩
     private bool isFishing;
     private bool pullRequested;
+
 
     private FishingPhase phase = FishingPhase.None;
 
@@ -52,11 +71,6 @@ public class FishingSystem : MonoBehaviour, IMinuteUpdatable, ITickUpdatable
     private PlayerController currentPlayer;
     private FishingSession currentSession;
 
-    private void Awake()
-    {
-        Instance = this;
-    }
-
     public void BeginFishing(PlayerController player)
     {
         if (isFishing)
@@ -67,8 +81,8 @@ public class FishingSystem : MonoBehaviour, IMinuteUpdatable, ITickUpdatable
         isFishing = true;
         pullRequested = false;
 
-        currentPlayer = player;
         currentSession = null;
+        currentPlayer = player;
 
         phase = FishingPhase.Wait;
         waitMinuteCounter = 0;

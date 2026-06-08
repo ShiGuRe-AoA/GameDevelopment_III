@@ -789,7 +789,7 @@ public class WorldState : MonoBehaviour
         return InteractPhase.None;
     }
 
-    public void ItemInteract(Vector3Int targetGridPos, List<ToolType> toolTypes)
+    public void ItemInteract(Vector3Int targetGridPos, List<ToolType> toolTypes, PlayerContext ctx)
     {
         BasicCellData cell = GetCell(targetGridPos, out bool hasDetail, out DetailedCellData detailedData);
         
@@ -847,7 +847,14 @@ public class WorldState : MonoBehaviour
             {
                 return;
             }
+            // todo: 交互逻辑
+            FishingSystem.Instance.BeginFishing(ctx.PlayerController);
+        }
 
+        if (toolTypes.Contains(ToolType.Bell))
+        {
+            // 发信息吸引顾客 -> 给范围内 CustomerController 设置 targetStore == playerStore
+            CustomerAttractSystem.Instance.AttractCustomers(ctx);
         }
     }
 }

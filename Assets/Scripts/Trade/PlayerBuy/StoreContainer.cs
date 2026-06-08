@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// ÒÑÆúÓÃ
 public class StoreContainer : ItemContainer_Base
 {
     [Header("Store Panel")]
