@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using UnityEngine;
 
-// 顾客买玩家商品
+// 已弃用
 public class Trade_Customer : MonoBehaviour
 {
     private static Trade_Customer _instance;
