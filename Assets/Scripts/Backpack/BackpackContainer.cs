@@ -51,6 +51,7 @@ public class BackpackContainer : ItemContainer_Base
         SlotController.Instance.TryAddItem("Hoe_1", 1, container);
         SlotController.Instance.TryAddItem("Axe_1", 1, container);
         SlotController.Instance.TryAddItem("WateringCan_1", 1, container);
+        SlotController.Instance.TryAddItem("Bell_1", 1, container);
 
     }
     public void OpenBackpack()

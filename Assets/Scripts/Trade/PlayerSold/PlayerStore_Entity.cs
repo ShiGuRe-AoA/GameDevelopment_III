@@ -57,6 +57,8 @@ public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IInteracta
     public void Start()
     {
         Vector3Int pivot = WorldState.Instance.WorldToCell(transform.position);
+        WorldState.Instance.PlaceEntity(pivot, this as IEntityRuntime, 3, 2);
+        RuntimeRegisterUtility.RegisterAll(this);
 
     }
 
@@ -79,6 +81,7 @@ public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IInteracta
 
     public void JoinQueue(CustomerController customer)
     {
+        Debug.Log("Customer Joined");
         if (customer == null) return;
         if (IsInAnyQueue(customer)) return;
 
@@ -135,6 +138,7 @@ public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IInteracta
 
         QueueSlot best = activeQueueSlots[0];
 
+        // 目前每次找最短都会遍历一遍
         for(int i = 1; i < activeQueueSlots.Count; i++)
         {
             if (activeQueueSlots[i].customers.Count < best.customers.Count)
@@ -172,6 +176,7 @@ public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IInteracta
                 (Vector2)slot.frontPoint.position +
                 slot.backDirection.normalized * slot.spacing * i;
 
+            Debug.Log(targetPos);
             slot.customers[i].SetQueueTarget(targetPos);
         }
     }
@@ -189,7 +194,10 @@ public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IInteracta
         foreach (var slot in activeQueueSlots)
         {
             if (slot.customers.Count > 0 && slot.customers[0] == customer)
-                return true;
+            {
+                float dist = Vector2.Distance(slot.frontPoint.position, customer.transform.position);
+                if (dist <= 0.1f) return true;
+            }
         }
 
         return false;

@@ -3,8 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SaleItem : MonoBehaviour
+// 摊位上放物品的格子
+public class SaleItem : MonoBehaviour, IInteractable
 {
+
     public SpriteRenderer itemSr;
     private Sprite oldItemSprite;   // 存未更改时的sprite
 
@@ -41,5 +43,15 @@ public class SaleItem : MonoBehaviour
     void Update()
     {
         
+    }
+
+    public void OnInteract()
+    {
+        
+    }
+
+    public InteractPhase OnInteractDetected()
+    {
+        return InteractPhase.OpenDoor;
     }
 }

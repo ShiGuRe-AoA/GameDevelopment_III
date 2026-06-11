@@ -339,10 +339,10 @@ public class State_UseTool : State_PlayerBase
             ),
             ToolType.Bell => GetDirectionAction(
                 dir,
-                "Player_RingBell_Down",
-                "Player_RingBell_Left",
-                "Player_RingBell_Right",
-                "Player_RingBell_Up"
+                "Player_Harvest_Down",
+                "Player_Harvest_Left",
+                "Player_Harvest_Right",
+                "Player_Harvest_Up"
             ),
 
             _ => string.Empty

@@ -25,8 +25,8 @@ public class CustomerCreator : MonoBehaviour, IMinuteUpdatable
         }
     } 
 
-    Dictionary<CustomerController, int> _Customer_Anim;
-    Dictionary<int, ComplexTime> _Anim_LeaveTime;
+    Dictionary<CustomerController, int> _Customer_Anim = new();
+    Dictionary<int, ComplexTime> _Anim_LeaveTime = new();
 
     // 之后prefab可能需要变成结构体
     // 结构体大概会包含 Animator(使用哪个模型) 之类的
@@ -41,11 +41,11 @@ public class CustomerCreator : MonoBehaviour, IMinuteUpdatable
     [SerializeField] private float createDist = 5;
 
     // 当时间到集市日, customerCount < maxCustomerCount时 为true
-    private bool isTradeDay;  // 是否到集市日
+    private bool isTradeDay = true;  // 是否到集市日
 
-    [SerializeField] private HashSet<int> activeAnims = new();
-    [SerializeField] private HashSet<CustomerController> activeCustomers = new();
-    [SerializeField] private Queue<CustomerController> pooledCustomers = new();
+    private HashSet<int> activeAnims = new();
+    private HashSet<CustomerController> activeCustomers = new();
+    private Queue<CustomerController> pooledCustomers = new();
 
     public IReadOnlyCollection<CustomerController> ActiveCustomers => activeCustomers;
     
@@ -79,12 +79,26 @@ public class CustomerCreator : MonoBehaviour, IMinuteUpdatable
         maxCustomerCount = Mathf.Min(maxCustomerCount, anims.Length);
     }
 
+    public void Update()
+    {
+        if (activeCustomers.Count < maxCustomerCount)
+        {
+            if (TimeManager.Instance.TimeDistToNow(createTime) >= createDist)
+                CreateCustomer();
+        }
+    }
+
 
     public void OnMinuteUpdate()
     {
+        Debug.Log("AAAAAAAAAA");
         if (!isTradeDay) return;
 
         //createTime++;
+
+        // DebugTest
+        //CreateCustomer();
+
         if (activeCustomers.Count < maxCustomerCount)
         {
             if (TimeManager.Instance.TimeDistToNow(createTime) >= createDist)
@@ -94,7 +108,11 @@ public class CustomerCreator : MonoBehaviour, IMinuteUpdatable
 
     public void CreateCustomer()
     {
-        if (!TryGetAvailableAnimOrder(out int animOrder)) return;
+        if (!TryGetAvailableAnimOrder(out int animOrder))
+        {
+            //Debug.LogError("Failed to get Anim Order.");
+            return;
+        }
 
         CustomerController ctrl = GetAvailableCustomerController();
         if (ctrl == null) return;
@@ -112,6 +130,7 @@ public class CustomerCreator : MonoBehaviour, IMinuteUpdatable
 
     private CustomerController GetAvailableCustomerController()
     {
+        Debug.Log("Enter Get Customer Ctrl");
         // 从对象池内获取 Ctrl
         if (pooledCustomers.Count > 0)
         {
@@ -177,7 +196,7 @@ public class CustomerCreator : MonoBehaviour, IMinuteUpdatable
     // 给 ctrl 用本次生成的 animOrder
     private void ApplyAnimOrder(CustomerController ctrl, int animOrder)
     {
-        Animator anim = ctrl.GetComponent<Animator>();
+        Animator anim = ctrl.GetComponentInChildren<Animator>();
         anim.runtimeAnimatorController = anims[animOrder];
     }
 

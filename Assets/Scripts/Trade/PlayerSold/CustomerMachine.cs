@@ -73,8 +73,11 @@ public class State_CustomerAttracting : State_CustomerBase
     {
         base.Enter();
 
+        Debug.Log($"Customer Attracted", Customer);
+
         if (TargetStore == null)
         {
+            Debug.Log("Customer don't have target store", Customer);
             Machine.ChangeState(new State_CustomerIdle(Machine, Ctx));
             return;
         }

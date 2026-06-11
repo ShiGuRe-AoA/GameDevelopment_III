@@ -89,6 +89,9 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
     // MoveTo具体函数可能要改
     public void MoveTo(Vector2 targetPos)
     {
+        float dist = Vector2.Distance(transform.position, targetPos);
+        if (dist <= 0.1f) return;
+
         transform.position = Vector2.MoveTowards(
             transform.position,
             targetPos,
