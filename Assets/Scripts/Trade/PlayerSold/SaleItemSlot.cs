@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // 摊位上放物品的格子
-public class SaleItem : MonoBehaviour, IInteractable
+public class SaleItemSlot : MonoBehaviour, IInteractable
 {
 
     public SpriteRenderer itemSr;
