@@ -160,6 +160,7 @@ public class State_CustomerBuying : State_CustomerBase
 
         if (!Customer.TryPrepareBuyItem(out ItemStack item, out int price, out int count))
         {
+            Debug.Log("Try Prepare Buy Item Failed", Customer);
             Machine.ChangeState(new State_CustomerQuit(Machine, Ctx));
             return;
         }
@@ -167,6 +168,7 @@ public class State_CustomerBuying : State_CustomerBase
         Ctx.BuyItem = item;
         Ctx.Price = price;
         Ctx.Count = count;
+        Debug.Log(item.itemId, Customer);
     }
 
     public override void Update()
@@ -184,6 +186,7 @@ public class State_CustomerBuying : State_CustomerBase
         {
             if (!Customer.TryPrepareBuyItem(out ItemStack item, out int price, out int count))
             {
+                Debug.Log("Buying Failed", Customer);
                 Machine.ChangeState(new State_CustomerQuit(Machine, Ctx));
                 return;
             }
@@ -191,6 +194,7 @@ public class State_CustomerBuying : State_CustomerBase
             Ctx.BuyItem = item;
             Ctx.Price = price;
             Ctx.Count = count;
+            Debug.Log(item.itemId, Customer);
         }
 
         // todo: 这里之后接真正的交易完成条件。

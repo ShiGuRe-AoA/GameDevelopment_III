@@ -66,7 +66,7 @@ public class ItemContainer_Base : MonoBehaviour
             {
                 newView.UISlots[uiIndex].Bind(newContainer, newView, uiIndex, this);
             }
-            newContainer.RegistryView(view);
+            newContainer.RegistryView(newView);
             newContainer.enableInteract = (i >= enableInteract.Count) ? false : enableInteract[i];
 
         }

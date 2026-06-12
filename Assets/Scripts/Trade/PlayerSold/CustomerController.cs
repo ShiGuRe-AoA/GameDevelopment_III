@@ -90,7 +90,7 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
     public void MoveTo(Vector2 targetPos)
     {
         float dist = Vector2.Distance(transform.position, targetPos);
-        if (dist <= 0.1f) return;
+        if (dist <= 0.05f) return;
 
         transform.position = Vector2.MoveTowards(
             transform.position,
@@ -198,7 +198,10 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
         item = ItemStack.Empty;
 
         if (machineContext == null || machineContext.TargetEntity == null)
+        {
+            Debug.LogError("MachineContext for Buying is null", this);
             return false;
+        }
 
         PlayerStore_Entity store = machineContext.TargetEntity;
 
@@ -233,6 +236,7 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
             return true;
         }
 
+        Debug.Log("no item in container is legal");
         return false;
     }
 

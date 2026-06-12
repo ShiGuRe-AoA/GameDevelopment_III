@@ -45,6 +45,9 @@ public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IInteracta
 
         shelfContainer = containers[0];
         saleContainer = containers[1];
+
+        Refresh(shelfContainer);
+        Refresh(saleContainer);
     }
 
     public void OnAwake() { }
@@ -60,6 +63,19 @@ public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IInteracta
         WorldState.Instance.PlaceEntity(pivot, this as IEntityRuntime, 3, 2);
         RuntimeRegisterUtility.RegisterAll(this);
 
+
+        // 测试
+        SlotController.Instance.TryAddItem(10100, 36, containers[0]);
+        Debug.Log($"DebugItemAddComplete");
+        SlotController.Instance.TryAddItem(10100, 12, containers[0]);
+        SlotController.Instance.TryAddItem(10100, 4, containers[0]);
+        SlotController.Instance.TryAddItem(10101, 36, containers[0]);
+        SlotController.Instance.TryAddItem(10102, 5, containers[0]);
+        SlotController.Instance.TryAddItem(14001, 32, containers[0]);
+        SlotController.Instance.TryAddItem("Hoe_1", 1, containers[1]);
+        SlotController.Instance.TryAddItem("Axe_1", 1, containers[1]);
+        SlotController.Instance.TryAddItem("WateringCan_1", 1, containers[1]);
+        SlotController.Instance.TryAddItem("Bell_1", 1, containers[1]);
     }
 
     public void OnInteract()
@@ -196,7 +212,7 @@ public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IInteracta
             if (slot.customers.Count > 0 && slot.customers[0] == customer)
             {
                 float dist = Vector2.Distance(slot.frontPoint.position, customer.transform.position);
-                if (dist <= 0.1f) return true;
+                if (dist <= 0.05f) return true;
             }
         }
 
@@ -229,9 +245,9 @@ public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IInteracta
     // 在摊位互动时打开
     public void OpenStorePanel()
     {
+        Refresh(shelfContainer);
+        Refresh(saleContainer);
         storePanel.gameObject.SetActive(true);
-        for (int i = 0; i < containers.Count; i++)
-            Refresh(i);
     }
 
     public void CloseStorePanel()
