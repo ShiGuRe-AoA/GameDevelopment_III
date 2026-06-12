@@ -59,6 +59,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private List<ActionDefinition_SO> HarvestAction = new();
     [SerializeField] private List<ActionDefinition_SO> FishingAction = new();
     [SerializeField] private List<ActionDefinition_SO> LoggingAction = new();
+    [SerializeField] private List<ActionDefinition_SO> RingBellAction = new();
 
     private readonly Dictionary<Direction, FacingDirectionCompanion> facingDirectionMap = new();
     private Direction playerFacingDir = Direction.Down;
@@ -129,6 +130,8 @@ public class PlayerController : MonoBehaviour
         ActionRegistry.RegistryAction(ActionRegistry.PlayerAction, WateringAction);
         ActionRegistry.RegistryAction(ActionRegistry.PlayerAction, HarvestAction);
         ActionRegistry.RegistryAction(ActionRegistry.PlayerAction, FishingAction);
+        ActionRegistry.RegistryAction(ActionRegistry.PlayerAction, LoggingAction);
+        ActionRegistry.RegistryAction(ActionRegistry.PlayerAction, RingBellAction);
     }
 
     private void InitializeFacingDirection()

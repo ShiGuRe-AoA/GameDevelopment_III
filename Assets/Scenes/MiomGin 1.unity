@@ -110725,7 +110725,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.08800001, y: 0.041}
   m_AnchorMax: {x: 0.9164797, y: 0.94924396}
-  m_AnchoredPosition: {x: -1.3883057, y: -0.86685944}
+  m_AnchoredPosition: {x: -1.3883057, y: -0.8669205}
   m_SizeDelta: {x: -1.272583, y: -0.8148346}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1492637409
@@ -111963,8 +111963,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 9.4, y: 123.3, z: 0}
-  m_LocalScale: {x: 0.274, y: 0.2702, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 0.85, y: 0.85, z: 1}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 1816312202}
   m_Father: {fileID: 0}
@@ -112050,6 +112050,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 7f080f397e5ef014d9695877b2c4f69d, type: 2}
   - {fileID: 11400000, guid: bf9539a6e4f761f4ca4772e094fb87ee, type: 2}
   - {fileID: 11400000, guid: bf2fec08b9833b540ba9ffc342d240a2, type: 2}
+  RingBellAction:
+  - {fileID: 11400000, guid: c55142c113593154886a88c96d7e0de2, type: 2}
+  - {fileID: 11400000, guid: 646f409f02fdea642b98009a07ba37b9, type: 2}
+  - {fileID: 11400000, guid: 2ff82141cc7dfe142ab0daa5570d035e, type: 2}
+  - {fileID: 11400000, guid: 721e9823c30610048b7e381a2670509e, type: 2}
 --- !u!114 &1707658217
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -112681,7 +112686,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 3.17, y: 3.17, z: 0.85606265}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1707658214}
