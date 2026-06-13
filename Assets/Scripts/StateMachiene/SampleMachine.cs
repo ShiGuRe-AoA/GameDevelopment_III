@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
-/// Íæ¼Ò×´Ì¬»ùÀà£ºÍ³Ò»´¦ÀíÍæ¼Ò¶¯»­¡¢¶¯×÷ÔËĞĞÊ±¡¢ÒÆ¶¯/½»»¥È¨ÏŞ¡£
+/// ç©å®¶çŠ¶æ€åŸºç±»ï¼šç»Ÿä¸€å¤„ç†ç©å®¶åŠ¨ç”»ã€åŠ¨ä½œè¿è¡Œæ—¶ã€ç§»åŠ¨/äº¤äº’æƒé™ã€‚
 /// </summary>
 public abstract class State_PlayerBase : State<PlayerContext>
 {
@@ -25,8 +25,7 @@ public abstract class State_PlayerBase : State<PlayerContext>
 
     protected void PlayAction(string actionName)
     {
-        if (string.IsNullOrEmpty(actionName))
-            return;
+        if (string.IsNullOrEmpty(actionName)) return;
 
         Ctx.Animator.Play(actionName);
         actionRuntime = new ActionRuntime(
@@ -43,6 +42,13 @@ public abstract class State_PlayerBase : State<PlayerContext>
     {
         Ctx.PlayerController.canMove = canMove;
         Ctx.PlayerController.canInteract = canInteract;
+    }
+
+    /// <summary>è¿›å…¥ä¸å¯ç§»åŠ¨ / ä¸å¯äº¤äº’çš„çŠ¶æ€å¹¶æ’­æ”¾åŠ¨ç”»ï¼ˆé€‚ç”¨äºé’“é±¼ç­‰å¾…/å’¬é’©ç­‰ï¼‰</summary>
+    protected void EnterImmobile(string actionName)
+    {
+        SetControl(canMove: false, canInteract: false);
+        PlayAction(actionName);
     }
 
     protected string GetDirectionAction(
@@ -63,42 +69,35 @@ public abstract class State_PlayerBase : State<PlayerContext>
     }
 }
 
-/// <summary>
-/// Íæ¼Ò´ı»ú×´Ì¬¡£
-/// </summary>
+//============================================================================================
+// Idle / å¾…æœº
+//============================================================================================
 public class State_Idle : State_PlayerBase
 {
     public State_Idle(StateMachine<PlayerContext> machine, PlayerContext ctx)
-        : base(machine, ctx)
-    {
-    }
+        : base(machine, ctx) { }
 
     public override void Enter()
     {
         base.Enter();
-
         SetControl(canMove: true, canInteract: true);
         Ctx.PlayerController.SetMoveInput(Ctx.InputContext.MoveInput);
-
         PlayAction(GetIdleAction(PlayerDirection));
     }
 
     public override void Resume()
     {
         base.Resume();
-
         SetControl(canMove: true, canInteract: true);
         Ctx.PlayerController.SetMoveInput(Ctx.InputContext.MoveInput);
-
         PlayAction(GetIdleAction(PlayerDirection));
     }
+
     public override void Update()
     {
         base.Update();
-
         TickAction();
 
-        // ³¯Ïò±ä»¯Ê±Ë¢ĞÂ´ı»ú¶¯»­
         if (PlayerDirection != PreviousDirection)
         {
             PlayAction(GetIdleAction(PlayerDirection));
@@ -106,54 +105,40 @@ public class State_Idle : State_PlayerBase
         }
 
         if (Ctx.InputContext.MoveInput.sqrMagnitude > 0.1f)
-        {
             Machine.ChangeState(new State_BasicMove(Machine, Ctx));
-        }
     }
 
-    private string GetIdleAction(Direction dir)
-    {
-        return GetDirectionAction(
-            dir,
-            "Player_Idle_Down",
-            "Player_Idle_Left",
-            "Player_Idle_Right",
-            "Player_Idle_Up"
-        );
-    }
+    private string GetIdleAction(Direction dir) => GetDirectionAction(
+        dir, "Player_Idle_Down", "Player_Idle_Left", "Player_Idle_Right", "Player_Idle_Up");
 }
 
-/// <summary>
-/// Íæ¼Ò»ù´¡ÒÆ¶¯×´Ì¬¡£
-/// </summary>
+//============================================================================================
+// BasicMove / ç§»åŠ¨
+//============================================================================================
 public class State_BasicMove : State_PlayerBase
 {
     public State_BasicMove(StateMachine<PlayerContext> machine, PlayerContext ctx)
-        : base(machine, ctx)
-    {
-    }
+        : base(machine, ctx) { }
 
     public override void Enter()
     {
         base.Enter();
-
         SetControl(canMove: true, canInteract: true);
         PlayAction(GetMoveAction(PlayerDirection));
     }
+
     public override void Resume()
     {
         base.Resume();
-
         SetControl(canMove: true, canInteract: true);
         PlayAction(GetMoveAction(PlayerDirection));
     }
+
     public override void Update()
     {
         base.Update();
-
         TickAction();
 
-        // ³¯Ïò±ä»¯Ê±Ë¢ĞÂÒÆ¶¯¶¯»­
         if (PlayerDirection != PreviousDirection)
         {
             PlayAction(GetMoveAction(PlayerDirection));
@@ -169,17 +154,13 @@ public class State_BasicMove : State_PlayerBase
         Ctx.PlayerController.SetMoveInput(Ctx.InputContext.MoveInput);
     }
 
-    private string GetMoveAction(Direction dir)
-    {
-        return GetDirectionAction(
-            dir,
-            "Player_Move_Down",
-            "Player_Move_Left",
-            "Player_Move_Right",
-            "Player_Move_Up"
-        );
-    }
+    private string GetMoveAction(Direction dir) => GetDirectionAction(
+        dir, "Player_Move_Down", "Player_Move_Left", "Player_Move_Right", "Player_Move_Up");
 }
+
+//============================================================================================
+// Interact / äº¤äº’
+//============================================================================================
 public enum InteractPhase
 {
     None,
@@ -188,31 +169,20 @@ public enum InteractPhase
     Logging
 }
 
-/// <summary>
-/// Íæ¼Ò½»»¥×´Ì¬¡£
-/// </summary>
 public class State_Interact : State_PlayerBase
 {
     private InteractPhase phase;
 
     public State_Interact(StateMachine<PlayerContext> machine, PlayerContext ctx)
-        : base(machine, ctx)
-    {
-    }
+        : base(machine, ctx) { }
 
     public override void Enter()
     {
         base.Enter();
-
         SetControl(canMove: false, canInteract: false);
 
         phase = WorldState.Instance.DetectInteract(InteractTilePosition);
-
-        if (phase == InteractPhase.None)
-        {
-            Machine.PopState();
-            return;
-        }
+        if (phase == InteractPhase.None) { Machine.PopState(); return; }
 
         PlayAction(GetInteractAction(phase, PlayerDirection));
     }
@@ -220,24 +190,17 @@ public class State_Interact : State_PlayerBase
     public override void Update()
     {
         base.Update();
-
         TickAction();
+        if (actionRuntime == null) return;
 
-        if (actionRuntime == null)
-            return;
-
-        // ¶¯»­µ½´ïĞ§¹ûÖ¡Ê±Ö´ĞĞÒ»´Î½»»¥Âß¼­
         if (actionRuntime.CanApplyEffect())
         {
             WorldState.Instance.InteractAt(InteractTilePosition);
-
             actionRuntime.MarkEffectApplied();
         }
 
         if (actionRuntime.IsFinished())
-        {
             Machine.PopState();
-        }
     }
 
     private string GetInteractAction(InteractPhase phase, Direction dir)
@@ -245,64 +208,48 @@ public class State_Interact : State_PlayerBase
         return phase switch
         {
             InteractPhase.Harvest => GetDirectionAction(
-                dir,
-                "Player_Harvest_Down",
-                "Player_Harvest_Left",
-                "Player_Harvest_Right",
-                "Player_Harvest_Up"
-            ),
-
+                dir, "Player_Harvest_Down", "Player_Harvest_Left", "Player_Harvest_Right", "Player_Harvest_Up"),
             InteractPhase.OpenDoor => GetDirectionAction(
-                dir,
-                "Player_Harvest_Down",
-                "Player_Harvest_Left",
-                "Player_Harvest_Right",
-                "Player_Harvest_Up"
-            ),
+                dir, "Player_OpenDoor_Down", "Player_OpenDoor_Left", "Player_OpenDoor_Right", "Player_OpenDoor_Up"),
             _ => string.Empty
         };
     }
 }
 
+//============================================================================================
+// UseTool / ä½¿ç”¨å·¥å…·
+//============================================================================================
 public class State_UseTool : State_PlayerBase
 {
-    public State_UseTool(StateMachine<PlayerContext> machine, PlayerContext ctx, List<ToolType> toolTypes) : base(machine, ctx)
+    private readonly List<ToolType> curTools;
+
+    public State_UseTool(StateMachine<PlayerContext> machine, PlayerContext ctx, List<ToolType> toolTypes)
+        : base(machine, ctx)
     {
         curTools = toolTypes;
     }
 
-    private List<ToolType> curTools;
-
     public override void Enter()
     {
         base.Enter();
-
         SetControl(canMove: false, canInteract: false);
-
-        PlayAction(GetToolAction(curTools[0],PlayerDirection));
+        PlayAction(GetToolAction(curTools[0], PlayerDirection));
     }
 
     public override void Update()
     {
         base.Update();
-
         TickAction();
+        if (actionRuntime == null) return;
 
-        if (actionRuntime == null)
-            return;
-
-        // ¶¯»­µ½´ïĞ§¹ûÖ¡Ê±Ö´ĞĞÒ»´Î½»»¥Âß¼­
         if (actionRuntime.CanApplyEffect())
         {
             WorldState.Instance.ItemInteract(InteractTilePosition, curTools, Ctx);
-
             actionRuntime.MarkEffectApplied();
         }
 
         if (actionRuntime.IsFinished())
-        {
             Machine.PopState();
-        }
     }
 
     private string GetToolAction(ToolType tool, Direction dir)
@@ -310,97 +257,54 @@ public class State_UseTool : State_PlayerBase
         return tool switch
         {
             ToolType.Hoe => GetDirectionAction(
-                dir,
-                "Player_Tilling_Down",
-                "Player_Tilling_Left",
-                "Player_Tilling_Right",
-                "Player_Tilling_Up"
-            ),
+                dir, "Player_Tilling_Down", "Player_Tilling_Left", "Player_Tilling_Right", "Player_Tilling_Up"),
             ToolType.WateringCan => GetDirectionAction(
-                dir,
-                "Player_Watering_Down",
-                "Player_Watering_Left",
-                "Player_Watering_Right",
-                "Player_Watering_Up"
-            ),
+                dir, "Player_Watering_Down", "Player_Watering_Left", "Player_Watering_Right", "Player_Watering_Up"),
             ToolType.FishingRod => GetDirectionAction(
-                dir,
-                "Player_Fishing_Down",
-                "Player_Fishing_Left",
-                "Player_Fishing_Right",
-                "Player_Fishing_Up"
-            ),
+                dir, "Player_Fishing_Down", "Player_Fishing_Left", "Player_Fishing_Right", "Player_Fishing_Up"),
             ToolType.Axe => GetDirectionAction(
-                dir,
-                "Player_Logging_Down",
-                "Player_Logging_Left",
-                "Player_Logging_Right",
-                "Player_Logging_Up"
-            ),
+                dir, "Player_Logging_Down", "Player_Logging_Left", "Player_Logging_Right", "Player_Logging_Up"),
             ToolType.Bell => GetDirectionAction(
-                dir,
-                "Player_RingBell_Down",
-                "Player_RingBell_Left",
-                "Player_RingBell_Right",
-                "Player_RingBell_Up"
-            ),
-
+                dir, "Player_RingBell_Down", "Player_RingBell_Left", "Player_RingBell_Right", "Player_RingBell_Up"),
             _ => string.Empty
         };
     }
 }
 
-#region µöÓã
+//============================================================================================
+// é’“é±¼çŠ¶æ€ï¼ˆåˆå¹¶ä¸‰ç±»ï¼šWait / Bite / Gameï¼‰
+//============================================================================================
 public class State_FishingWait : State_PlayerBase
 {
-    public State_FishingWait(
-        StateMachine<PlayerContext> machine,
-        PlayerContext ctx
-    ) : base(machine, ctx)
-    {
-    }
+    public State_FishingWait(StateMachine<PlayerContext> machine, PlayerContext ctx)
+        : base(machine, ctx) { }
 
     public override void Enter()
     {
         base.Enter();
-
-        SetControl(canMove: false, canInteract: false);
-        PlayAction(GetFishingWaitAction(PlayerDirection));
+        EnterImmobile(GetDirectionAction(PlayerDirection,
+            "Player_FishingWait_Down", "Player_FishingWait_Left",
+            "Player_FishingWait_Right", "Player_FishingWait_Up"));
     }
 
     public override void Update()
     {
         base.Update();
         TickAction();
-    }
-
-    private string GetFishingWaitAction(Direction dir)
-    {
-        return GetDirectionAction(
-            dir,
-            "Player_FishingWait_Down",
-            "Player_FishingWait_Left",
-            "Player_FishingWait_Right",
-            "Player_FishingWait_Up"
-        );
     }
 }
 
 public class State_FishingBite : State_PlayerBase
 {
-    public State_FishingBite(
-        StateMachine<PlayerContext> machine,
-        PlayerContext ctx
-    ) : base(machine, ctx)
-    {
-    }
+    public State_FishingBite(StateMachine<PlayerContext> machine, PlayerContext ctx)
+        : base(machine, ctx) { }
 
     public override void Enter()
     {
         base.Enter();
-
-        SetControl(canMove: false, canInteract: false);
-        PlayAction(GetFishingBiteAction(PlayerDirection));
+        EnterImmobile(GetDirectionAction(PlayerDirection,
+            "Player_FishingBite_Down", "Player_FishingBite_Left",
+            "Player_FishingBite_Right", "Player_FishingBite_Up"));
     }
 
     public override void Update()
@@ -408,28 +312,14 @@ public class State_FishingBite : State_PlayerBase
         base.Update();
         TickAction();
     }
-
-    private string GetFishingBiteAction(Direction dir)
-    {
-        return GetDirectionAction(
-            dir,
-            "Player_FishingBite_Down",
-            "Player_FishingBite_Left",
-            "Player_FishingBite_Right",
-            "Player_FishingBite_Up"
-        );
-    }
 }
 
 public class State_FishingGame : State_PlayerBase
 {
-    private readonly FishingSession session;
+    private readonly FishingSession session; // ä¿ç•™ç»™é’“é±¼å°æ¸¸æˆ UI å®Œæˆåä½¿ç”¨
 
-    public State_FishingGame(
-        StateMachine<PlayerContext> machine,
-        PlayerContext ctx,
-        FishingSession session
-    ) : base(machine, ctx)
+    public State_FishingGame(StateMachine<PlayerContext> machine, PlayerContext ctx, FishingSession session)
+        : base(machine, ctx)
     {
         this.session = session;
     }
@@ -437,9 +327,9 @@ public class State_FishingGame : State_PlayerBase
     public override void Enter()
     {
         base.Enter();
-
-        SetControl(canMove: false, canInteract: false);
-        PlayAction(GetFishingGameAction(PlayerDirection));
+        EnterImmobile(GetDirectionAction(PlayerDirection,
+            "Player_FishingGame_Down", "Player_FishingGame_Left",
+            "Player_FishingGame_Right", "Player_FishingGame_Up"));
     }
 
     public override void Update()
@@ -447,16 +337,4 @@ public class State_FishingGame : State_PlayerBase
         base.Update();
         TickAction();
     }
-
-    private string GetFishingGameAction(Direction dir)
-    {
-        return GetDirectionAction(
-            dir,
-            "Player_FishingGame_Down",
-            "Player_FishingGame_Left",
-            "Player_FishingGame_Right",
-            "Player_FishingGame_Up"
-        );
-    }
 }
-#endregion

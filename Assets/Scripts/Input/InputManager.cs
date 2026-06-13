@@ -1,15 +1,21 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
-public class PlayerInputContext 
-{ 
+public class PlayerInputContext
+{
     public Vector2 MoveInput;
     public bool InteractPressed;
     public bool OpenBackpackPressed;
     public bool PausePressed;
     public bool CompositeOperation;
+
+    /// <summary>å½“å‰å¸§é¼ æ ‡ä¸–ç•Œåæ ‡ï¼ˆç”± InputManager æ¯å¸§æ›´æ–°ï¼‰</summary>
+    public Vector3 MouseWorldPos;
+
+    /// <summary>å½“å‰å¸§é¼ æ ‡å·¦é”®æ¾å¼€ï¼ˆç”± InputManager æ¯å¸§æ›´æ–°ï¼‰</summary>
+    public bool HoldInteractUpThisFrame;
 }
+
 public class InputManager : MonoBehaviour
 {
     public static InputManager Instance { get; private set; }
@@ -19,12 +25,9 @@ public class InputManager : MonoBehaviour
     public InputActionMain inputActions;
     public PlayerController playerController;
     public BackpackContainer backpackContainer;
-
-    public int hotbarSize = 10; // 1~0 = 10 ¸ñ£¨0 Í¨³£Ó³ÉäµÚ10¸ñ£©
-    public int selectedIndex = 0;
     public InventoryContainer inventoryContainer;
 
-    public bool CompositeOperation;
+    private const int HotbarSize = 10;
 
     private void Awake()
     {
@@ -35,137 +38,118 @@ public class InputManager : MonoBehaviour
         }
 
         Instance = this;
-        // Èç¹ûÄãÏ£ÍûÇĞ³¡¾°ºóÒ²±£Áô£¬ÔÙÈ¡Ïû×¢ÊÍ
-        // DontDestroyOnLoad(gameObject);
 
         if (inputActions == null)
         {
             inputActions = new InputActionMain();
 
-            inputActions.Main.PlayerMove.performed += PlayerMove_performed;
-            inputActions.Main.PlayerMove.canceled += PlayerMove_canceled;
+            inputActions.Main.PlayerMove.performed += OnPlayerMovePerformed;
+            inputActions.Main.PlayerMove.canceled += OnPlayerMoveCanceled;
 
-            inputActions.Main.OpenBackpack.performed += OpenBackpack_performed;
-            inputActions.Main.Interact.performed += Interact_performed;
-            inputActions.Main.Pause.performed += Pause_performed;
+            inputActions.Main.OpenBackpack.performed += OnOpenBackpackPerformed;
+            inputActions.Main.Interact.performed += OnInteractPerformed;
+            inputActions.Main.Pause.performed += OnPausePerformed;
 
-            inputActions.Main.CompositeOperation.started += CompositeOperation_started;
-            inputActions.Main.CompositeOperation.canceled += CompositeOperation_canceled;
+            inputActions.Main.CompositeOperation.started += OnCompositeOperationStarted;
+            inputActions.Main.CompositeOperation.canceled += OnCompositeOperationCanceled;
         }
 
         inputActions.Enable();
     }
+
     private void OnDisable()
     {
-        if (inputActions != null)
-        {
-            inputActions.Disable();
-        }
-    }
-
-    public void Init()
-    {
-        CompositeOperation = false;
+        inputActions?.Disable();
     }
 
     //============================================================================================
-    // Íæ¼ÒÒÆ¶¯
+    // ç©å®¶ç§»åŠ¨
     //============================================================================================
-    private void PlayerMove_canceled(UnityEngine.InputSystem.InputAction.CallbackContext obj)
+    private void OnPlayerMoveCanceled(InputAction.CallbackContext obj)
     {
         Context.MoveInput = Vector2.zero;
-        playerController.SetInputInfo(Context.MoveInput);
-        //if (playerController != null)
-        //    playerController.SetMoveInput(Vector2.zero);
+        playerController.SetInputInfo(Vector2.zero);
     }
 
-    private void PlayerMove_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
+    private void OnPlayerMovePerformed(InputAction.CallbackContext obj)
     {
         Context.MoveInput = obj.ReadValue<Vector2>();
         playerController.SetInputInfo(Context.MoveInput);
-        // if (playerController != null)
-        //     playerController.SetMoveInput(obj.ReadValue<Vector2>());
     }
 
     //============================================================================================
-    // ±³°ü½»»¥
+    // èƒŒåŒ…äº¤äº’
     //============================================================================================
-    private void OpenBackpack_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
+    private void OnOpenBackpackPerformed(InputAction.CallbackContext obj)
     {
-        Debug.Log("Opening Backpack");
-
         if (backpackContainer == null) return;
 
-        if (backpackContainer.IsOpen) { backpackContainer.CloseBackpack(); }
-        else { backpackContainer.OpenBackpack(); }
+        if (backpackContainer.IsOpen)
+            backpackContainer.CloseBackpack();
+        else
+            backpackContainer.OpenBackpack();
     }
 
     //============================================================================================
-    // Êó±êµã»÷½»»¥
+    // é¼ æ ‡ç‚¹å‡»äº¤äº’
     //============================================================================================
-    private void Interact_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
+    private void OnInteractPerformed(InputAction.CallbackContext obj)
     {
-        Debug.Log("Player Interact");
-
-        Vector3Int interactGrid = playerController.InteractTilePosition;
         playerController.SimpleInteract();
     }
 
     //============================================================================================
-    // ÔİÍ£
+    // æš‚åœ
     //============================================================================================
-    private void Pause_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
+    private void OnPausePerformed(InputAction.CallbackContext obj)
     {
-        Debug.Log("ÓÎÏ·ÔİÍ£");
-
         if (TimeManager.Instance == null) return;
 
-        if (TimeManager.Instance.IsPause) { TimeManager.Instance.StartGame(); }
-        else { TimeManager.Instance.PauseGame(); }
+        if (TimeManager.Instance.IsPause)
+            TimeManager.Instance.StartGame();
+        else
+            TimeManager.Instance.PauseGame();
     }
 
     //============================================================================================
-    // ¸´ºÏ²Ù×÷
+    // å¤åˆæ“ä½œ
     //============================================================================================
-    private void CompositeOperation_started(UnityEngine.InputSystem.InputAction.CallbackContext obj)
+    private void OnCompositeOperationStarted(InputAction.CallbackContext obj)
     {
-        CompositeOperation = true;
         Context.CompositeOperation = true;
     }
 
-    private void CompositeOperation_canceled(UnityEngine.InputSystem.InputAction.CallbackContext obj)
+    private void OnCompositeOperationCanceled(InputAction.CallbackContext obj)
     {
-        CompositeOperation = false;
         Context.CompositeOperation = false;
     }
 
     private void Update()
     {
+        // --- é¼ æ ‡è¾“å…¥é‡‡é›†ï¼ˆæ‰€æœ‰æ¨¡å—ç»Ÿä¸€ä»æ­¤è¯»å–ï¼‰ ---
+        Context.MouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Context.HoldInteractUpThisFrame = Input.GetMouseButtonUp(0);
+
         if (inventoryContainer == null) return;
 
-        int idx = GetHotbarNumberKeyDown(hotbarSize);
+        int idx = GetHotbarNumberKeyDown(HotbarSize);
         if (idx != -1)
         {
-            Debug.Log($"InputDetected:{idx}");
             inventoryContainer.SetCurrentSlot(idx);
         }
 
         float scroll = Input.mouseScrollDelta.y;
         if (scroll > 0f)
-        {
             inventoryContainer.PreviousSlot();
-        }
         else if (scroll < 0f)
-        {
             inventoryContainer.NextSlot();
-        }
     }
 
-    // ·µ»Ø 0..hotbarSize-1£»Ã»°´·µ»Ø -1
+    /// <summary>è¿”å› 0..hotbarSize-1ï¼›æ²¡æŒ‰è¿”å› -1</summary>
     private static int GetHotbarNumberKeyDown(int hotbarSize)
     {
-        int max9 = Mathf.Min(9, hotbarSize);
-        for (int n = 1; n <= max9; n++)
+        int max = Mathf.Min(9, hotbarSize);
+        for (int n = 1; n <= max; n++)
         {
             if (Input.GetKeyDown((KeyCode)((int)KeyCode.Alpha0 + n)))
                 return n - 1;

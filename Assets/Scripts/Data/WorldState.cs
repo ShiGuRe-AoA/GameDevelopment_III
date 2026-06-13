@@ -65,6 +65,14 @@ public class WorldState : MonoBehaviour
     [Header("钱")]
     public int coin;
 
+    /// <summary>尝试扣除金币。成功返回 true，金币不足返回 false</summary>
+    public bool TrySpendCoin(int amount)
+    {
+        if (coin < amount) return false;
+        coin -= amount;
+        return true;
+    }
+
     [Header("地图设置")]
     public Vector2Int MapSize;
     public Vector3 cellSize;
@@ -126,6 +134,7 @@ public class WorldState : MonoBehaviour
 
     public void InitMap(int lenth, int height)
     {
+        coin = 500;
         BasicMapData = new BasicCellData[lenth * height];
         for (int i = 0; i < BasicMapData.Length; i++)
         {
@@ -162,34 +171,7 @@ public class WorldState : MonoBehaviour
     }
     public bool RegisterEntity(object obj)
     {
-        if(obj is IEntityRuntime runtime)
-        {
-            int id = runtime.EntityId;
-            Vector3Int pivotPos = runtime.PivotPos;
-            IEntityRuntime rt = runtime;
-            if (Entitys == null)
-            {
-                Entitys = new Dictionary<int, IEntityRuntime>();
-            }
-
-            if (rt == null)
-            {
-                return false;
-            }
-
-            if (Entitys.ContainsKey(id))
-            {
-                Debug.LogError($"Duplicate EntityId: {id}");
-                return false;
-            }
-
-            Entitys.Add(id, rt);
-            rt.EntityInit(id, pivotPos, this);
-            nextEntityId++;
-            Debug.Log($"EntityRegisteredInID:{id}");
-            return true;
-        }
-        return false;
+        return obj is IEntityRuntime runtime && RegisterEntity(runtime.EntityId, runtime.PivotPos, runtime);
     }
     public bool UnRegisterEntity(int id)
     {
@@ -202,15 +184,7 @@ public class WorldState : MonoBehaviour
     }
     public bool UnRegisterEntity(object obj)
     {
-        if (obj is IEntityRuntime runtime)
-        {
-            if (Entitys.ContainsKey(runtime.EntityId))
-            {
-                Entitys.Remove(runtime.EntityId);
-                return true;
-            }
-        }
-        return false;
+        return obj is IEntityRuntime runtime && UnRegisterEntity(runtime.EntityId);
     }
 
     public Vector3Int WorldToCell(Vector3 worldPos)
@@ -396,63 +370,30 @@ public class WorldState : MonoBehaviour
         return data.Empty;
     }
 
-    public void PlaceEntity(Vector3Int cellPos, int itemID)
+    private GameObject InstantiatePlacementFromFeature(Feature_Placement feature, Vector3Int cellPos, out IEntityRuntime rt)
     {
-        var def = ItemRegistry.Get(itemID);
-        if (def == null)
-        {
-            Debug.LogError($"Invalid item ID: {itemID}");
-            return;
-        }
-
-        Feature_Placement feature = def.GetFeature<Feature_Placement>();
-        if (feature == null)
-        {
-            return;
-        }
-
         Vector3 worldPos = feature.GetCenterWorldFromPivot(cellPos);
         GameObject obj = Instantiate(feature.prefabObj, worldPos, Quaternion.identity);
-        IEntityRuntime rt = obj.GetComponent<IEntityRuntime>();
+        rt = obj.GetComponent<IEntityRuntime>();
         if (rt == null)
         {
             Debug.LogError($"Placed object {feature.prefabObj.name} is missing IEntityRuntime.");
             Destroy(obj);
-            return;
+            return null;
         }
-
-        List<Vector3Int> occupiedCells = BuildOccupiedCells(cellPos, feature.Length, feature.Height);
-        if (occupiedCells == null)
-        {
-            Destroy(obj);
-            return;
-        }
-
-        foreach (Vector3Int pos in occupiedCells)
-        {
-            AddEntityToDetailedMapData(pos, nextEntityId);
-            SetCellEmpty(pos, false);
-        }
-
-        TrackEntityCells(nextEntityId, occupiedCells);
-        RegisterEntity(nextEntityId, cellPos, rt);
-        rt.EntityInit(nextEntityId, cellPos, this);
+        return obj;
     }
+
     public void PlaceEntity(Vector3Int cellPos, IEntityRuntime rt, int length, int height)
     {
-
         if (rt == null)
         {
-            Debug.LogError($"Placed object is missing IEntityRuntime.");
+            Debug.LogError("Placed object is missing IEntityRuntime.");
             return;
         }
 
         List<Vector3Int> occupiedCells = BuildOccupiedCells(cellPos, length, height);
-        if (occupiedCells == null)
-        {
-            return;
-        }
-        Debug.Log(2);
+        if (occupiedCells == null) return;
 
         foreach (Vector3Int pos in occupiedCells)
         {
@@ -460,75 +401,67 @@ public class WorldState : MonoBehaviour
             SetCellEmpty(pos, false);
         }
 
-        Debug.Log(3);
         TrackEntityCells(nextEntityId, occupiedCells);
-        Debug.Log(4);
         RegisterEntity(nextEntityId, cellPos, rt);
-        Debug.Log(5);
-        rt.EntityInit(nextEntityId, cellPos, this);
     }
+
+    private void PlaceEntityFromFeature(Vector3Int cellPos, Feature_Placement feature)
+    {
+        GameObject obj = InstantiatePlacementFromFeature(feature, cellPos, out IEntityRuntime rt);
+        if (obj == null) return;
+
+        List<Vector3Int> occupiedCells = BuildOccupiedCells(cellPos, feature.Length, feature.Height);
+        if (occupiedCells == null) { Destroy(obj); return; }
+
+        foreach (Vector3Int pos in occupiedCells)
+        {
+            AddEntityToDetailedMapData(pos, nextEntityId);
+            SetCellEmpty(pos, false);
+        }
+
+        TrackEntityCells(nextEntityId, occupiedCells);
+        RegisterEntity(nextEntityId, cellPos, rt);
+    }
+
+    public void PlaceEntity(Vector3Int cellPos, int itemID)
+    {
+        var def = ItemRegistry.Get(itemID);
+        if (def == null) { Debug.LogError($"Invalid item ID: {itemID}"); return; }
+
+        var feature = def.GetFeature<Feature_Placement>();
+        if (feature == null) return;
+
+        PlaceEntityFromFeature(cellPos, feature);
+    }
+
     public void PlaceEntity(Vector3Int cellPos, string itemID)
     {
         var def = ItemRegistry.Get(itemID);
-        if (def == null)
-        {
-            Debug.LogError($"Invalid item ID: {itemID}");
-            return;
-        }
+        if (def == null) { Debug.LogError($"Invalid item ID: {itemID}"); return; }
 
-        Feature_Placement feature = def.GetFeature<Feature_Placement>();
-        if (feature == null)
-        {
-            return;
-        }
+        var feature = def.GetFeature<Feature_Placement>();
+        if (feature == null) return;
 
-        Vector3 worldPos = feature.GetCenterWorldFromPivot(cellPos);
-        GameObject obj = Instantiate(feature.prefabObj, worldPos, Quaternion.identity);
-        IEntityRuntime rt = obj.GetComponent<IEntityRuntime>();
-        if (rt == null)
-        {
-            Debug.LogError($"Placed object {feature.prefabObj.name} is missing IEntityRuntime.");
-            Destroy(obj);
-            return;
-        }
+        PlaceEntityFromFeature(cellPos, feature);
+    }
 
-        List<Vector3Int> occupiedCells = BuildOccupiedCells(cellPos, feature.Length, feature.Height);
-        if (occupiedCells == null)
+    private Tilemap GetTilemap(int layer)
+    {
+        switch (layer)
         {
-            Destroy(obj);
-            return;
+            case 0: return MainTile;
+            case 1: return OverlapTile;
+            case 2: return UperTile;
+            default:
+                Debug.LogError($"Invalid tile layer: {layer}");
+                return null;
         }
-
-        foreach (Vector3Int pos in occupiedCells)
-        {
-            AddEntityToDetailedMapData(pos, nextEntityId);
-            SetCellEmpty(pos, false);
-        }
-
-        TrackEntityCells(nextEntityId, occupiedCells);
-        RegisterEntity(nextEntityId, cellPos, rt);
-        rt.EntityInit(nextEntityId, cellPos, this);
     }
 
     public void PlaceTile(Vector3Int cellPos, TileBase tile, IEntityRuntime runtimeSc, int tileLayer, out int EntityID)
     {
-        Tilemap targetTilemap;
-        switch (tileLayer)
-        {
-            case 0:
-                targetTilemap = MainTile;
-                break;
-            case 1:
-                targetTilemap = OverlapTile;
-                break;
-            case 2:
-                targetTilemap = UperTile;
-                break;
-            default:
-                Debug.LogError($"Invalid tile layer: {tileLayer}");
-                EntityID = -1;
-                return;
-        }
+        Tilemap targetTilemap = GetTilemap(tileLayer);
+        if (targetTilemap == null) { EntityID = -1; return; }
 
         if (!TryGetIndex(cellPos, out _))
         {
@@ -549,22 +482,8 @@ public class WorldState : MonoBehaviour
 
     public void SwitchTile(Vector3Int cellPos, TileBase tile, int tileLayer)
     {
-        Tilemap targetTilemap;
-        switch (tileLayer)
-        {
-            case 0:
-                targetTilemap = MainTile;
-                break;
-            case 1:
-                targetTilemap = OverlapTile;
-                break;
-            case 2:
-                targetTilemap = UperTile;
-                break;
-            default:
-                Debug.LogError($"Invalid tile layer: {tileLayer}");
-                return;
-        }
+        Tilemap targetTilemap = GetTilemap(tileLayer);
+        if (targetTilemap == null) return;
 
         targetTilemap.SetTile(cellPos, tile);
     }
@@ -665,32 +584,33 @@ public class WorldState : MonoBehaviour
         }
     }
 
-    public void SpawnItem(Vector3Int gridPos, ItemStack stack, float randomOffset = 0.5f)
+    private Vector3 GetRandomDropOffset(float randomOffset)
     {
-        Vector3 dropPosition = CellToWorld(gridPos);
-        Vector3 offset = new Vector3(
+        return new Vector3(
             Random.Range(-randomOffset, randomOffset),
             Random.Range(-randomOffset, randomOffset),
             0f
         );
-        GameObject newDrop = Instantiate(DroppedItem_Prefab, dropPosition + offset, Quaternion.identity);
-        DroppedItem dropScript = newDrop.GetComponent<DroppedItem>();
-        dropScript.Init(stack);
+    }
+
+    private void SpawnDrop(Vector3 worldPos, ItemStack stack)
+    {
+        GameObject newDrop = Instantiate(DroppedItem_Prefab, worldPos, Quaternion.identity);
+        newDrop.GetComponent<DroppedItem>().Init(stack);
+    }
+
+    public void SpawnItem(Vector3Int gridPos, ItemStack stack, float randomOffset = 0.5f)
+    {
+        Vector3 pos = CellToWorld(gridPos) + GetRandomDropOffset(randomOffset);
+        SpawnDrop(pos, stack);
     }
 
     public void SpawnItem(Vector3Int gridPos, int itemID, int count, float randomOffset = 0.5f)
     {
         for (int i = 0; i < count; i++)
         {
-            Vector3 dropPosition = CellToWorld(gridPos);
-            Vector3 offset = new Vector3(
-                Random.Range(-randomOffset, randomOffset),
-                Random.Range(-randomOffset, randomOffset),
-                0f
-            );
-            GameObject newDrop = Instantiate(DroppedItem_Prefab, dropPosition + offset, Quaternion.identity);
-            DroppedItem dropScript = newDrop.GetComponent<DroppedItem>();
-            dropScript.Init(new ItemStack { count = count, itemId = itemID });
+            Vector3 pos = CellToWorld(gridPos) + GetRandomDropOffset(randomOffset);
+            SpawnDrop(pos, new ItemStack { itemId = itemID, count = 1 });
         }
     }
 
@@ -747,43 +667,34 @@ public class WorldState : MonoBehaviour
         }
     }
 
+    private List<int> GetEntityIdsOnCell(Vector3Int cellPos)
+    {
+        if (!DetailedMapData.TryGetValue(cellPos, out DetailedCellData cellData))
+            return null;
+        return new List<int>(cellData.EntityID); // snapshot to avoid mutation during iteration
+    }
+
     public void InteractAt(Vector3Int interactPos)
     {
-        if (!DetailedMapData.ContainsKey(interactPos))
-        {
-            return;
-        }
+        List<int> entityIds = GetEntityIdsOnCell(interactPos);
+        if (entityIds == null) return;
 
-        DetailedCellData cellData = DetailedMapData[interactPos];
-        List<int> entityIdsSnapshot = new List<int>(cellData.EntityID);
-        foreach (int entityID in entityIdsSnapshot)
+        foreach (int entityID in entityIds)
         {
-            Debug.Log(5);
-            IEntityRuntime entity = GetEntity(entityID);
-            Debug.Log(6);
-            if (entity is IInteractable interactable)
-            {
+            if (GetEntity(entityID) is IInteractable interactable)
                 interactable.OnInteract();
-            }
         }
     }
 
     public InteractPhase DetectInteract(Vector3Int interactPos)
     {
-        if (!DetailedMapData.ContainsKey(interactPos))
-        {
-            return InteractPhase.None;
-        }
+        List<int> entityIds = GetEntityIdsOnCell(interactPos);
+        if (entityIds == null) return InteractPhase.None;
 
-        DetailedCellData cellData = DetailedMapData[interactPos];
-        List<int> entityIdsSnapshot = new List<int>(cellData.EntityID);
-        foreach (int entityID in entityIdsSnapshot)
+        foreach (int entityID in entityIds)
         {
-            IEntityRuntime entity = GetEntity(entityID);
-            if (entity is IInteractable interactable)
-            {
+            if (GetEntity(entityID) is IInteractable interactable)
                 return interactable.OnInteractDetected();
-            }
         }
 
         return InteractPhase.None;
@@ -792,69 +703,50 @@ public class WorldState : MonoBehaviour
     public void ItemInteract(Vector3Int targetGridPos, List<ToolType> toolTypes, PlayerContext ctx)
     {
         BasicCellData cell = GetCell(targetGridPos, out bool hasDetail, out DetailedCellData detailedData);
-        
-        if (toolTypes.Contains(ToolType.Hoe))
-        {
-            if (cell.Type == GridType.Soil && CheckEmpty(targetGridPos))
-            {
-                SetCellType(targetGridPos, GridType.Farmland);
-                SetCellEmpty(targetGridPos, false);
 
-                Farmland_Entity entity = (Farmland_Entity)EntityRuntimeFactory.Create(EntityRuntimeKind.Farmland);
-                entity.Init(targetGridPos);
-                Debug.Log("FarmlandPlaced!");
-                PlaceTile(targetGridPos, farmlandTile, entity, 1, out _);
-            }
-        }
+        if (toolTypes.Contains(ToolType.Hoe))
+            TryHoeTile(targetGridPos, cell);
 
         if (toolTypes.Contains(ToolType.WateringCan))
-        {
-            if (!hasDetail || detailedData.CheckEmpty())
-            {
-                return;
-            }
-
-            if (!TryGetEntityOnCell(targetGridPos, out Farmland_Entity farmland))
-            {
-                return;
-            }
-
-            farmland.Water();
-            SyncDetailedStateWithRuntime(targetGridPos);
-            Debug.Log("FarmlandWatered!");
-        }
+            TryWaterTile(targetGridPos, hasDetail, detailedData);
 
         if (toolTypes.Contains(ToolType.Axe))
-        {
-            if (!hasDetail || detailedData.CheckEmpty())
-            {
-                return;
-            }
+            TryLogTile(targetGridPos, hasDetail, detailedData);
 
-            if (!TryGetEntityOnCell(targetGridPos, out Tree_Entity tree))
-            {
-                return;
-            }
-
-            tree.Logging();
-            SyncDetailedStateWithRuntime(targetGridPos);
-            Debug.Log("Logging!");
-        }
-
-        if (toolTypes.Contains(ToolType.FishingRod))
-        {
-            if (cell.Type != GridType.Water)
-            {
-                return;
-            }
-            // todo: 交互逻辑
+        if (toolTypes.Contains(ToolType.FishingRod) && cell.Type == GridType.Water)
             FishingSystem.Instance.BeginFishing(ctx.PlayerController);
-        }
 
         if (toolTypes.Contains(ToolType.Bell))
-        {
-            // 发信息吸引顾客 -> 给范围内 CustomerController 设置 targetStore == playerStore
             CustomerAttractSystem.Instance.AttractCustomers(ctx);
-        }
+    }
+
+    private void TryHoeTile(Vector3Int cellPos, BasicCellData cell)
+    {
+        if (cell.Type != GridType.Soil || !CheckEmpty(cellPos)) return;
+
+        SetCellType(cellPos, GridType.Farmland);
+        SetCellEmpty(cellPos, false);
+
+        Farmland_Entity entity = (Farmland_Entity)EntityRuntimeFactory.Create(EntityRuntimeKind.Farmland);
+        entity.Init(cellPos);
+        PlaceTile(cellPos, farmlandTile, entity, 1, out _);
+    }
+
+    private void TryWaterTile(Vector3Int cellPos, bool hasDetail, DetailedCellData detailedData)
+    {
+        if (!hasDetail || detailedData.CheckEmpty()) return;
+        if (!TryGetEntityOnCell(cellPos, out Farmland_Entity farmland)) return;
+
+        farmland.Water();
+        SyncDetailedStateWithRuntime(cellPos);
+    }
+
+    private void TryLogTile(Vector3Int cellPos, bool hasDetail, DetailedCellData detailedData)
+    {
+        if (!hasDetail || detailedData.CheckEmpty()) return;
+        if (!TryGetEntityOnCell(cellPos, out Tree_Entity tree)) return;
+
+        tree.Logging();
+        SyncDetailedStateWithRuntime(cellPos);
     }
 }
