@@ -4,33 +4,60 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // 摊位上放物品的格子
-public class SaleItemSlot : MonoBehaviour, IInteractable
+public class SaleItemSlot : MonoBehaviour, IInteractable, IEntityRuntime
 {
+    #region IEntityRuntime
+    public int EntityId { get; private set; }
+    public Vector3Int PivotPos { get; private set; }
+    public List<GameObject> RelativeObj { get; private set; }
+    public void EntityInit(int entityId, Vector3Int pivotPos, WorldState worldState)
+    {
+        EntityId = entityId;
+        PivotPos = pivotPos;
+    }
 
-    public SpriteRenderer itemSr;
-    private Sprite oldItemSprite;   // 存未更改时的sprite
+    public void OnAwake() { }
+    public void OnDestroy()
+    {
+        RuntimeRegisterUtility.UnregisterAll(this);
+    }
 
-    //public ItemContainer saleContainer;
+    #endregion
 
-    public int currentSlot;
+    [SerializeField] private SpriteRenderer _sr;
+    public SpriteRenderer Sr { get => _sr; }
 
-    //public ItemStack CurrentStack => saleContainer.Items[currentSlot];
-    //public ItemBase_SO CurrentItem
-    //{
-    //    get
-    //    {
-    //        var stack = CurrentStack;
-    //        return ItemRegistry.Get(stack.itemId);
-    //    }
-    //}
+    private ItemContainer sourceContainer;
+    private int sourceIndex = -1;
+
+    public void Bind(ItemContainer container, int index)
+    {
+        sourceContainer = container;
+        sourceIndex = index;
+
+        RefreshFromSource();
+    }
+
 
     private void Awake()
     {
-        itemSr = GetComponent<SpriteRenderer>();
-        if(itemSr == null)
+        if(_sr == null)
         {
-            Debug.LogError("Sprite Renderer on Sale Item not found", this);
+            _sr = GetComponent<SpriteRenderer>();
+            
+            if(_sr == null)
+                Debug.LogError("Sprite Renderer on Sale Item not found", this);
         }
+    }
+
+    private void OnEnable()
+    {
+        ItemContainerEvents.OnSlotChanged += HandleSlotChanged;
+    }
+
+    private void OnDisable()
+    {
+        ItemContainerEvents.OnSlotChanged -= HandleSlotChanged;
     }
 
     // Start is called before the first frame update
@@ -45,6 +72,38 @@ public class SaleItemSlot : MonoBehaviour, IInteractable
         
     }
 
+    private void HandleSlotChanged(ItemContainer changedContainer, int changedIndex)
+    {
+        if (changedContainer != sourceContainer)
+            return;
+
+        if (changedIndex != sourceIndex)
+            return;
+
+        RefreshFromSource();
+    }
+
+    private void RefreshFromSource()
+    {
+        if (sourceContainer == null ||
+            sourceIndex < 0 ||
+            sourceIndex >= sourceContainer.SlotCount)
+        {
+            _sr.sprite = null;
+            return;
+        }
+
+        ItemStack stack = sourceContainer.Items[sourceIndex];
+
+        if (stack.IsEmpty)
+        {
+            _sr.sprite = null;
+            return;
+        }
+
+        _sr.sprite = stack.GetSprite();
+    }
+
     public void OnInteract()
     {
         
@@ -53,5 +112,10 @@ public class SaleItemSlot : MonoBehaviour, IInteractable
     public InteractPhase OnInteractDetected()
     {
         return InteractPhase.OpenDoor;
+    }
+
+    public void SetSprite(Sprite sprite)
+    {
+        _sr.sprite = sprite;
     }
 }

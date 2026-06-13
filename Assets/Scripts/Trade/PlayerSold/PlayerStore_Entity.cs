@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 // 单列
 [System.Serializable]
@@ -39,6 +40,10 @@ public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IInteracta
     [SerializeField] private List<QueueSlot> allQueueSlots = new();
     private readonly List<QueueSlot> activeQueueSlots = new();
 
+    [Header("展示位数据")]
+    [SerializeField] private SaleItemSlot[] saleItemSlots;
+    private Dictionary<SaleItemSlot, ItemStack> _DisplaySlot_Stack = new();
+
     protected override void Awake()
     {
         base.Awake();
@@ -48,6 +53,9 @@ public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IInteracta
 
         Refresh(shelfContainer);
         Refresh(saleContainer);
+
+        InitSaleSlots();
+
     }
 
     public void OnAwake() { }
@@ -231,7 +239,17 @@ public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IInteracta
         };
     }
 
+    // 初始化摊位展示位
+    private void InitSaleSlots()
+    {
+        for(int i = 0; i < saleItemSlots.Length; i++)
+        {
+            if (i >= saleContainer.SlotCount)
+                break;
 
+            saleItemSlots[i].Bind(saleContainer, i);
+        }
+    }
 
     public void Load(EntitySaveData data)
     {

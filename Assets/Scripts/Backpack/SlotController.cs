@@ -17,6 +17,20 @@ public struct ItemStack
         count = 0;
         extra = 0;
     }
+
+    public Sprite GetSprite()
+    {
+        if (!IsEmpty)
+        {
+            var def = ItemRegistry.Get(itemId);
+            return def.ItemSprite;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
     public int GetPrice()
     {
         var def = ItemRegistry.Get(itemId);
@@ -454,6 +468,9 @@ public class SlotController : MonoBehaviour
             ui.SetIcon(def.ItemSprite);
             ui.SetNum(s.count.ToString());
         }
+
+        // 弹检测格子变化事件
+        ItemContainerEvents.SlotChanged(container, containerIndex);
 
     }
 
