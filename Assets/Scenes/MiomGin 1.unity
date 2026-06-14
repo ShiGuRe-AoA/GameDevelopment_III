@@ -106126,7 +106126,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 12b12e3f2980c4f4ea79b1e5ab1b5538, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  coin: 0
+  _coin: 0
   MapSize: {x: 500, y: 500}
   cellSize: {x: 0, y: 0, z: 0}
   MainTile: {fileID: 847385805}
@@ -106225,12 +106225,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 917b41024d9583447b0f5074f554917d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerController: {fileID: 1707658216}
-  backpackContainer: {fileID: 918951879}
-  hotbarSize: 10
-  selectedIndex: 0
-  inventoryContainer: {fileID: 918951881}
-  CompositeOperation: 0
 --- !u!114 &918951883
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -110955,7 +110949,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.08800001, y: 0.041}
   m_AnchorMax: {x: 0.9164797, y: 0.94924396}
-  m_AnchoredPosition: {x: -1.3883057, y: -0.8669205}
+  m_AnchoredPosition: {x: -1.3883057, y: -0.8669243}
   m_SizeDelta: {x: -1.272583, y: -0.8148346}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1492637409
@@ -112388,6 +112382,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 646f409f02fdea642b98009a07ba37b9, type: 2}
   - {fileID: 11400000, guid: 2ff82141cc7dfe142ab0daa5570d035e, type: 2}
   - {fileID: 11400000, guid: 721e9823c30610048b7e381a2670509e, type: 2}
+  OpenDoorAction:
+  - {fileID: 11400000, guid: 1d3778e868921b94aa85b61c4af9a6c9, type: 2}
+  - {fileID: 11400000, guid: f4c3977bd5ab92344a5faa26b7b30162, type: 2}
+  - {fileID: 11400000, guid: cf6c6e2c61b488741a17643c074cf296, type: 2}
+  - {fileID: 11400000, guid: 6272ae36dbb107043b4c593d492d0a84, type: 2}
 --- !u!114 &1707658217
 MonoBehaviour:
   m_ObjectHideFlags: 0
