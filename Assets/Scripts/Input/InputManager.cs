@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -23,12 +24,22 @@ public class InputManager : MonoBehaviour
     public readonly PlayerInputContext Context = new();
 
     public InputActionMain inputActions;
-    public PlayerController playerController;
-    public BackpackContainer backpackContainer;
-    public InventoryContainer inventoryContainer;
 
     private const int HotbarSize = 10;
 
+    // ================================================================================
+    // 事件（由外部消费者订阅，取代直接方法调用）
+    // ================================================================================
+    public static event Action<Vector2> OnMoveInput;
+    public static event Action OnInteract;
+    public static event Action OnToggleBackpack;
+    public static event Action OnTogglePause;
+    public static event Action<int> OnHotbarSlotSelected; // 参数：0-based 快捷栏索引
+    public static event Action<int> OnHotbarScroll;       // 参数：+1 = 上滚, -1 = 下滚
+
+    // ================================================================================
+    // 生命周期
+    // ================================================================================
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -62,58 +73,60 @@ public class InputManager : MonoBehaviour
         inputActions?.Disable();
     }
 
-    //============================================================================================
-    // 玩家移动
-    //============================================================================================
+    private void Update()
+    {
+        Context.MouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Context.HoldInteractUpThisFrame = Input.GetMouseButtonUp(0);
+
+        // --- 快捷栏数字键 ---
+        int idx = GetHotbarNumberKeyDown(HotbarSize);
+        if (idx != -1)
+            OnHotbarSlotSelected?.Invoke(idx);
+
+        // --- 滚轮切换 ---
+        float scroll = Input.mouseScrollDelta.y;
+        if (scroll > 0f)
+            OnHotbarScroll?.Invoke(-1);
+        else if (scroll < 0f)
+            OnHotbarScroll?.Invoke(1);
+    }
+
+    // ================================================================================
+    // 玩家移动 → 事件
+    // ================================================================================
     private void OnPlayerMoveCanceled(InputAction.CallbackContext obj)
     {
         Context.MoveInput = Vector2.zero;
-        playerController.SetInputInfo(Vector2.zero);
+        OnMoveInput?.Invoke(Vector2.zero);
     }
 
     private void OnPlayerMovePerformed(InputAction.CallbackContext obj)
     {
         Context.MoveInput = obj.ReadValue<Vector2>();
-        playerController.SetInputInfo(Context.MoveInput);
+        OnMoveInput?.Invoke(Context.MoveInput);
     }
 
-    //============================================================================================
-    // 背包交互
-    //============================================================================================
-    private void OnOpenBackpackPerformed(InputAction.CallbackContext obj)
-    {
-        if (backpackContainer == null) return;
-
-        if (backpackContainer.IsOpen)
-            backpackContainer.CloseBackpack();
-        else
-            backpackContainer.OpenBackpack();
-    }
-
-    //============================================================================================
-    // 鼠标点击交互
-    //============================================================================================
+    // ================================================================================
+    // 交互 → 事件
+    // ================================================================================
     private void OnInteractPerformed(InputAction.CallbackContext obj)
     {
-        playerController.SimpleInteract();
+        OnInteract?.Invoke();
     }
 
-    //============================================================================================
-    // 暂停
-    //============================================================================================
+    private void OnOpenBackpackPerformed(InputAction.CallbackContext obj)
+    {
+        OnToggleBackpack?.Invoke();
+    }
+
     private void OnPausePerformed(InputAction.CallbackContext obj)
     {
-        if (TimeManager.Instance == null) return;
-
-        if (TimeManager.Instance.IsPause)
-            TimeManager.Instance.StartGame();
-        else
-            TimeManager.Instance.PauseGame();
+        OnTogglePause?.Invoke();
     }
 
-    //============================================================================================
+    // ================================================================================
     // 复合操作
-    //============================================================================================
+    // ================================================================================
     private void OnCompositeOperationStarted(InputAction.CallbackContext obj)
     {
         Context.CompositeOperation = true;
@@ -124,28 +137,9 @@ public class InputManager : MonoBehaviour
         Context.CompositeOperation = false;
     }
 
-    private void Update()
-    {
-        // --- 鼠标输入采集（所有模块统一从此读取） ---
-        Context.MouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        Context.HoldInteractUpThisFrame = Input.GetMouseButtonUp(0);
-
-        if (inventoryContainer == null) return;
-
-        int idx = GetHotbarNumberKeyDown(HotbarSize);
-        if (idx != -1)
-        {
-            inventoryContainer.SetCurrentSlot(idx);
-        }
-
-        float scroll = Input.mouseScrollDelta.y;
-        if (scroll > 0f)
-            inventoryContainer.PreviousSlot();
-        else if (scroll < 0f)
-            inventoryContainer.NextSlot();
-    }
-
-    /// <summary>返回 0..hotbarSize-1；没按返回 -1</summary>
+    // ================================================================================
+    // 工具方法
+    // ================================================================================
     private static int GetHotbarNumberKeyDown(int hotbarSize)
     {
         int max = Mathf.Min(9, hotbarSize);

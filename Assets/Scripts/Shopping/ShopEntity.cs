@@ -29,7 +29,7 @@ public class ShopEntity : MonoBehaviour, IEntityRuntime, IInteractable
         if (EntityId == 0)
             RuntimeRegisterUtility.RegisterAll(this);
 
-        OnInteract();
+        //OnInteract();
         if (shopInventory == null)
             Debug.LogWarning($"[ShopEntity] {gameObject.name} 未配置 ShopInventorySO", this);
         if (shopPanel == null)

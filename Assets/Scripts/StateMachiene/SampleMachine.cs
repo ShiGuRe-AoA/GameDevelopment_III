@@ -165,8 +165,7 @@ public enum InteractPhase
 {
     None,
     Harvest,
-    OpenDoor,
-    Logging
+    OpenDoor
 }
 
 public class State_Interact : State_PlayerBase

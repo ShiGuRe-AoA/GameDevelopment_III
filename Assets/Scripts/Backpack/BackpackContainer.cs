@@ -10,7 +10,7 @@ public class BackpackContainer : ItemContainer_Base
     [Header("Inventory Slots")]
     public InventoryContainer inventoryContainer;
 
-    public bool IsOpen {  get; private set; }
+    public bool IsOpen { get; private set; }
 
     protected override void Awake()
     {
@@ -31,6 +31,16 @@ public class BackpackContainer : ItemContainer_Base
             SlotController.Instance.RefreshAll(container);
         }
         Debug.Log($"BackpackSlotsInitialized");
+    }
+
+    private void OnEnable()
+    {
+        InputManager.OnToggleBackpack += OnInputToggleBackpack;
+    }
+
+    private void OnDisable()
+    {
+        InputManager.OnToggleBackpack -= OnInputToggleBackpack;
     }
 
     private void Start()
@@ -54,12 +64,22 @@ public class BackpackContainer : ItemContainer_Base
         SlotController.Instance.TryAddItem("Bell_1", 1, container);
 
     }
+
+    private void OnInputToggleBackpack()
+    {
+        if (IsOpen)
+            CloseBackpack();
+        else
+            OpenBackpack();
+    }
+
     public void OpenBackpack()
     {
         BackpackPanel.gameObject.SetActive(true);
         IsOpen = true;
-    }  
-    public void CloseBackpack() 
+    }
+
+    public void CloseBackpack()
     {
         BackpackPanel.gameObject.SetActive(false);
         IsOpen = false;

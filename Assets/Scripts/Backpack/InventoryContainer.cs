@@ -34,6 +34,18 @@ public class InventoryContainer : MonoBehaviour
     private List<GameObject> CellInstance;
     private bool isValid;
 
+    private void OnEnable()
+    {
+        InputManager.OnHotbarSlotSelected += OnInputHotbarSlot;
+        InputManager.OnHotbarScroll += OnInputHotbarScroll;
+    }
+
+    private void OnDisable()
+    {
+        InputManager.OnHotbarSlotSelected -= OnInputHotbarSlot;
+        InputManager.OnHotbarScroll -= OnInputHotbarScroll;
+    }
+
     private void Update()
     {
         mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -68,6 +80,19 @@ public class InventoryContainer : MonoBehaviour
             holdTickContext.CellInstance = CellInstance;
             feature.OnHoldTick(holdTickContext, out isValid);
         });
+    }
+
+    private void OnInputHotbarSlot(int index)
+    {
+        SetCurrentSlot(index);
+    }
+
+    private void OnInputHotbarScroll(int direction)
+    {
+        if (direction > 0)
+            NextSlot();
+        else
+            PreviousSlot();
     }
 
     public void Init(ItemContainer container)

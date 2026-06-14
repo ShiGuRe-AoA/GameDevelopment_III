@@ -20,28 +20,28 @@ public class PlayerController : MonoBehaviour
 {
     #region Inspector
 
-    [Header("³¡¾°ÒıÓÃĞÅÏ¢")]
+    [Header("åœºæ™¯å¼•ç”¨ä¿¡æ¯")]
     [SerializeField] private Tilemap mainTile;
     [SerializeField] private List<Sprite> facingSprites = new();
     [SerializeField] private Animator animator;
 
-    [Header("ÒÆ¶¯ĞÅÏ¢")]
+    [Header("ç§»åŠ¨ä¿¡æ¯")]
     [SerializeField] private float maxDirectionChange = 10f;
     [SerializeField] private float maxSpeed = 5f;
 
-    [Header("ÔËĞĞ¶¯Ì¬ÒıÓÃ")]
+    [Header("è¿è¡ŒåŠ¨æ€å¼•ç”¨")]
     [SerializeField] private PlayerInputContext playerInputContext = new();
 
     #endregion
 
-    #region ×é¼şÒıÓÃ
+    #region ç»„ä»¶å¼•ç”¨
 
     private Rigidbody2D rb;
     private SpriteRenderer spriteRenderer;
 
     #endregion
 
-    #region ×´Ì¬
+    #region çŠ¶æ€
 
     private StateMachine<PlayerContext> playerStateMachine;
     private PlayerContext machineContext;
@@ -51,7 +51,7 @@ public class PlayerController : MonoBehaviour
 
     #endregion
 
-    #region ¶¯»­
+    #region åŠ¨ç”»
     [SerializeField] private List<ActionDefinition_SO> IdelAction = new();
     [SerializeField] private List<ActionDefinition_SO> MoveAction = new();
     [SerializeField] private List<ActionDefinition_SO> TillingAction = new();
@@ -67,7 +67,7 @@ public class PlayerController : MonoBehaviour
 
     #endregion
 
-    #region ¶¯Ì¬´æ´¢Êı¾İ
+    #region åŠ¨æ€å­˜å‚¨æ•°æ®
 
     private Vector2 playerMoveDirCur;
     private Vector2 playerMoveDirExp;
@@ -98,9 +98,31 @@ public class PlayerController : MonoBehaviour
         InitializeStateMachine();
     }
 
+    private void OnEnable()
+    {
+        InputManager.OnMoveInput += OnInputMove;
+        InputManager.OnInteract += OnInputInteract;
+    }
+
+    private void OnDisable()
+    {
+        InputManager.OnMoveInput -= OnInputMove;
+        InputManager.OnInteract -= OnInputInteract;
+    }
+
     private void Update()
     {
         UpdateMoveDirection();
+    }
+
+    private void OnInputMove(Vector2 moveInput)
+    {
+        playerInputContext.MoveInput = moveInput;
+    }
+
+    private void OnInputInteract()
+    {
+        SimpleInteract();
     }
 
     private void FixedUpdate()
@@ -138,7 +160,7 @@ public class PlayerController : MonoBehaviour
     {
         if (facingSprites == null || facingSprites.Count < 4)
         {
-            Debug.LogError("FacingSprites ÖÁÉÙĞèÒª°´Ë³ĞòÅäÖÃ 4 ÕÅ£ºUp / Left / Down / Right", this);
+            Debug.LogError("FacingSprites è‡³å°‘éœ€è¦æŒ‰é¡ºåºé…ç½® 4 å¼ ï¼šUp / Left / Down / Right", this);
             return;
         }
 
@@ -168,7 +190,7 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// ÓÉÍâ²¿ÊäÈë¿ØÖÆÆ÷´«ÈëÒÆ¶¯ÊäÈë
+    /// ç”±å¤–éƒ¨è¾“å…¥æ§åˆ¶å™¨ä¼ å…¥ç§»åŠ¨è¾“å…¥
     /// </summary>
     public void SetMoveInput(Vector2 input)
     {
@@ -186,11 +208,6 @@ public class PlayerController : MonoBehaviour
         playerMoveDirExp = Vector2.zero;
     }
 
-    public void SetInputInfo(Vector2 moveInput)
-    {
-        playerInputContext.MoveInput = moveInput;
-    }
-
     public bool SimpleInteract()
     {
         playerStateMachine.PushState(new State_Interact(playerStateMachine, machineContext));
@@ -202,7 +219,7 @@ public class PlayerController : MonoBehaviour
         return true;
     }
 
-    #region µöÓã
+    #region é’“é±¼
     public bool StartFishingWait()
     {
         if (playerStateMachine == null || machineContext == null)

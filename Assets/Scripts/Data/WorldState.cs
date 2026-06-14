@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -63,7 +64,20 @@ public class DetailedCellData
 public class WorldState : MonoBehaviour
 {
     [Header("钱")]
-    public int coin;
+    [SerializeField] private int _coin;
+    public int coin
+    {
+        get => _coin;
+        set
+        {
+            if (_coin == value) return;
+            _coin = value;
+            OnCoinChanged?.Invoke(_coin);
+        }
+    }
+
+    /// <summary>金币变化事件（参数为新的金币值）</summary>
+    public static event Action<int> OnCoinChanged;
 
     /// <summary>尝试扣除金币。成功返回 true，金币不足返回 false</summary>
     public bool TrySpendCoin(int amount)
@@ -587,8 +601,8 @@ public class WorldState : MonoBehaviour
     private Vector3 GetRandomDropOffset(float randomOffset)
     {
         return new Vector3(
-            Random.Range(-randomOffset, randomOffset),
-            Random.Range(-randomOffset, randomOffset),
+            UnityEngine.Random.Range(-randomOffset, randomOffset),
+            UnityEngine.Random.Range(-randomOffset, randomOffset),
             0f
         );
     }

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c26c87345fee584ea91ebe6c4d6eb11, type: 3}
   m_Name: Woods
   m_EditorClassIdentifier: 
-  ID_num: 10102
+  ID_num: 10103
   ID_str: wood
   Name: "\u6728\u5934"
   StackAmount: 300
