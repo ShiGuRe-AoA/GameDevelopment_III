@@ -38,12 +38,14 @@ public class InventoryContainer : MonoBehaviour
     {
         InputManager.OnHotbarSlotSelected += OnInputHotbarSlot;
         InputManager.OnHotbarScroll += OnInputHotbarScroll;
+        InputManager.OnItemInteract += OnInputItemInteract;
     }
 
     private void OnDisable()
     {
         InputManager.OnHotbarSlotSelected -= OnInputHotbarSlot;
         InputManager.OnHotbarScroll -= OnInputHotbarScroll;
+        InputManager.OnItemInteract -= OnInputItemInteract;
     }
 
     private void Update()
@@ -54,31 +56,32 @@ public class InventoryContainer : MonoBehaviour
 
         if (CurrentItem == null) return;
 
-        // 鼠标松开 —— 调用 HoldInteract
-        if (Input.GetMouseButtonUp(0))
-        {
-            holdInteractContext.isValid = isValid;
-            ForEachFeature<IHoldInteract>(feature =>
-            {
-                holdInteractContext.ItemID = CurrentStack.itemId;
-                holdInteractContext.containerIndex = currentSlot;
-                holdInteractContext.InteractGrid = playerController.InteractTilePosition;
-                feature.OnHoldInteract(holdInteractContext);
-
-                if (CurrentStack.count <= 0)
-                {
-                    ForEachFeature<IExitSelect>(f =>
-                        f.ExitSelect(exitSelectContext, ref PlacementInstance, ref CellInstance));
-                }
-            });
-        }
-
         // 每帧 —— 调用 HoldTick
         ForEachFeature<IHoldTick>(feature =>
         {
             holdTickContext.PlacementInstance = PlacementInstance;
             holdTickContext.CellInstance = CellInstance;
             feature.OnHoldTick(holdTickContext, out isValid);
+        });
+    }
+
+    private void OnInputItemInteract()
+    {
+        if (CurrentItem == null) return;
+
+        holdInteractContext.isValid = isValid;
+        ForEachFeature<IHoldInteract>(feature =>
+        {
+            holdInteractContext.ItemID = CurrentStack.itemId;
+            holdInteractContext.containerIndex = currentSlot;
+            holdInteractContext.InteractGrid = playerController.InteractTilePosition;
+            feature.OnHoldInteract(holdInteractContext);
+
+            if (CurrentStack.count <= 0)
+            {
+                ForEachFeature<IExitSelect>(f =>
+                    f.ExitSelect(exitSelectContext, ref PlacementInstance, ref CellInstance));
+            }
         });
     }
 

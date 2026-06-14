@@ -12,9 +12,6 @@ public class PlayerInputContext
 
     /// <summary>当前帧鼠标世界坐标（由 InputManager 每帧更新）</summary>
     public Vector3 MouseWorldPos;
-
-    /// <summary>当前帧鼠标左键松开（由 InputManager 每帧更新）</summary>
-    public bool HoldInteractUpThisFrame;
 }
 
 public class InputManager : MonoBehaviour
@@ -36,6 +33,7 @@ public class InputManager : MonoBehaviour
     public static event Action OnTogglePause;
     public static event Action<int> OnHotbarSlotSelected; // 参数：0-based 快捷栏索引
     public static event Action<int> OnHotbarScroll;       // 参数：+1 = 上滚, -1 = 下滚
+    public static event Action OnItemInteract;             // 使用手持物品（替换旧 Input.GetMouseButtonUp）
 
     // ================================================================================
     // 生命周期
@@ -60,6 +58,7 @@ public class InputManager : MonoBehaviour
             inputActions.Main.OpenBackpack.performed += OnOpenBackpackPerformed;
             inputActions.Main.Interact.performed += OnInteractPerformed;
             inputActions.Main.Pause.performed += OnPausePerformed;
+            inputActions.Main.ItemInteract.performed += OnItemInteractPerformed;
 
             inputActions.Main.CompositeOperation.started += OnCompositeOperationStarted;
             inputActions.Main.CompositeOperation.canceled += OnCompositeOperationCanceled;
@@ -76,7 +75,6 @@ public class InputManager : MonoBehaviour
     private void Update()
     {
         Context.MouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        Context.HoldInteractUpThisFrame = Input.GetMouseButtonUp(0);
 
         // --- 快捷栏数字键 ---
         int idx = GetHotbarNumberKeyDown(HotbarSize);
@@ -122,6 +120,11 @@ public class InputManager : MonoBehaviour
     private void OnPausePerformed(InputAction.CallbackContext obj)
     {
         OnTogglePause?.Invoke();
+    }
+
+    private void OnItemInteractPerformed(InputAction.CallbackContext obj)
+    {
+        OnItemInteract?.Invoke();
     }
 
     // ================================================================================

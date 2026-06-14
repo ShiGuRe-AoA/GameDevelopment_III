@@ -108,6 +108,7 @@ public class WorldState : MonoBehaviour
     [Header("特殊引用")]
     [SerializeField] private TileBase farmlandTile;
     [SerializeField] private Transform playerTransform;
+    public Transform PlayerTransform => playerTransform;
     [SerializeField] private GameObject DroppedItem_Prefab;
 
     [Header("暴露数据")]

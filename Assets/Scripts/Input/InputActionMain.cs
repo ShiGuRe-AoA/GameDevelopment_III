@@ -136,6 +136,15 @@ public partial class @InputActionMain: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ItemInteract"",
+                    ""type"": ""Button"",
+                    ""id"": ""2cbefbbe-42e5-4f6a-acee-1336c4159c75"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -237,6 +246,17 @@ public partial class @InputActionMain: IInputActionCollection2, IDisposable
                     ""action"": ""CompositeOperation"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""90f9d202-837a-4b98-b60b-7f7bc9525213"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ItemInteract"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -250,6 +270,7 @@ public partial class @InputActionMain: IInputActionCollection2, IDisposable
         m_Main_OpenBackpack = m_Main.FindAction("OpenBackpack", throwIfNotFound: true);
         m_Main_Pause = m_Main.FindAction("Pause", throwIfNotFound: true);
         m_Main_CompositeOperation = m_Main.FindAction("CompositeOperation", throwIfNotFound: true);
+        m_Main_ItemInteract = m_Main.FindAction("ItemInteract", throwIfNotFound: true);
     }
 
     ~@InputActionMain()
@@ -335,6 +356,7 @@ public partial class @InputActionMain: IInputActionCollection2, IDisposable
     private readonly InputAction m_Main_OpenBackpack;
     private readonly InputAction m_Main_Pause;
     private readonly InputAction m_Main_CompositeOperation;
+    private readonly InputAction m_Main_ItemInteract;
     /// <summary>
     /// Provides access to input actions defined in input action map "Main".
     /// </summary>
@@ -366,6 +388,10 @@ public partial class @InputActionMain: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Main/CompositeOperation".
         /// </summary>
         public InputAction @CompositeOperation => m_Wrapper.m_Main_CompositeOperation;
+        /// <summary>
+        /// Provides access to the underlying input action "Main/ItemInteract".
+        /// </summary>
+        public InputAction @ItemInteract => m_Wrapper.m_Main_ItemInteract;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -407,6 +433,9 @@ public partial class @InputActionMain: IInputActionCollection2, IDisposable
             @CompositeOperation.started += instance.OnCompositeOperation;
             @CompositeOperation.performed += instance.OnCompositeOperation;
             @CompositeOperation.canceled += instance.OnCompositeOperation;
+            @ItemInteract.started += instance.OnItemInteract;
+            @ItemInteract.performed += instance.OnItemInteract;
+            @ItemInteract.canceled += instance.OnItemInteract;
         }
 
         /// <summary>
@@ -433,6 +462,9 @@ public partial class @InputActionMain: IInputActionCollection2, IDisposable
             @CompositeOperation.started -= instance.OnCompositeOperation;
             @CompositeOperation.performed -= instance.OnCompositeOperation;
             @CompositeOperation.canceled -= instance.OnCompositeOperation;
+            @ItemInteract.started -= instance.OnItemInteract;
+            @ItemInteract.performed -= instance.OnItemInteract;
+            @ItemInteract.canceled -= instance.OnItemInteract;
         }
 
         /// <summary>
@@ -508,5 +540,12 @@ public partial class @InputActionMain: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnCompositeOperation(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "ItemInteract" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnItemInteract(InputAction.CallbackContext context);
     }
 }

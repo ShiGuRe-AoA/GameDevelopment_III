@@ -1001,6 +1001,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 71465640}
+  - component: {fileID: 71465641}
   m_Layer: 0
   m_Name: SceneMap
   m_TagString: Untagged
@@ -1021,13 +1022,29 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1699433492}
   - {fileID: 1270611276}
   - {fileID: 428548160}
   - {fileID: 1758712813}
   - {fileID: 1873297115}
+  - {fileID: 1429053641}
   m_Father: {fileID: 776710644}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &71465641
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 71465639}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68fcc4b20447e4545a2682715605cc98, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerTransform: {fileID: 1707658214}
+  cameraBindings: []
+  startMap: 1
+  transitionCooldown: 0.5
 --- !u!1001 &112076826
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3675,6 +3692,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 296791496}
   m_CullTransparentMesh: 1
+--- !u!1 &304142637
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 304142638}
+  m_Layer: 0
+  m_Name: Farm_to_Passage
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &304142638
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 304142637}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1429053641}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!224 &306450535 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4182967439222303410, guid: 6317324281a691149a4d8ab1a42ad07d, type: 3}
@@ -4980,7 +5028,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -1.0328064, y: -3.7372131}
+  m_AnchoredPosition: {x: -1.0328369, y: -3.7371826}
   m_SizeDelta: {x: -48.801, y: -43.068}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &492072570
@@ -105449,9 +105497,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 917b41024d9583447b0f5074f554917d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerController: {fileID: 1707658216}
-  backpackContainer: {fileID: 918951879}
-  inventoryContainer: {fileID: 918951881}
 --- !u!114 &918951883
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -109755,6 +109800,39 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 4182967439222303410, guid: 6317324281a691149a4d8ab1a42ad07d, type: 3}
   m_PrefabInstance: {fileID: 1372675324}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1429053640
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1429053641}
+  m_Layer: 0
+  m_Name: Farm
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1429053641
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1429053640}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1699433492}
+  - {fileID: 304142638}
+  m_Father: {fileID: 71465640}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1443100972
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -110354,7 +110432,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.08800001, y: 0.041}
   m_AnchorMax: {x: 0.9164797, y: 0.94924396}
-  m_AnchoredPosition: {x: -1.3883057, y: -0.86691666}
+  m_AnchoredPosition: {x: -1.3883057, y: -0.8669319}
   m_SizeDelta: {x: -1.272583, y: -0.8148346}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1492637409
@@ -111670,7 +111748,7 @@ Transform:
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 493965046}
-  m_Father: {fileID: 71465640}
+  m_Father: {fileID: 1429053641}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1707658212
 GameObject:
