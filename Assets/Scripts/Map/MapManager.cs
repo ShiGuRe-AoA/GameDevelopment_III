@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Cinemachine;
+using DG.Tweening;
 using UnityEngine;
 
 /// <summary>
@@ -27,6 +28,12 @@ public class MapManager : MonoBehaviour
     // ================================================================================
     [Header("玩家")]
     [SerializeField] private Transform playerTransform;
+
+    [Header("淡入淡出")]
+    [SerializeField] private CanvasGroup fadeOverlay;
+    [SerializeField] private float fadeInDuration = 0.4f;
+    [SerializeField] private float fadeOutDuration = 0.4f;
+    [SerializeField] private float blackHoldDuration = 1f;
 
     [Header("地图摄像机绑定")]
     [SerializeField] private List<MapCameraBinding> cameraBindings = new();
@@ -101,6 +108,10 @@ public class MapManager : MonoBehaviour
         if (playerTransform == null && WorldState.Instance != null)
             playerTransform = WorldState.Instance.PlayerTransform;
 
+        // 确保遮罩初始透明
+        if (fadeOverlay != null)
+            fadeOverlay.alpha = 0f;
+
         ActivateMap(startMap);
     }
 
@@ -166,12 +177,19 @@ public class MapManager : MonoBehaviour
         isTransitioning = true;
         MapIdentity fromMap = CurrentMap;
 
+        // 1. 黑屏淡入
+        if (fadeOverlay != null)
+        {
+            fadeOverlay.blocksRaycasts = true;
+            yield return fadeOverlay.DOFade(1f, fadeInDuration).SetEase(Ease.InQuad).WaitForCompletion();
+        }
+
         OnMapAboutToChange?.Invoke(fromMap, targetMap);
 
-        // 1. 切换摄像机
+        // 2. 切换摄像机
         SwitchCamera(targetMap, targetBinding);
 
-        // 2. 移动玩家到出生点
+        // 3. 移动玩家到出生点
         Transform spawnPoint = targetBinding.GetSpawnPoint(spawnPointName);
         if (playerTransform != null && spawnPoint != null)
             playerTransform.position = spawnPoint.position;
@@ -179,8 +197,20 @@ public class MapManager : MonoBehaviour
         CurrentMap = targetMap;
         OnMapChanged?.Invoke(fromMap, targetMap);
 
-        // 3. 冷却
-        yield return new WaitForSeconds(transitionCooldown);
+        // 4. 黑屏保持
+        yield return new WaitForSeconds(blackHoldDuration);
+
+        // 5. 黑屏淡出
+        if (fadeOverlay != null)
+        {
+            yield return fadeOverlay.DOFade(0f, fadeOutDuration).SetEase(Ease.OutQuad).WaitForCompletion();
+            fadeOverlay.blocksRaycasts = false;
+        }
+        else
+        {
+            yield return new WaitForSeconds(transitionCooldown);
+        }
+
         isTransitioning = false;
     }
 

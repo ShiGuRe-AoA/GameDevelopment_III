@@ -5,8 +5,8 @@ public enum MapIdentity
 {
     None = 0,
     Farm,
-    Town,
-    Forest,
-    Beach,
-    Mine
+    Passage,
+    Village,
+    Ocean,
+    Mountain
 }
