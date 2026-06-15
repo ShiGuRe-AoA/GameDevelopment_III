@@ -109,7 +109,12 @@ public class SaleItemSlot : MonoBehaviour, IInteractable, IEntityRuntime
     public void OnInteract()
     {
         Debug.Log("Sale Slot Interact");
-        sourceContainer.Items[sourceIndex].count--;
+        
+        var sourceStack = sourceContainer.Items[sourceIndex];
+
+        if (sourceStack.IsEmpty) return;
+        else sourceStack.count--; 
+        
         RefreshFromSource();
     }
 
