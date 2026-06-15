@@ -18,8 +18,9 @@ MonoBehaviour:
   - name: CancelStart
     time: 0
   Ranges:
-  - name: Windup
+  - name: Recover
     start: 0
     end: 1
   LockMove: 1
   LockInteract: 1
+  HasExitTime: 0

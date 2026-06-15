@@ -150,6 +150,7 @@ public class PlayerController : MonoBehaviour
         };
 
         playerStateMachine = new StateMachine<PlayerContext>(machineContext);
+        playerStateMachine.PushStackLimit = 1;
         playerStateMachine.ChangeState(new State_Idle(playerStateMachine, machineContext));
 
         StateMachineBrain.Instance.RegistryMachine(playerStateMachine, transform);

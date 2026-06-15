@@ -73,7 +73,7 @@ public class ActionDefinition_SOEditor : Editor
 
         DrawTimeline(timelineRect);
         EditorGUILayout.Space(2);
-        if (GUILayout.Button("ÖØÖÃ"))
+        if (GUILayout.Button("ï¿½ï¿½ï¿½ï¿½"))
         {
             Reset();
         }
@@ -97,7 +97,7 @@ public class ActionDefinition_SOEditor : Editor
             SyncAnimatorStateNameFromClip();
         }
 
-        if (GUILayout.Button("Ê¹ÓÃ Clip ÎÄ¼þÃû×÷Îª StateName"))
+        if (GUILayout.Button("Ê¹ï¿½ï¿½ Clip ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½Îª StateName"))
         {
             Undo.RecordObject(target, "Sync Animator State Name From Clip");
             SyncAnimatorStateNameFromClip();
@@ -178,7 +178,7 @@ public class ActionDefinition_SOEditor : Editor
             alignment = TextAnchor.MiddleCenter
         };
 
-        EditorGUI.LabelField(rect, "ÇëÏÈÍÏÈë AnimationClip£¬Ê±¼äÖá»á°´ Clip.length ×Ô¶¯ÏÔÊ¾", centered);
+        EditorGUI.LabelField(rect, "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ AnimationClipï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½á°´ Clip.length ï¿½Ô¶ï¿½ï¿½ï¿½Ê¾", centered);
     }
 
     private void DrawTimelineBackground(Rect rect)
@@ -559,11 +559,11 @@ public class ActionDefinition_SOEditor : Editor
             p3 = new Vector3(rect.center.x, rect.yMin);
         }
 
-        // Ìî³ä
+        // ï¿½ï¿½ï¿½
         Handles.color = color;
         Handles.DrawAAConvexPolygon(p1, p2, p3);
 
-        // Ãè±ß
+        // ï¿½ï¿½ï¿½
         Handles.color = new Color(0f, 0f, 0f, 0.8f);
         Handles.DrawAAPolyLine(2f, new Vector3[]
         {
@@ -721,7 +721,7 @@ public class ActionDefinition_SOEditor : Editor
 
         for (int i = 0; i < bindings.Length; i++)
         {
-            // SpriteRenderer µÄ sprite ÊôÐÔÒ»°ã¾ÍÊÇ m_Sprite
+            // SpriteRenderer ï¿½ï¿½ sprite ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ m_Sprite
             if (bindings[i].propertyName == "m_Sprite")
             {
                 spriteBinding = bindings[i];
@@ -747,7 +747,7 @@ public class ActionDefinition_SOEditor : Editor
                 break;
         }
 
-        // Èç¹û time ±ÈµÚÒ»¸ö key »¹Ð¡£¬¾ÍÖ±½Ó¸øµÚÒ»¸ö
+        // ï¿½ï¿½ï¿½ time ï¿½Èµï¿½Ò»ï¿½ï¿½ key ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½Ö±ï¿½Ó¸ï¿½ï¿½ï¿½Ò»ï¿½ï¿½
         if (current == null)
             current = frames[0].value as Sprite;
 
@@ -763,7 +763,7 @@ public class ActionDefinition_SOEditor : Editor
 
         Undo.RecordObject(target, "Reset Timeline");
 
-        // Çå¿Õ
+        // ï¿½ï¿½ï¿½
         eventsProp.ClearArray();
         rangesProp.ClearArray();
 
