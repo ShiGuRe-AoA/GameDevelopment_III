@@ -689,6 +689,7 @@ public class WorldState : MonoBehaviour
         return new List<int>(cellData.EntityID); // snapshot to avoid mutation during iteration
     }
 
+    // for common Interact -- Harvest/OpenDoor/...
     public void InteractAt(Vector3Int interactPos)
     {
         List<int> entityIds = GetEntityIdsOnCell(interactPos);
@@ -710,6 +711,32 @@ public class WorldState : MonoBehaviour
         {
             if (GetEntity(entityID) is IInteractable interactable)
                 return interactable.OnInteractDetected();
+        }
+
+        return InteractPhase.None;
+    }
+
+    // for Entity UI Interact -- Open Panel/...
+    public void EntityInteractAt(Vector3Int interactPos)
+    {
+        List<int> entityIds = GetEntityIdsOnCell(interactPos);
+        if (entityIds == null) return;
+
+        foreach (int entityID in entityIds)
+        {
+            if (GetEntity(entityID) is IEntityInteractable interactable)
+                interactable.OnEntityInteract();
+        }
+    }
+    public InteractPhase EntityDetectInteract(Vector3Int interactPos)
+    {
+        List<int> entityIds = GetEntityIdsOnCell(interactPos);
+        if (entityIds == null) return InteractPhase.None;
+
+        foreach (int entityID in entityIds)
+        {
+            if (GetEntity(entityID) is IEntityInteractable interactable)
+                return interactable.OnEntityInteractDetected();
         }
 
         return InteractPhase.None;

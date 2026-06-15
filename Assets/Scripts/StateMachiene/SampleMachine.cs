@@ -216,6 +216,53 @@ public class State_Interact : State_PlayerBase
 }
 
 //============================================================================================
+// EntityInteract / 设施Panel交互
+//============================================================================================
+public class State_EntityInteract : State_PlayerBase
+{
+    private InteractPhase phase;
+
+    public State_EntityInteract(StateMachine<PlayerContext> machine, PlayerContext ctx)
+        : base(machine, ctx) { }
+
+    public override void Enter()
+    {
+        base.Enter();
+        SetControl(canMove: false, canInteract: false);
+
+        phase = WorldState.Instance.EntityDetectInteract(InteractTilePosition);
+        if (phase == InteractPhase.None) { Machine.PopState(); return; }
+
+        PlayAction(GetInteractAction(phase, PlayerDirection));
+    }
+
+    public override void Update()
+    {
+        base.Update();
+        TickAction();
+        if (actionRuntime == null) return;
+
+        if (actionRuntime.CanApplyEffect())
+        {
+            WorldState.Instance.EntityInteractAt(InteractTilePosition);
+            actionRuntime.MarkEffectApplied();
+        }
+
+        if (actionRuntime.IsFinished())
+            Machine.PopState();
+    }
+
+    private string GetInteractAction(InteractPhase phase, Direction dir)
+    {
+        return phase switch
+        {
+            InteractPhase.OpenDoor => GetDirectionAction(
+                dir, "Player_OpenDoor_Down", "Player_OpenDoor_Left", "Player_OpenDoor_Right", "Player_OpenDoor_Up"),
+            _ => string.Empty
+        };
+    }
+}
+//============================================================================================
 // UseTool / 使用工具
 //============================================================================================
 public class State_UseTool : State_PlayerBase

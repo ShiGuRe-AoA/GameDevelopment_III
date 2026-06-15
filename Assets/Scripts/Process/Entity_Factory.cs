@@ -35,7 +35,7 @@ public class Production
     }
 }
 
-public class Entity_Factory : ItemContainer_Base, IEntityRuntime, IMinuteUpdatable, ISaveableEntity, IInteractable, ITickUpdatable
+public class Entity_Factory : ItemContainer_Base, IEntityRuntime, IMinuteUpdatable, ISaveableEntity, IEntityInteractable, ITickUpdatable
 {
     public ItemContainer resourcesContainer;
     public ItemContainer productsContainer;
@@ -120,7 +120,7 @@ public class Entity_Factory : ItemContainer_Base, IEntityRuntime, IMinuteUpdatab
     {
         
     }
-    public void OnInteract()
+    public void OnEntityInteract()
     {
         if(isLocked) { return; }
 
@@ -131,7 +131,7 @@ public class Entity_Factory : ItemContainer_Base, IEntityRuntime, IMinuteUpdatab
         }
     }
 
-    public InteractPhase OnInteractDetected()
+    public InteractPhase OnEntityInteractDetected()
     {
         return InteractPhase.OpenDoor;
     }

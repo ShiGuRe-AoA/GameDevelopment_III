@@ -13,7 +13,7 @@ public class QueueSlot
     public List<CustomerController> customers = new();
 }
 
-public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IInteractable, ISaveableEntity
+public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IEntityInteractable, ISaveableEntity
 {
     public ItemContainer shelfContainer;
     public ItemContainer saleContainer;
@@ -86,7 +86,7 @@ public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IInteracta
         SlotController.Instance.TryAddItem("Bell_1", 1, containers[1]);
     }
 
-    public void OnInteract()
+    public void OnEntityInteract()
     {
         // 如果未摆摊时打开则打开 货架UI(背包往货架放东西)
         if (!storePanel.gameObject.activeInHierarchy)
@@ -98,7 +98,7 @@ public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IInteracta
 
     }
 
-    public InteractPhase OnInteractDetected()
+    public InteractPhase OnEntityInteractDetected()
     {
         return InteractPhase.OpenDoor;
     }

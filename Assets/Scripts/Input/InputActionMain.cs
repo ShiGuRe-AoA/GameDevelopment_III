@@ -145,6 +145,15 @@ public partial class @InputActionMain: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""EntityInteract"",
+                    ""type"": ""Button"",
+                    ""id"": ""ab5de103-287a-441a-aa76-a399c94ef609"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -257,6 +266,17 @@ public partial class @InputActionMain: IInputActionCollection2, IDisposable
                     ""action"": ""ItemInteract"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""05433f9c-8711-4ffa-acb5-ec094ccd2bec"",
+                    ""path"": ""<Keyboard>/f"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""EntityInteract"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -271,6 +291,7 @@ public partial class @InputActionMain: IInputActionCollection2, IDisposable
         m_Main_Pause = m_Main.FindAction("Pause", throwIfNotFound: true);
         m_Main_CompositeOperation = m_Main.FindAction("CompositeOperation", throwIfNotFound: true);
         m_Main_ItemInteract = m_Main.FindAction("ItemInteract", throwIfNotFound: true);
+        m_Main_EntityInteract = m_Main.FindAction("EntityInteract", throwIfNotFound: true);
     }
 
     ~@InputActionMain()
@@ -357,6 +378,7 @@ public partial class @InputActionMain: IInputActionCollection2, IDisposable
     private readonly InputAction m_Main_Pause;
     private readonly InputAction m_Main_CompositeOperation;
     private readonly InputAction m_Main_ItemInteract;
+    private readonly InputAction m_Main_EntityInteract;
     /// <summary>
     /// Provides access to input actions defined in input action map "Main".
     /// </summary>
@@ -392,6 +414,10 @@ public partial class @InputActionMain: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Main/ItemInteract".
         /// </summary>
         public InputAction @ItemInteract => m_Wrapper.m_Main_ItemInteract;
+        /// <summary>
+        /// Provides access to the underlying input action "Main/EntityInteract".
+        /// </summary>
+        public InputAction @EntityInteract => m_Wrapper.m_Main_EntityInteract;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -436,6 +462,9 @@ public partial class @InputActionMain: IInputActionCollection2, IDisposable
             @ItemInteract.started += instance.OnItemInteract;
             @ItemInteract.performed += instance.OnItemInteract;
             @ItemInteract.canceled += instance.OnItemInteract;
+            @EntityInteract.started += instance.OnEntityInteract;
+            @EntityInteract.performed += instance.OnEntityInteract;
+            @EntityInteract.canceled += instance.OnEntityInteract;
         }
 
         /// <summary>
@@ -465,6 +494,9 @@ public partial class @InputActionMain: IInputActionCollection2, IDisposable
             @ItemInteract.started -= instance.OnItemInteract;
             @ItemInteract.performed -= instance.OnItemInteract;
             @ItemInteract.canceled -= instance.OnItemInteract;
+            @EntityInteract.started -= instance.OnEntityInteract;
+            @EntityInteract.performed -= instance.OnEntityInteract;
+            @EntityInteract.canceled -= instance.OnEntityInteract;
         }
 
         /// <summary>
@@ -547,5 +579,12 @@ public partial class @InputActionMain: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnItemInteract(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "EntityInteract" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnEntityInteract(InputAction.CallbackContext context);
     }
 }

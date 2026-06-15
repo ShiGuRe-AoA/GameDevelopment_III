@@ -103,12 +103,14 @@ public class PlayerController : MonoBehaviour
     {
         InputManager.OnMoveInput += OnInputMove;
         InputManager.OnInteract += OnInputInteract;
+        InputManager.OnEntityInteract += OnInputEntityInteract;
     }
 
     private void OnDisable()
     {
         InputManager.OnMoveInput -= OnInputMove;
         InputManager.OnInteract -= OnInputInteract;
+        InputManager.OnEntityInteract -= OnInputEntityInteract;
     }
 
     private void Update()
@@ -124,6 +126,11 @@ public class PlayerController : MonoBehaviour
     private void OnInputInteract()
     {
         SimpleInteract();
+    }
+
+    private void OnInputEntityInteract()
+    {
+        PanelInteract();
     }
 
     private void FixedUpdate()
@@ -215,6 +222,13 @@ public class PlayerController : MonoBehaviour
         playerStateMachine.PushState(new State_Interact(playerStateMachine, machineContext));
         return true;
     }
+
+    public bool PanelInteract()
+    {
+        playerStateMachine.PushState(new State_EntityInteract(playerStateMachine, machineContext));
+        return true;
+    }
+
     public bool ToolInteract(List<ToolType> tools)
     {
         playerStateMachine.PushState(new State_UseTool(playerStateMachine, machineContext, tools));

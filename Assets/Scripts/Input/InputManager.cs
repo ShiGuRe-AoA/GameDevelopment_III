@@ -29,6 +29,7 @@ public class InputManager : MonoBehaviour
     // ================================================================================
     public static event Action<Vector2> OnMoveInput;
     public static event Action OnInteract;
+    public static event Action OnEntityInteract;
     public static event Action OnToggleBackpack;
     public static event Action OnTogglePause;
     public static event Action<int> OnHotbarSlotSelected; // 参数：0-based 快捷栏索引
@@ -57,6 +58,7 @@ public class InputManager : MonoBehaviour
 
             inputActions.Main.OpenBackpack.performed += OnOpenBackpackPerformed;
             inputActions.Main.Interact.performed += OnInteractPerformed;
+            inputActions.Main.EntityInteract.performed += OnEntityInteractPerformed;
             inputActions.Main.Pause.performed += OnPausePerformed;
             inputActions.Main.ItemInteract.performed += OnItemInteractPerformed;
 
@@ -125,6 +127,11 @@ public class InputManager : MonoBehaviour
     private void OnItemInteractPerformed(InputAction.CallbackContext obj)
     {
         OnItemInteract?.Invoke();
+    }
+
+    private void OnEntityInteractPerformed(InputAction.CallbackContext obj)
+    {
+        OnEntityInteract?.Invoke();
     }
 
     // ================================================================================
