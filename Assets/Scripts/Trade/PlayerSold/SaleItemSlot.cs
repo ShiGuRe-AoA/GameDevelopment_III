@@ -63,7 +63,9 @@ public class SaleItemSlot : MonoBehaviour, IInteractable, IEntityRuntime
     // Start is called before the first frame update
     void Start()
     {
-        
+        Vector3Int pivot = WorldState.Instance.WorldToCell(transform.position);
+        WorldState.Instance.PlaceEntity(pivot, this as IEntityRuntime, 1, 1);
+        RuntimeRegisterUtility.RegisterAll(this);
     }
 
     // Update is called once per frame
@@ -106,7 +108,9 @@ public class SaleItemSlot : MonoBehaviour, IInteractable, IEntityRuntime
 
     public void OnInteract()
     {
-        
+        Debug.Log("Sale Slot Interact");
+        sourceContainer.Items[sourceIndex].count--;
+        RefreshFromSource();
     }
 
     public InteractPhase OnInteractDetected()

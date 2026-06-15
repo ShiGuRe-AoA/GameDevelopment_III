@@ -16,15 +16,15 @@ MonoBehaviour:
   Clip: {fileID: 7400000, guid: 5655263e67ccf4348993315c21b3b641, type: 2}
   Events:
   - name: EffectTime
-    time: 0.25
+    time: 0.05
   - name: CancelStart
     time: 0.45
   Ranges:
   - name: Windup
     start: 0
-    end: 0.25
+    end: 0.05
   - name: Recover
-    start: 0.25
+    start: 0.05
     end: 0.5
   LockMove: 1
   LockInteract: 1
