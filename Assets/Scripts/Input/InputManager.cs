@@ -30,11 +30,13 @@ public class InputManager : MonoBehaviour
     public static event Action<Vector2> OnMoveInput;
     public static event Action OnInteract;
     public static event Action OnEntityInteract;
+    public static event Action<IHoverTarget> OnHoverChanged;
     public static event Action OnToggleBackpack;
     public static event Action OnTogglePause;
     public static event Action<int> OnHotbarSlotSelected; // 参数：0-based 快捷栏索引
     public static event Action<int> OnHotbarScroll;       // 参数：+1 = 上滚, -1 = 下滚
     public static event Action OnItemInteract;             // 使用手持物品（替换旧 Input.GetMouseButtonUp）
+
 
     // ================================================================================
     // 生命周期
@@ -77,6 +79,7 @@ public class InputManager : MonoBehaviour
     private void Update()
     {
         Context.MouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        DetectHoverChanged();
 
         // --- 快捷栏数字键 ---
         int idx = GetHotbarNumberKeyDown(HotbarSize);
@@ -132,6 +135,27 @@ public class InputManager : MonoBehaviour
     private void OnEntityInteractPerformed(InputAction.CallbackContext obj)
     {
         OnEntityInteract?.Invoke();
+    }
+
+    IHoverTarget currentHoverTarget;
+    private void DetectHoverChanged()
+    {
+        Collider2D[] hits = Physics2D.OverlapPointAll(Context.MouseWorldPos);
+        IHoverTarget newTarget = null;
+
+        foreach(Collider2D hit in hits)
+        {
+            newTarget = hit.GetComponentInParent<IHoverTarget>();
+
+            if (newTarget != null)
+                break;
+        }
+
+        if (newTarget == currentHoverTarget)
+            return;
+        currentHoverTarget = newTarget;
+
+        OnHoverChanged?.Invoke(currentHoverTarget);
     }
 
     // ================================================================================

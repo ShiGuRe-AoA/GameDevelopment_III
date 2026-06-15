@@ -4,16 +4,16 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // 摊位上放物品的格子
-public class SaleItemSlot : MonoBehaviour, IInteractable, IEntityRuntime
+public class SaleItemSlot : MonoBehaviour, IInteractable, IWorldObject
 {
-    #region IEntityRuntime
-    public int EntityId { get; private set; }
-    public Vector3Int PivotPos { get; private set; }
-    public List<GameObject> RelativeObj { get; private set; }
-    public void EntityInit(int entityId, Vector3Int pivotPos, WorldState worldState)
+    #region IWorldObject
+    public int ObjectId { get; private set; }
+    public Vector3 WorldPos { get; private set; }
+
+    public void ObjectInit(int objectId, Vector3 worldPos, WorldState worldState)
     {
-        EntityId = entityId;
-        PivotPos = pivotPos;
+        ObjectId = objectId;
+        WorldPos = worldPos;
     }
 
     public void OnAwake() { }
@@ -63,8 +63,7 @@ public class SaleItemSlot : MonoBehaviour, IInteractable, IEntityRuntime
     // Start is called before the first frame update
     void Start()
     {
-        Vector3Int pivot = WorldState.Instance.WorldToCell(transform.position);
-        WorldState.Instance.PlaceEntity(pivot, this as IEntityRuntime, 1, 1);
+        Vector3 world = transform.position;
         RuntimeRegisterUtility.RegisterAll(this);
     }
 
@@ -110,7 +109,7 @@ public class SaleItemSlot : MonoBehaviour, IInteractable, IEntityRuntime
     {
         Debug.Log("Sale Slot Interact");
         
-        var sourceStack = sourceContainer.Items[sourceIndex];
+        ref var sourceStack = ref sourceContainer.Items[sourceIndex];
 
         if (sourceStack.IsEmpty) return;
         else sourceStack.count--; 

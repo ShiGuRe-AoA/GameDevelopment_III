@@ -101,6 +101,7 @@ public class WorldState : MonoBehaviour
     private readonly Dictionary<Vector3Int, DetailedCellData> DetailedMapData = new();
     private readonly Dictionary<int, List<Vector3Int>> entityOccupiedCells = new();
     public Dictionary<int, IEntityRuntime> Entitys { get; private set; } = new();
+    public Dictionary<int, IWorldObject> WorldObjs { get; private set; } = new();
 
     [Header("数据引用")]
     public ItemDatabaseSO ItemDatabase;
@@ -134,6 +135,7 @@ public class WorldState : MonoBehaviour
     }
 
     private int nextEntityId = 1;
+    private int nextObjId = 1;
 
     private void Awake()
     {
@@ -200,6 +202,51 @@ public class WorldState : MonoBehaviour
     public bool UnRegisterEntity(object obj)
     {
         return obj is IEntityRuntime runtime && UnRegisterEntity(runtime.EntityId);
+    }
+
+    public bool RegisterWorldObject(int id, Vector3 worldPos, IWorldObject obj)
+    {
+        if(WorldObjs == null)
+        {
+            WorldObjs = new Dictionary<int, IWorldObject>();
+        }
+        
+        if(obj == null)
+        {
+            return false;
+        }
+
+        if (WorldObjs.ContainsKey(id))
+        {
+            Debug.LogError($"Duplicate ObjectId: {id}");
+            return false;
+        }
+
+        WorldObjs.Add(id, obj);
+        obj.ObjectInit(id, worldPos, this);
+        nextObjId++;
+        Debug.Log($"ObjRegisteredInID:{id}");
+        return true;
+    }
+
+    public bool RegisterWorldObject(object obj)
+    {
+        return obj is IWorldObject worldObj && RegisterWorldObject(worldObj.ObjectId, worldObj.WorldPos, worldObj);
+    }
+
+    public bool UnRegisterWorldObject(int id)
+    {
+        if (WorldObjs.ContainsKey(id))
+        {
+            WorldObjs.Remove(id);
+            return true;
+        }
+        return false;
+    }
+
+    public bool UnRegisterWorldObject(object obj)
+    {
+        return obj is IWorldObject worldObj && UnRegisterWorldObject(worldObj.ObjectId);
     }
 
     public Vector3Int WorldToCell(Vector3 worldPos)
@@ -690,16 +737,20 @@ public class WorldState : MonoBehaviour
     }
 
     // for common Interact -- Harvest/OpenDoor/...
-    public void InteractAt(Vector3Int interactPos)
+    public void Interact(Vector3Int interactPos)
     {
         List<int> entityIds = GetEntityIdsOnCell(interactPos);
         if (entityIds == null) return;
 
         foreach (int entityID in entityIds)
         {
-            if (GetEntity(entityID) is IInteractable interactable)
-                interactable.OnInteract();
+            TryInteractObject(GetEntity(entityID));
         }
+    }
+
+    public void Interact(IWorldObject obj)
+    {
+        TryInteractObject(obj);
     }
 
     public InteractPhase DetectInteract(Vector3Int interactPos)
@@ -709,10 +760,30 @@ public class WorldState : MonoBehaviour
 
         foreach (int entityID in entityIds)
         {
-            if (GetEntity(entityID) is IInteractable interactable)
-                return interactable.OnInteractDetected();
+            InteractPhase phase = TryDetectInteractObject(GetEntity(entityID));
+
+            if (phase != InteractPhase.None)
+                return phase;
         }
 
+        return InteractPhase.None;
+    }
+
+    public InteractPhase DetectInteract(IWorldObject obj)
+    {
+        return TryDetectInteractObject(obj);
+    }
+
+    private void TryInteractObject(object obj)
+    {
+        if(obj is IInteractable interactable)
+            interactable.OnInteract();
+    }
+
+    private InteractPhase TryDetectInteractObject(object obj)
+    {
+        if(obj is IInteractable interactable)
+            return interactable.OnInteractDetected();
         return InteractPhase.None;
     }
 
@@ -740,6 +811,19 @@ public class WorldState : MonoBehaviour
         }
 
         return InteractPhase.None;
+    }
+
+    private IHoverTarget currentHoverTarget;
+    public void Hover(IHoverTarget target = null)
+    {
+        if (target == currentHoverTarget)
+            return;
+
+        currentHoverTarget?.OnHoverExit();
+
+        currentHoverTarget = target;
+
+        currentHoverTarget?.OnHoverEnter();
     }
 
     public void ItemInteract(Vector3Int targetGridPos, List<ToolType> toolTypes, PlayerContext ctx)
