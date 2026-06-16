@@ -37,23 +37,29 @@ public class State_CustomerIdle : State_CustomerBase
     public override void Enter()
     {
         base.Enter();
+        Customer.BeginWander();
     }
 
     public override void Update()
     {
         base.Update();
 
-        // TODO: ÏÐ¹äÂß¼­
-
-        // TODO: Íæ¼Ò´¥·¢Ä³²Ù×÷Ê±£¬ÔÚ CustomerController ÀïÖ´ÐÐ£º
-        // Ctx.TargetEntity = Ctx.StoreEntity;
-
-        if (TargetStore == null)
+        if (TargetStore != null)
         {
+            Customer.StopWander();
+            Machine.ChangeState(new State_CustomerAttracting(Machine, Ctx));
             return;
         }
 
-        Machine.ChangeState(new State_CustomerAttracting(Machine, Ctx));
+        // ÏÐ¹äÂß¼­
+        Customer.UpdateWander();
+    }
+
+    public override void Exit()
+    {
+        base.Exit();
+
+        Customer.StopWander();
     }
 }
 
@@ -74,6 +80,8 @@ public class State_CustomerAttracting : State_CustomerBase
         base.Enter();
 
         Debug.Log($"Customer Attracted", Customer);
+
+        Customer.StopWander();
 
         if (TargetStore == null)
         {
@@ -100,7 +108,7 @@ public class State_CustomerAttracting : State_CustomerBase
         MoveToQueueTarget();
 
         // The first customer in one queue can start buying.
-        if (TargetStore.IsQueueFront(Customer))
+        if (TargetStore.IsQueueFront(Customer) && Customer.HasArrivedQueueTarget())
         {
             Machine.ChangeState(new State_CustomerBuying(Machine, Ctx));
             return;
@@ -149,6 +157,9 @@ public class State_CustomerBuying : State_CustomerBase
     public override void Enter()
     {
         base.Enter();
+        Debug.Log("EnterBuying", Customer);
+        Customer.StopMove();
+        Customer.FaceUp();
 
         if (TargetStore == null || !TargetStore.IsQueueFront(Customer))
         {

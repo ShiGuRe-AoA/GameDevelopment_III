@@ -1,33 +1,92 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(CustomerPathAgent))]
 public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatable
 {
-    [Header("移动")]
-    [SerializeField] private float moveSpeed = 2f;
+    #region Inspector
+
+    [Header("移动代理")]
+    [SerializeField] private CustomerPathAgent pathAgent;
+
+    [Header("动画")]
+    [SerializeField] private Animator runtimeAnimator;
+
+    [Tooltip("动画状态名前缀。默认会播放 NPC_Idle_Down / NPC_Move_Down 这种名字。")]
+    [SerializeField] private string animPrefix = "NPC";
 
     [Header("态度")]
-    [SerializeField] private const float startAttitude = 1f;
-    [SerializeField] private const float minBuyAttitudeFactor = 0.5f;
-    [SerializeField] private const float maxWaitingTime_Buy = 10f;
-
-    private float attractAttitude;
-    private float buyAttitude;
-    private float attractingTime;
-    private float buyingTime;
+    [SerializeField] private float startAttitude = 1f;
+    [SerializeField] private float minBuyAttitudeFactor = 0.5f;
+    [SerializeField] private float maxWaitingTime_Buy = 10f;
 
     [Header("购买数据")]
     [SerializeField] private int price;
     [SerializeField] private int count;
     private int curPrice;
 
+    [Header("UI")]
+    [SerializeField] private SpriteRenderer attractUI;  // " ! "
+    [SerializeField] private SpriteRenderer buyUI;      // " (buyItem) "
+
+    [Header("测试只读")]
     [SerializeField] private ItemStack buyItem;
+
+    #endregion
+
+    #region Runtime References
 
     private StateMachine<CustomerContext> customerMachine;
     private CustomerContext machineContext;
 
+    #endregion
+
+    #region Attitude Data
+
+    private float attractAttitude;
+    private float buyAttitude;
+    private float attractingTime;
+    private float buyingTime;
+
+    #endregion
+
+    #region Animation Data
+
+    private string currentAnimName;
+
+    #endregion
+
+    #region Properties
+
+    public SpriteRenderer AttractUI => attractUI;
+    public SpriteRenderer BuyUI => buyUI;
+
     public float AttractAttitude => attractAttitude;
     public bool BuyFinished { get; private set; }
+
+    public CustomerPathAgent PathAgent => pathAgent;
+
+    #endregion
+
+    #region Unity Lifecycle
+
+    private void Awake()
+    {
+        if (pathAgent == null)
+            pathAgent = GetComponent<CustomerPathAgent>();
+
+        if (runtimeAnimator == null)
+            runtimeAnimator = GetComponentInChildren<Animator>();
+    }
+
+    private void Update()
+    {
+        UpdateCustomerAnimation();
+    }
+
+    #endregion
+
+    #region Init
 
     public void Init(PlayerStore_Entity _storeEntity)
     {
@@ -48,31 +107,36 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
         buyItem = ItemStack.Empty;
         BuyFinished = false;
 
+        StopMove();
+
         customerMachine = new StateMachine<CustomerContext>(machineContext);
         customerMachine.ChangeState(new State_CustomerIdle(customerMachine, machineContext));
 
         StateMachineBrain.Instance.RegistryMachine(customerMachine, transform);
     }
 
+    #endregion
+
+    #region Attract / Queue
+
     // 使用 bool 未来统计本次吸引了多少人
     public bool BeAttractedByPlayerAction()
     {
         if (machineContext == null)
         {
-            Debug.LogError("CustomerController.BeAttractedByPlayerAction: machineContext is null!");
+            Debug.LogError("CustomerController.BeAttractedByPlayerAction: machineContext is null!", this);
             return false;
         }
 
         if (machineContext.StoreEntity == null)
         {
-            Debug.LogError("CustomerController.BeAttractedByPlayerAction: StoreEntity is null!");
+            Debug.LogError("CustomerController.BeAttractedByPlayerAction: StoreEntity is null!", this);
             return false;
         }
 
         if (machineContext.TargetEntity != null)
             return false;
 
-        // TODO: 玩家执行某操作时调用，例如摇铃 / 开始摆摊 / 招呼顾客
         machineContext.TargetEntity = machineContext.StoreEntity;
         return true;
     }
@@ -86,22 +150,87 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
         machineContext.HasQueueTarget = true;
     }
 
-    // MoveTo具体函数可能要改
+    public bool HasArrivedQueueTarget()
+    {
+        if (machineContext == null || !machineContext.HasQueueTarget)
+            return false;
+
+        if (pathAgent == null)
+            return false;
+
+        return pathAgent.HasArrived(machineContext.QueueTargetPos);
+    }
+
+    #endregion
+
+    #region Move / Wander Bridge
+
+    /// <summary>
+    /// CustomerMachine.Attracting 调用的移动入口。
+    /// 这里默认认为目标是 QueueTarget，所以到达后面朝 Up。
+    /// </summary>
     public void MoveTo(Vector2 targetPos)
     {
-        float dist = Vector2.Distance(transform.position, targetPos);
-        if (dist <= 0.05f) return;
+        if (pathAgent == null)
+            return;
 
-        transform.position = Vector2.MoveTowards(
-            transform.position,
-            targetPos,
-            moveSpeed * Time.deltaTime
-        );
+        pathAgent.MoveTo(targetPos, faceUpWhenArrive: true);
     }
+
+    public void StopMove()
+    {
+        if (pathAgent == null)
+            return;
+
+        // suppressSeparation = true:
+        // 进入 Buying / 停在 QueueTarget 后，不再被软分离推离队列点。
+        pathAgent.StopMove(suppressSeparation: true);
+    }
+
+    public void FaceUp()
+    {
+        if (pathAgent == null)
+            return;
+
+        pathAgent.FaceUp();
+
+        // 强制刷新动画，避免还停在旧方向 Idle / Move。
+        currentAnimName = null;
+        UpdateCustomerAnimation();
+    }
+
+    public void BeginWander()
+    {
+        if (pathAgent == null)
+            return;
+
+        pathAgent.BeginWander();
+    }
+
+    public void StopWander()
+    {
+        if (pathAgent == null)
+            return;
+
+        pathAgent.StopWander();
+    }
+
+    public void UpdateWander()
+    {
+        if (pathAgent == null)
+            return;
+
+        pathAgent.UpdateWander();
+    }
+
+    #endregion
+
+    #region Tick / Minute
 
     public void OnTickUpdate(float deltaTime)
     {
         // 状态机由 StateMachineBrain 统一 Update。
+        // 移动由 CustomerPathAgent.FixedUpdate 处理。
     }
 
     public void OnMinuteUpdate()
@@ -111,6 +240,10 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
 
         customerMachine.SendEvent(new FsmEvent(FsmEventType.MinutePassed, this));
     }
+
+    #endregion
+
+    #region Attitude
 
     public void ResetAttractAttitude()
     {
@@ -145,19 +278,23 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
     public void BuyWill(int _price, int _count)
     {
         buyingTime++;
-        float t = buyingTime;
 
-        var c = minBuyAttitudeFactor;
-        var T = maxWaitingTime_Buy;
-        var a = (1 - c) * startAttitude / (T * T);
+        float t = buyingTime;
+        float c = minBuyAttitudeFactor;
+        float T = maxWaitingTime_Buy;
+        float a = (1f - c) * startAttitude / (T * T);
 
         if (t < T)
             buyAttitude = startAttitude - a * t * t;
         else
             buyAttitude = startAttitude * c;
 
-        curPrice = Mathf.FloorToInt(_price * (1 + buyAttitude));
+        curPrice = Mathf.FloorToInt(_price * (1f + buyAttitude));
     }
+
+    #endregion
+
+    #region Buying
 
     public bool TryPrepareBuyItem(out ItemStack item, out int itemPrice, out int itemCount)
     {
@@ -245,10 +382,10 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
         return _buyItem.GetPrice();
     }
 
-    private int GetItemCount(ItemStack _buyitem)
+    private int GetItemCount(ItemStack _buyItem)
     {
-        int max = _buyitem.GetStackAmount();
-        int actualCount = _buyitem.count;
+        int max = _buyItem.GetStackAmount();
+        int actualCount = _buyItem.count;
         Vector2Int range = InitItemCountRange(max);
 
         int buyCount = Random.Range(range.x, range.y + 1);
@@ -267,4 +404,53 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
 
         return new Vector2Int(10, 30);
     }
+
+    #endregion
+
+    #region Animation
+
+    private void UpdateCustomerAnimation()
+    {
+        if (runtimeAnimator == null || pathAgent == null)
+            return;
+
+        bool isMoving = pathAgent.IsMoving;
+        Direction dir = pathAgent.FacingDir;
+
+        string animName = isMoving
+            ? GetMoveAction(dir)
+            : GetIdleAction(dir);
+
+        if (currentAnimName == animName)
+            return;
+
+        runtimeAnimator.Play(animName);
+        currentAnimName = animName;
+    }
+
+    private string GetIdleAction(Direction dir)
+    {
+        return dir switch
+        {
+            Direction.Up => $"{animPrefix}_Idle_Up",
+            Direction.Left => $"{animPrefix}_Idle_Left",
+            Direction.Right => $"{animPrefix}_Idle_Right",
+            Direction.Down => $"{animPrefix}_Idle_Down",
+            _ => $"{animPrefix}_Idle_Down"
+        };
+    }
+
+    private string GetMoveAction(Direction dir)
+    {
+        return dir switch
+        {
+            Direction.Up => $"{animPrefix}_Move_Up",
+            Direction.Left => $"{animPrefix}_Move_Left",
+            Direction.Right => $"{animPrefix}_Move_Right",
+            Direction.Down => $"{animPrefix}_Move_Down",
+            _ => $"{animPrefix}_Move_Down"
+        };
+    }
+
+    #endregion
 }

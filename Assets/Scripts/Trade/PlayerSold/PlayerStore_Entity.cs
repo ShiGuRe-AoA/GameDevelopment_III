@@ -68,7 +68,7 @@ public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IEntityInt
     public void Start()
     {
         Vector3Int pivot = WorldState.Instance.WorldToCell(transform.position);
-        WorldState.Instance.PlaceEntity(pivot, this as IEntityRuntime, 3, 2);
+        WorldState.Instance.PlaceEntity(pivot, this as IEntityRuntime, 7, 2);
         RuntimeRegisterUtility.RegisterAll(this);
 
 
@@ -219,8 +219,10 @@ public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IEntityInt
         {
             if (slot.customers.Count > 0 && slot.customers[0] == customer)
             {
-                float dist = Vector2.Distance(slot.frontPoint.position, customer.transform.position);
-                if (dist <= 0.05f) return true;
+                //float dist = Vector2.Distance(slot.frontPoint.position, customer.transform.position);
+                //if (dist <= 0.05f) return true;
+
+                return true;
             }
         }
 
