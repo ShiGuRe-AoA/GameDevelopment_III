@@ -1,5 +1,7 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 [RequireComponent(typeof(CustomerPathAgent))]
 public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatable
@@ -26,8 +28,10 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
     private int curPrice;
 
     [Header("UI")]
-    [SerializeField] private SpriteRenderer attractUI;  // " ! "
-    [SerializeField] private SpriteRenderer buyUI;      // " (buyItem) "
+    [SerializeField] private GameObject attractUI;  // " ! "
+    [SerializeField] private GameObject buyUI;      // " (buyItem) "
+    [SerializeField] private SpriteRenderer buyItemUI;
+    [SerializeField] private TMP_Text buyCountUI;
 
     [Header("²âÊÔÖ»¶Á")]
     [SerializeField] private ItemStack buyItem;
@@ -57,9 +61,6 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
     #endregion
 
     #region Properties
-
-    public SpriteRenderer AttractUI => attractUI;
-    public SpriteRenderer BuyUI => buyUI;
 
     public float AttractAttitude => attractAttitude;
     public bool BuyFinished { get; private set; }
@@ -312,6 +313,9 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
         price = itemPrice;
         count = itemCount;
 
+        buyItemUI.sprite = item.GetSprite();
+        buyCountUI.text = count.ToString();
+
         return true;
     }
 
@@ -452,5 +456,77 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
         };
     }
 
+    #endregion
+
+    #region UI
+
+    private Coroutine closeAttractUICoroutine;
+    public void OpenAttractUI()
+    {
+        if(attractUI == null)
+        {
+            Debug.LogError("AttractUI is null!");
+            return;
+        }
+
+        if (attractUI.activeSelf) return;
+
+        attractUI.SetActive(true);
+
+        if (closeAttractUICoroutine != null)
+        {
+            StopCoroutine(closeAttractUICoroutine);
+            closeAttractUICoroutine = null;
+        }
+
+        closeAttractUICoroutine = StartCoroutine(WaitToCloseAttractUI());
+    }
+
+    private IEnumerator WaitToCloseAttractUI()
+    {
+        yield return new WaitForSeconds(1.5f);
+
+        closeAttractUICoroutine = null;
+        CloseAttractUI();
+    }
+
+    public void CloseAttractUI()
+    {
+        if (attractUI == null)
+        {
+            Debug.LogError("AttractUI is null!");
+            return;
+        }
+
+        if (!attractUI.activeSelf) return;
+
+        attractUI.SetActive(false);
+    }
+
+    public void OpenBuyUI()
+    {
+        if(buyUI == null)
+        {
+            Debug.LogError("BuyUI is null!");
+            return;
+        }
+
+        if (buyUI.activeSelf) return;
+
+        buyUI.SetActive(true);
+    }
+
+    public void CloseBuyUI()
+    {
+        if (buyUI == null)
+        {
+            Debug.LogError("BuyUI is null!");
+            return;
+        }
+
+        if (!buyUI.activeSelf) return;
+
+        buyUI.SetActive(false);
+    }
     #endregion
 }

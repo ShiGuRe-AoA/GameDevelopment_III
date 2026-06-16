@@ -60,6 +60,7 @@ public class State_CustomerIdle : State_CustomerBase
         base.Exit();
 
         Customer.StopWander();
+        Customer.CloseAttractUI();
     }
 }
 
@@ -82,6 +83,7 @@ public class State_CustomerAttracting : State_CustomerBase
         Debug.Log($"Customer Attracted", Customer);
 
         Customer.StopWander();
+        Customer.OpenAttractUI();
 
         if (TargetStore == null)
         {
@@ -160,6 +162,7 @@ public class State_CustomerBuying : State_CustomerBase
         Debug.Log("EnterBuying", Customer);
         Customer.StopMove();
         Customer.FaceUp();
+        Customer.OpenBuyUI();
 
         if (TargetStore == null || !TargetStore.IsQueueFront(Customer))
         {
@@ -214,6 +217,13 @@ public class State_CustomerBuying : State_CustomerBase
         {
             Machine.ChangeState(new State_CustomerQuit(Machine, Ctx));
         }
+    }
+
+    public override void Exit()
+    {
+        base.Exit();
+
+        Customer.CloseBuyUI();
     }
 
     public override void HandleEvent(FsmEvent evt)
