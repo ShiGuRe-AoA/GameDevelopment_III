@@ -8,48 +8,48 @@ public enum FsmEventType
 {
     None = 0,
 
-    // Ê±¼ä
+    // æ—¶é—´
     MinutePassed,
     HourPassed,
     DayChanged,
 
-    // ÒÆ¶¯
+    // ç§»åŠ¨
     MoveStarted,
     MoveArrived,
     MoveFailed,
 
-    // ¶¯»­
+    // åŠ¨ç”»
     AnimationFinished,
     AnimationEventTriggered,
 
-    // ½»»¥
+    // äº¤äº’
     InteractionStarted,
     InteractionFinished,
     InteractionCancelled,
 
-    // ÈÎÎñ
+    // ä»»åŠ¡
     TaskAssigned,
     TaskCompleted,
     TaskFailed,
     TaskCancelled,
 
-    // Ä¿±ê
+    // ç›®æ ‡
     TargetAcquired,
     TargetLost,
     TargetInvalid,
 
-    // ÊôĞÔ
+    // å±æ€§
     StaminaLow,
     HungerHigh,
     HealthZero,
 
-    // Íâ²¿¿ØÖÆ
+    // å¤–éƒ¨æ§åˆ¶
     DialogueStarted,
     DialogueEnded,
     CutsceneStarted,
     CutsceneEnded,
 
-    // ×Ô¶¨Òå
+    // è‡ªå®šä¹‰
     Custom,
 }
 public readonly struct FsmEvent
@@ -122,6 +122,9 @@ public class StateMachine<TContext> : IStateMachineRunner
     public IState CurrentState { get; private set; }
     public IState PreviousState { get; private set; }
 
+    /// <summary>PushState å…è®¸çš„æœ€å¤§æ ˆæ·±åº¦ï¼ˆè¶…å‡ºåæ‹’ç» Pushï¼‰ã€‚é»˜è®¤ä¸é™ã€‚</summary>
+    public int PushStackLimit { get; set; } = int.MaxValue;
+
     private readonly Stack<IState> _stack = new();
     private readonly TContext _context;
 
@@ -147,6 +150,7 @@ public class StateMachine<TContext> : IStateMachineRunner
     {
         if (next == null) return false;
         if (CurrentState != null && !CurrentState.CanExit()) return false;
+        if (_stack.Count >= PushStackLimit) return false;
         if (!next.CanEnter()) return false;
 
         if (CurrentState != null)

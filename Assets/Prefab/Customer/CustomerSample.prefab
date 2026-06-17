@@ -577,7 +577,7 @@ MonoBehaviour:
   waitWhenNextCellOccupied: 1
   blockedRepathDelay: 0.35
   useCustomerSeparation: 1
-  customerSeparationRadius: 0.55
+  customerSeparationRadius: 1
   customerSeparationStrength: 1.2
   maxSeparationStep: 0.035
   wanderRadius: 4
