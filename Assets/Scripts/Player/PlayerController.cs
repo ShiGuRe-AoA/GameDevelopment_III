@@ -86,6 +86,25 @@ public class PlayerController : MonoBehaviour
     private Vector3Int TilePosition => mainTile.WorldToCell(rb.position);
     public Vector3Int InteractTilePosition => mainTile.WorldToCell(rb.position) + interactOffset;
 
+    private IHoverTarget currentHoverTarget;
+    public IHoverTarget CurrentHoverTarget => currentHoverTarget;
+    public IWorldObject CurrentHoverWorldObj
+    {
+        get
+        {
+            if (currentHoverTarget == null)
+                return null;
+
+            if (currentHoverTarget is IWorldObject worldObject)
+                return worldObject;
+
+            if (currentHoverTarget is Component component)
+                return component.GetComponentInParent<IWorldObject>();
+
+            return null;
+        }
+    }
+
     #endregion
 
 
@@ -104,6 +123,7 @@ public class PlayerController : MonoBehaviour
         InputManager.OnMoveInput += OnInputMove;
         InputManager.OnInteract += OnInputInteract;
         InputManager.OnEntityInteract += OnInputEntityInteract;
+        InputManager.OnHoverChanged += OnHover;
     }
 
     private void OnDisable()
@@ -111,6 +131,7 @@ public class PlayerController : MonoBehaviour
         InputManager.OnMoveInput -= OnInputMove;
         InputManager.OnInteract -= OnInputInteract;
         InputManager.OnEntityInteract -= OnInputEntityInteract;
+        InputManager.OnHoverChanged -= OnHover;
     }
 
     private void Update()
@@ -131,6 +152,13 @@ public class PlayerController : MonoBehaviour
     private void OnInputEntityInteract()
     {
         PanelInteract();
+    }
+
+
+    private void OnHover(IHoverTarget target)
+    {
+        WorldState.Instance.Hover(target);
+        currentHoverTarget = target;
     }
 
     private void FixedUpdate()

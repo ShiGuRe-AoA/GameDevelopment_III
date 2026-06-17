@@ -42,7 +42,6 @@ public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IEntityInt
 
     [Header("展示位数据")]
     [SerializeField] private SaleItemSlot[] saleItemSlots;
-    private Dictionary<SaleItemSlot, ItemStack> _DisplaySlot_Stack = new();
 
     protected override void Awake()
     {
@@ -68,7 +67,7 @@ public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IEntityInt
     public void Start()
     {
         Vector3Int pivot = WorldState.Instance.WorldToCell(transform.position);
-        WorldState.Instance.PlaceEntity(pivot, this as IEntityRuntime, 3, 2);
+        WorldState.Instance.PlaceEntity(pivot, this as IEntityRuntime, 7, 2);
         RuntimeRegisterUtility.RegisterAll(this);
 
 
@@ -219,8 +218,10 @@ public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IEntityInt
         {
             if (slot.customers.Count > 0 && slot.customers[0] == customer)
             {
-                float dist = Vector2.Distance(slot.frontPoint.position, customer.transform.position);
-                if (dist <= 0.05f) return true;
+                //float dist = Vector2.Distance(slot.frontPoint.position, customer.transform.position);
+                //if (dist <= 0.05f) return true;
+
+                return true;
             }
         }
 
@@ -263,9 +264,14 @@ public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IEntityInt
     // 在摊位互动时打开
     public void OpenStorePanel()
     {
+        RefreshStorePanel();
+        storePanel.gameObject.SetActive(true);
+    }
+
+    public void RefreshStorePanel()
+    {
         Refresh(shelfContainer);
         Refresh(saleContainer);
-        storePanel.gameObject.SetActive(true);
     }
 
     public void CloseStorePanel()

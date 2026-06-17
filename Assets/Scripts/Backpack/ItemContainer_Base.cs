@@ -6,7 +6,9 @@ public class ItemContainer_Base : MonoBehaviour
 {
     // Data
     protected List<ItemContainer> containers = new List<ItemContainer>();
+    public List<ItemContainer> Containers { get => containers; }
     protected ItemContainer container => (containers.Count > 0) ? containers[0] : null;
+    public ItemContainer Container { get => container; }
     // Views
     protected List<ContainerView> views = new List<ContainerView>();
     protected ContainerView view => (views.Count > 0) ? views[0] : null;
@@ -29,6 +31,16 @@ public class ItemContainer_Base : MonoBehaviour
                 Refresh(i);
             }
         }
+    }
+
+    protected virtual void OnEnable()
+    {
+        ItemContainerEvents.OnOutside2ContainerChanged += Refresh;
+    }
+
+    protected virtual void OnDisable()
+    {
+        ItemContainerEvents.OnOutside2ContainerChanged -= Refresh;
     }
 
     private bool InitContainer(bool force = false)
@@ -114,8 +126,6 @@ public class ItemContainer_Base : MonoBehaviour
             Refresh();
         }
     }
-
-
 
     public ItemContainer GetContainer(int containerID = 0)
     {

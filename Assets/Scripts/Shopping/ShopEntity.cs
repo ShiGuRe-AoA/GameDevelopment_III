@@ -5,7 +5,7 @@ using UnityEngine;
 /// 商店实体：玩家与之交互时打开商店面板。
 /// 挂载在商店预制体上，需配置 ShopInventorySO 与面板引用。
 /// </summary>
-public class ShopEntity : MonoBehaviour, IEntityRuntime, IInteractable
+public class ShopEntity : MonoBehaviour, IEntityRuntime, IEntityInteractable
 {
     [Header("商店配置")]
     [SerializeField] private ShopInventorySO shopInventory;
@@ -63,7 +63,7 @@ public class ShopEntity : MonoBehaviour, IEntityRuntime, IInteractable
     // --------------------------------------------------------------------------------
     // IInteractable
     // --------------------------------------------------------------------------------
-    public void OnInteract()
+    public void OnEntityInteract()
     {
         if (shopInventory == null)
         {
@@ -88,7 +88,7 @@ public class ShopEntity : MonoBehaviour, IEntityRuntime, IInteractable
             controller.Close();
     }
 
-    public InteractPhase OnInteractDetected()
+    public InteractPhase OnEntityInteractDetected()
     {
         return InteractPhase.OpenDoor;
     }

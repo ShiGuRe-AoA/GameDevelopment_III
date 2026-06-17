@@ -16,3 +16,10 @@ public interface IEntityInteractable
     public InteractPhase OnEntityInteractDetected();
 }
 
+// Êó±êĞüÍ£
+public interface IHoverTarget
+{
+    void OnHoverEnter();
+    void OnHoverExit();
+}
+

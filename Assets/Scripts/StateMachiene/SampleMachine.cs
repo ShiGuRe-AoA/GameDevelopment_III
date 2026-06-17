@@ -172,6 +172,9 @@ public class State_Interact : State_PlayerBase
 {
     private InteractPhase phase;
 
+    private IWorldObject targetWorldObj;
+    private bool useWorldObjTarget;
+
     public State_Interact(StateMachine<PlayerContext> machine, PlayerContext ctx)
         : base(machine, ctx) { }
 
@@ -180,7 +183,24 @@ public class State_Interact : State_PlayerBase
         base.Enter();
         SetControl(canMove: false, canInteract: false);
 
+        targetWorldObj = Ctx.PlayerController.CurrentHoverWorldObj;
+        useWorldObjTarget = false;
+
+        if(targetWorldObj != null)
+        {
+            Debug.Log("targetWorldObj not null");
+            phase = WorldState.Instance.DetectInteract(targetWorldObj);
+
+            if (phase != InteractPhase.None)
+            {
+                useWorldObjTarget = true;
+                PlayAction(GetInteractAction(phase, PlayerDirection));
+                return;
+            }
+        }
+
         phase = WorldState.Instance.DetectInteract(InteractTilePosition);
+        
         if (phase == InteractPhase.None) { Machine.PopState(); return; }
 
         PlayAction(GetInteractAction(phase, PlayerDirection));
@@ -194,7 +214,11 @@ public class State_Interact : State_PlayerBase
 
         if (actionRuntime.CanApplyEffect())
         {
-            WorldState.Instance.InteractAt(InteractTilePosition);
+            if (useWorldObjTarget)
+                WorldState.Instance.Interact(targetWorldObj);
+            else
+                WorldState.Instance.Interact(InteractTilePosition);
+            
             actionRuntime.MarkEffectApplied();
         }
 

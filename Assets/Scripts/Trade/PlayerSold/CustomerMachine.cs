@@ -37,23 +37,30 @@ public class State_CustomerIdle : State_CustomerBase
     public override void Enter()
     {
         base.Enter();
+        Customer.BeginWander();
     }
 
     public override void Update()
     {
         base.Update();
 
-        // TODO: 闲逛逻辑
-
-        // TODO: 玩家触发某操作时，在 CustomerController 里执行：
-        // Ctx.TargetEntity = Ctx.StoreEntity;
-
-        if (TargetStore == null)
+        if (TargetStore != null)
         {
+            Customer.StopWander();
+            Machine.ChangeState(new State_CustomerAttracting(Machine, Ctx));
             return;
         }
 
-        Machine.ChangeState(new State_CustomerAttracting(Machine, Ctx));
+        // 闲逛逻辑
+        Customer.UpdateWander();
+    }
+
+    public override void Exit()
+    {
+        base.Exit();
+
+        Customer.StopWander();
+        Customer.CloseAttractUI();
     }
 }
 
@@ -74,6 +81,9 @@ public class State_CustomerAttracting : State_CustomerBase
         base.Enter();
 
         Debug.Log($"Customer Attracted", Customer);
+
+        Customer.StopWander();
+        Customer.OpenAttractUI();
 
         if (TargetStore == null)
         {
@@ -100,7 +110,7 @@ public class State_CustomerAttracting : State_CustomerBase
         MoveToQueueTarget();
 
         // The first customer in one queue can start buying.
-        if (TargetStore.IsQueueFront(Customer))
+        if (TargetStore.IsQueueFront(Customer) && Customer.HasArrivedQueueTarget())
         {
             Machine.ChangeState(new State_CustomerBuying(Machine, Ctx));
             return;
@@ -149,6 +159,10 @@ public class State_CustomerBuying : State_CustomerBase
     public override void Enter()
     {
         base.Enter();
+        Debug.Log("EnterBuying", Customer);
+        Customer.StopMove();
+        Customer.FaceUp();
+        Customer.OpenBuyUI();
 
         if (TargetStore == null || !TargetStore.IsQueueFront(Customer))
         {
@@ -168,7 +182,6 @@ public class State_CustomerBuying : State_CustomerBase
         Ctx.BuyItem = item;
         Ctx.Price = price;
         Ctx.Count = count;
-        Debug.Log(item.itemId, Customer);
     }
 
     public override void Update()
@@ -182,7 +195,7 @@ public class State_CustomerBuying : State_CustomerBase
         }
 
         // 商品失效时重新选商品。
-        if (!Customer.IsBuyItemValid(Ctx.BuyItem))
+        if (!Customer.IsBuyItemValid())
         {
             if (!Customer.TryPrepareBuyItem(out ItemStack item, out int price, out int count))
             {
@@ -191,10 +204,11 @@ public class State_CustomerBuying : State_CustomerBase
                 return;
             }
 
+            Debug.Log("Refresh Buy Item.", Customer);
+            
             Ctx.BuyItem = item;
             Ctx.Price = price;
             Ctx.Count = count;
-            Debug.Log(item.itemId, Customer);
         }
 
         // todo: 这里之后接真正的交易完成条件。
@@ -203,6 +217,13 @@ public class State_CustomerBuying : State_CustomerBase
         {
             Machine.ChangeState(new State_CustomerQuit(Machine, Ctx));
         }
+    }
+
+    public override void Exit()
+    {
+        base.Exit();
+
+        Customer.CloseBuyUI();
     }
 
     public override void HandleEvent(FsmEvent evt)
