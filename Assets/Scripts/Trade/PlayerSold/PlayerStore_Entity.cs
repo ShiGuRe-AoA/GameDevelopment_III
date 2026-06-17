@@ -55,19 +55,25 @@ public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IEntityInt
 
         InitSaleSlots();
 
+        // 订阅玩家移动事件, 移动时关闭UI
+        InputManager.OnMoveInput += HandleMove;
     }
 
     public void OnAwake() { }
 
     public void OnDestroy()
     {
+        DisableSaleSlots();
+
+        InputManager.OnMoveInput -= HandleMove;
+
         RuntimeRegisterUtility.UnregisterAll(this);
     }
 
     public void Start()
     {
         Vector3Int pivot = WorldState.Instance.WorldToCell(transform.position);
-        WorldState.Instance.PlaceEntity(pivot, this as IEntityRuntime, 7, 2);
+        WorldState.Instance.PlaceEntity(pivot, this as IEntityRuntime, 8, 2);
         RuntimeRegisterUtility.RegisterAll(this);
 
 
@@ -248,8 +254,68 @@ public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IEntityInt
             if (i >= saleContainer.SlotCount)
                 break;
 
+            if (saleItemSlots[i] == null)
+                continue;
+
             saleItemSlots[i].Bind(saleContainer, i);
+
+            saleItemSlots[i].OnSaleSlotInteracted -= HandleSaleSlotInteracted;
+            saleItemSlots[i].OnSaleSlotInteracted += HandleSaleSlotInteracted;
         }
+    }
+
+    // 摊位展示位取消订阅事件
+    private void DisableSaleSlots()
+    {
+        if (saleItemSlots == null)
+            return;
+
+        for (int i = 0; i < saleItemSlots.Length; i++)
+        {
+            if (saleItemSlots[i] == null)
+                continue;
+
+            saleItemSlots[i].OnSaleSlotInteracted -= HandleSaleSlotInteracted;
+        }
+    }
+
+    private void HandleSaleSlotInteracted(int slotIndex)
+    {
+        if (slotIndex < 0)
+            return;
+
+        if (slotIndex >= saleContainer.SlotCount)
+            return;
+
+        if (slotIndex >= activeQueueSlots.Count)
+            return;
+
+        QueueSlot queueSlot = activeQueueSlots[slotIndex];
+
+        if (queueSlot == null || queueSlot.customers == null || queueSlot.customers.Count == 0)
+            return;
+
+        CustomerController customer = queueSlot.customers[0];
+
+        if (customer == null)
+            return;
+
+        ref var sourceStack = ref saleContainer.Items[slotIndex];
+
+        if (sourceStack.IsEmpty)
+            return;
+
+        if (!customer.TryConsumeBuyItem(sourceStack))
+            return;
+
+        sourceStack.count--;
+
+        ItemContainerEvents.OutsideChanged(saleContainer);
+    }
+
+    private void HandleMove(Vector2 vector2)
+    {
+        CloseStorePanel();
     }
 
     public void Load(EntitySaveData data)

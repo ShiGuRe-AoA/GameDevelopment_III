@@ -29,6 +29,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float maxDirectionChange = 10f;
     [SerializeField] private float maxSpeed = 5f;
 
+    [Header("交互信息")]
+    [SerializeField] private float interactRange = 1.5f;
+
     [Header("运行动态引用")]
     [SerializeField] private PlayerInputContext playerInputContext = new();
 
@@ -79,6 +82,7 @@ public class PlayerController : MonoBehaviour
 
     public Rigidbody2D Rb => rb;
     public Tilemap MainTile => mainTile;
+    public float InteractRange => interactRange;
     public float MaxSpeed => maxSpeed;
     public float MaxDirectionChange => maxDirectionChange;
     public Direction PlayerFacingDir => playerFacingDir;
@@ -174,7 +178,8 @@ public class PlayerController : MonoBehaviour
             InputContext = playerInputContext,
             Player = transform,
             Animator = animator,
-            Rb = rb
+            Rb = rb,
+            InteractRange = interactRange
         };
 
         playerStateMachine = new StateMachine<PlayerContext>(machineContext);
@@ -356,7 +361,12 @@ public class PlayerController : MonoBehaviour
 
     private void UpdatePosition()
     {
-        if (!canMove) { return; }
+        if (!canMove)
+        {
+            rb.velocity = Vector2.zero;
+            rb.angularVelocity = 0f;
+            return;
+        }
         //Debug.Log("Moving Position");
         rb.MovePosition(rb.position + playerMoveDirCur * maxSpeed * Time.fixedDeltaTime);
     }

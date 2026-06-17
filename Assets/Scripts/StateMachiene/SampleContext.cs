@@ -12,4 +12,6 @@ public class PlayerContext
     //public float MoveSpeed;
     //public Direction FacingDirection;
     //public float MaxDirectionChange;
+
+    public float InteractRange;
 }

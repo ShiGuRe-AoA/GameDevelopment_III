@@ -189,7 +189,7 @@ public class State_Interact : State_PlayerBase
         if(targetWorldObj != null)
         {
             Debug.Log("targetWorldObj not null");
-            phase = WorldState.Instance.DetectInteract(targetWorldObj);
+            phase = WorldState.Instance.DetectInteract(targetWorldObj, Ctx);
 
             if (phase != InteractPhase.None)
             {
@@ -215,7 +215,7 @@ public class State_Interact : State_PlayerBase
         if (actionRuntime.CanApplyEffect())
         {
             if (useWorldObjTarget)
-                WorldState.Instance.Interact(targetWorldObj);
+                WorldState.Instance.Interact(targetWorldObj, Ctx);
             else
                 WorldState.Instance.Interact(InteractTilePosition);
             

@@ -34,8 +34,13 @@ public class CustomerCreator : MonoBehaviour, IMinuteUpdatable
     [SerializeField] private RuntimeAnimatorController[] anims;
     [SerializeField] private PlayerStore_Entity storeEntity;
 
+    [Header("生成范围")]
+    [SerializeField] private float Radius = 5f;
+    [SerializeField] private int maxSpawnTryCount = 30;
+
     // 上一次生成顾客的时间
     private ComplexTime createTime;
+    private float currentDist;
     //private float createTime;
     // 生成顾客间隔游戏内分钟
     [SerializeField] private float createDist = 5;
@@ -74,19 +79,21 @@ public class CustomerCreator : MonoBehaviour, IMinuteUpdatable
 
     private void Start()
     {
+        RuntimeRegisterUtility.RegisterAll(this);
         createTime = TimeManager.Instance.GetComplexTime();
+        currentDist = 0f;
         
         maxCustomerCount = Mathf.Min(maxCustomerCount, anims.Length);
     }
 
-    public void Update()
-    {
-        if (activeCustomers.Count < maxCustomerCount)
-        {
-            if (TimeManager.Instance.TimeDistToNow(createTime) >= createDist)
-                CreateCustomer();
-        }
-    }
+    //public void Update()
+    //{
+    //    if (activeCustomers.Count < maxCustomerCount)
+    //    {
+    //        if (TimeManager.Instance.TimeDistToNow(createTime) >= createDist)
+    //            CreateCustomer();
+    //    }
+    //}
 
 
     public void OnMinuteUpdate()
@@ -95,13 +102,16 @@ public class CustomerCreator : MonoBehaviour, IMinuteUpdatable
         if (!isTradeDay) return;
 
         //createTime++;
+        currentDist++;
 
         // DebugTest
         //CreateCustomer();
 
         if (activeCustomers.Count < maxCustomerCount)
         {
-            if (TimeManager.Instance.TimeDistToNow(createTime) >= createDist)
+            //if (TimeManager.Instance.TimeDistToNow(createTime) >= createDist)
+            //    CreateCustomer();
+            if (currentDist >= createDist)
                 CreateCustomer();
         }
     }
@@ -117,30 +127,33 @@ public class CustomerCreator : MonoBehaviour, IMinuteUpdatable
         CustomerController ctrl = GetAvailableCustomerController();
         if (ctrl == null) return;
 
+        Vector2 spawnPos = GetRandomSpawnPositionAroundStore();
+
+        ctrl.transform.position = spawnPos;
+
         ApplyAnimOrder(ctrl, animOrder);
 
         activeCustomers.Add(ctrl);
         activeAnims.Add(animOrder);
         _Customer_Anim[ctrl] = animOrder;
 
+        ctrl.Init(storeEntity);
         ctrl.gameObject.SetActive(true);
 
-        createTime = TimeManager.Instance.GetComplexTime();
+        currentDist = 0f;
     }
 
     private CustomerController GetAvailableCustomerController()
     {
         Debug.Log("Enter Get Customer Ctrl");
+
         // 从对象池内获取 Ctrl
         if (pooledCustomers.Count > 0)
         {
             CustomerController ctrl = pooledCustomers.Dequeue();
-
-            ctrl.Init(storeEntity);
-            ctrl.gameObject.SetActive(true);
             return ctrl;
         }
-        
+
         // 当前场景 Ctrl 总数足够则不获取
         if (activeCustomers.Count + pooledCustomers.Count >= maxCustomerCount)
             return null;
@@ -148,11 +161,54 @@ public class CustomerCreator : MonoBehaviour, IMinuteUpdatable
         // 若允许则新生成 Ctrl
         GameObject customerObj = Instantiate(customerPrefab);
 
+        // 新对象先关掉，统一交给 CreateCustomer 激活
+        customerObj.SetActive(false);
+
         CustomerController newCtrl = customerObj.GetComponent<CustomerController>();
 
-        newCtrl.Init(storeEntity);
+        if (newCtrl == null)
+        {
+            Debug.LogError("Customer Prefab does not have CustomerController.");
+            Destroy(customerObj);
+            return null;
+        }
 
         return newCtrl;
+    }
+
+    // 随机点位生成
+    private Vector2 GetRandomSpawnPositionAroundStore()
+    {
+        if (storeEntity == null)
+        {
+            Debug.LogError("StoreEntity is null, use creator position as spawn center.", this);
+            return transform.position;
+        }
+
+        WorldState.Instance.TryGetEntityOccupiedCells(storeEntity, out List<Vector3Int> storeCells);
+        WorldState.Instance.TryGetCenterCell(storeCells, out Vector3Int centerCell);
+
+        Vector2 center = WorldState.Instance.CellToWorld(centerCell);
+
+        for (int i = 0; i < maxSpawnTryCount; i++)
+        {
+            Vector2 randomOffset = UnityEngine.Random.insideUnitCircle * Radius;
+            Vector2 candidateWorldPos = center + randomOffset;
+
+            Vector3Int candidateCell = WorldState.Instance.WorldToCell(candidateWorldPos);
+
+            if (!WorldState.Instance.CheckEmpty(candidateCell))
+                continue;
+
+            return WorldState.Instance.CellToWorld(candidateCell);
+        }
+
+        Debug.LogWarning(
+            $"Failed to find empty spawn cell around store after {maxSpawnTryCount} tries. Use store position fallback.",
+            this
+        );
+
+        return center;
     }
 
     // 从 anims 中随机一个当前未在场, 冷却完成的 animOrder

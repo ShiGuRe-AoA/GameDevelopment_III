@@ -170,8 +170,10 @@ public class SlotController : MonoBehaviour
     }
 
     // 遍历container, 检测是否存在对应 id 物品
-    public bool TryGetItem(List<ItemContainer> containers, int itemId)
+    public bool TryGetItem(List<ItemContainer> containers, int itemId, out int currentCount)
     {
+        currentCount = 0;
+
         if (itemId == -1) return false;
 
         foreach(var container in containers)
@@ -179,11 +181,11 @@ public class SlotController : MonoBehaviour
             for (int i = 0; i < container.SlotCount; i++)
             {
                 if (container.Items[i].itemId == itemId && !container.Items[i].IsEmpty)
-                    return true;
+                    currentCount += container.Items[i].count;
             }
         }
         
-        return false;
+        return currentCount > 0;
     }
 
     // 遍历container, 检测是否存在指定数目个对应 id 物品

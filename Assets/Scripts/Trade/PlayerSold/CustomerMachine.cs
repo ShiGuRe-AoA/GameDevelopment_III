@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 /// <summary>
@@ -29,6 +30,8 @@ public abstract class State_CustomerBase : State<CustomerContext>
 /// </summary>
 public class State_CustomerIdle : State_CustomerBase
 {
+    private bool hasEntered = false;
+
     public State_CustomerIdle(StateMachine<CustomerContext> machine, CustomerContext ctx)
         : base(machine, ctx)
     {
@@ -43,6 +46,12 @@ public class State_CustomerIdle : State_CustomerBase
     public override void Update()
     {
         base.Update();
+
+        if (!hasEntered)
+        {
+            hasEntered = Customer.OnEnter();
+            return;
+        }
 
         if (TargetStore != null)
         {
@@ -117,7 +126,7 @@ public class State_CustomerAttracting : State_CustomerBase
         }
 
         // Non-front customers may leave when patience is gone.
-        if (Customer.AttractAttitude <= 0f)
+        if (Customer.ShouldLeaveQueue)
         {
             Machine.ChangeState(new State_CustomerQuit(Machine, Ctx));
             return;
@@ -239,10 +248,20 @@ public class State_CustomerBuying : State_CustomerBase
 
 /// <summary>
 /// Customer quit state.
-/// Customer leaves queue and gets removed / recycled.
+/// Customer leaves queue first, then wanders away from the store / queue position.
+/// After moving far enough or timing out, it gets recycled.
 /// </summary>
 public class State_CustomerQuit : State_CustomerBase
 {
+    private Vector2 quitTargetPos;
+
+    private float quitTimer;
+
+    private bool hasQuited = false;
+
+    private const float QuitFinishDistance = 6f;
+    private const float QuitMaxTime = 10f;
+
     public State_CustomerQuit(StateMachine<CustomerContext> machine, CustomerContext ctx)
         : base(machine, ctx)
     {
@@ -252,6 +271,25 @@ public class State_CustomerQuit : State_CustomerBase
     {
         base.Enter();
 
+        quitTimer = 0f;
+
+        // 优先远离队列点；没有队列点时，远离当前摊位位置。
+        if (Ctx.HasQueueTarget)
+        {
+            quitTargetPos = Ctx.QueueTargetPos;
+        }
+        else if (TargetStore != null)
+        {
+            quitTargetPos = TargetStore.transform.position;
+        }
+        else
+        {
+            quitTargetPos = Customer.transform.position;
+        }
+
+        Customer.CloseAttractUI();
+        Customer.CloseBuyUI();
+
         if (TargetStore != null)
         {
             TargetStore.LeaveQueue(Customer);
@@ -260,6 +298,40 @@ public class State_CustomerQuit : State_CustomerBase
         Ctx.HasQueueTarget = false;
         Ctx.TargetEntity = null;
 
-        Customer.OnQuit();
+        Customer.StopMove();
+        Customer.BeginWanderAwayFrom(quitTargetPos);
+    }
+
+    public override void Update()
+    {
+        base.Update();
+
+        if (hasQuited)
+        {
+            Customer.StopWander();
+            return;
+        }
+
+        quitTimer += Time.deltaTime;
+
+        Customer.UpdateWander();
+
+        bool farEnough =
+            Customer.DistanceTo(quitTargetPos) >= QuitFinishDistance;
+
+        bool timeout =
+            quitTimer >= QuitMaxTime;
+
+        if (farEnough || timeout)
+        {
+            hasQuited = Customer.OnQuit();
+        }
+    }
+
+    public override void Exit()
+    {
+        base.Exit();
+
+        Customer.StopWander();
     }
 }

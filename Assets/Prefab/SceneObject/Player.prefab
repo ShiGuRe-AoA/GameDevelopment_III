@@ -164,6 +164,7 @@ MonoBehaviour:
   animator: {fileID: 4792285164411934376}
   maxDirectionChange: 10
   maxSpeed: 5
+  interactRange: 1.5
   canMove: 0
   canInteract: 0
   IdelAction:

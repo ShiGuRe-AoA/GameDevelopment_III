@@ -1,6 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum CustomerWanderMode
+{
+    Random,
+    TowardTarget,
+    AwayFromTarget
+}
+
 [RequireComponent(typeof(Rigidbody2D))]
 public class CustomerPathAgent : MonoBehaviour
 {
@@ -42,6 +49,10 @@ public class CustomerPathAgent : MonoBehaviour
     [SerializeField] private float wanderWaitTime = 2f;
     [SerializeField] private int maxWanderPickTryCount = 12;
 
+    [Header("方向性徘徊")]
+    [SerializeField] private float directedWanderMinProgress = 0.15f;
+    [SerializeField] private bool allowDirectedWanderFallback = true;
+
     #endregion
 
     #region Runtime
@@ -64,8 +75,11 @@ public class CustomerPathAgent : MonoBehaviour
 
     private float blockedTimer;
 
+
     private bool isWandering;
+    private CustomerWanderMode wanderMode = CustomerWanderMode.Random;
     private Vector3Int wanderCenterCell;
+    private Vector2 wanderTargetPos;
     private float wanderTimer;
 
     #endregion
@@ -173,6 +187,21 @@ public class CustomerPathAgent : MonoBehaviour
 
     public void BeginWander()
     {
+        BeginWander(CustomerWanderMode.Random, transform.position);
+    }
+
+    public void BeginWanderToward(Vector2 targetPos)
+    {
+        BeginWander(CustomerWanderMode.TowardTarget, targetPos);
+    }
+
+    public void BeginWanderAwayFrom(Vector2 targetPos)
+    {
+        BeginWander(CustomerWanderMode.AwayFromTarget, targetPos);
+    }
+
+    public void BeginWander(CustomerWanderMode mode, Vector2 targetPos)
+    {
         WorldState world = WorldState.Instance;
         if (world == null)
             return;
@@ -180,6 +209,11 @@ public class CustomerPathAgent : MonoBehaviour
         StopMove(false);
 
         isWandering = true;
+        wanderMode = mode;
+        wanderTargetPos = targetPos;
+
+        // Random 模式固定在开始点附近逛；
+        // Toward / Away 模式每次会基于当前位置重新挑点。
         wanderCenterCell = world.WorldToCell(transform.position);
         wanderTimer = 0f;
     }
@@ -187,6 +221,7 @@ public class CustomerPathAgent : MonoBehaviour
     public void StopWander()
     {
         isWandering = false;
+        wanderMode = CustomerWanderMode.Random;
     }
 
     public void UpdateWander()
@@ -216,6 +251,21 @@ public class CustomerPathAgent : MonoBehaviour
 
     private bool TryPickWanderTarget(out Vector3Int targetCell)
     {
+        return wanderMode switch
+        {
+            CustomerWanderMode.TowardTarget =>
+                TryPickDirectedWanderTarget(CustomerWanderMode.TowardTarget, out targetCell),
+
+            CustomerWanderMode.AwayFromTarget =>
+                TryPickDirectedWanderTarget(CustomerWanderMode.AwayFromTarget, out targetCell),
+
+            _ =>
+                TryPickRandomWanderTarget(out targetCell)
+        };
+    }
+
+    private bool TryPickRandomWanderTarget(out Vector3Int targetCell)
+    {
         targetCell = wanderCenterCell;
 
         WorldState world = WorldState.Instance;
@@ -231,10 +281,7 @@ public class CustomerPathAgent : MonoBehaviour
 
             Vector3Int candidate = wanderCenterCell + new Vector3Int(x, y, 0);
 
-            if (!IsStaticWalkable(candidate))
-                continue;
-
-            if (IsCellOccupiedByOtherCustomer(candidate))
+            if (!IsValidWanderCell(candidate))
                 continue;
 
             targetCell = candidate;
@@ -242,6 +289,98 @@ public class CustomerPathAgent : MonoBehaviour
         }
 
         return false;
+    }
+
+    private bool TryPickDirectedWanderTarget(
+        CustomerWanderMode mode,
+        out Vector3Int targetCell)
+    {
+        WorldState world = WorldState.Instance;
+        targetCell = world != null
+            ? world.WorldToCell(transform.position)
+            : Vector3Int.zero;
+
+        if (world == null)
+            return false;
+
+        int radius = Mathf.Max(1, Mathf.RoundToInt(wanderRadius));
+
+        Vector2 curPos = rb != null ? rb.position : (Vector2)transform.position;
+        Vector3Int originCell = world.WorldToCell(curPos);
+
+        float currentDist = Vector2.Distance(curPos, wanderTargetPos);
+
+        bool foundAny = false;
+        bool foundProgress = false;
+
+        Vector3Int bestAnyCell = originCell;
+        Vector3Int bestProgressCell = originCell;
+
+        float bestAnyScore = float.NegativeInfinity;
+        float bestProgressScore = float.NegativeInfinity;
+
+        for (int i = 0; i < maxWanderPickTryCount; i++)
+        {
+            int x = Random.Range(-radius, radius + 1);
+            int y = Random.Range(-radius, radius + 1);
+
+            Vector3Int candidate = originCell + new Vector3Int(x, y, 0);
+
+            if (!IsValidWanderCell(candidate))
+                continue;
+
+            Vector2 candidateWorld = world.CellToWorld(candidate);
+            float candidateDist = Vector2.Distance(candidateWorld, wanderTargetPos);
+
+            float progress = mode == CustomerWanderMode.AwayFromTarget
+                ? candidateDist - currentDist
+                : currentDist - candidateDist;
+
+            // 加一点随机扰动，避免多个顾客总是挑同一个最优点。
+            float randomJitter = Random.Range(0f, 0.05f);
+            float score = progress + randomJitter;
+
+            foundAny = true;
+
+            if (score > bestAnyScore)
+            {
+                bestAnyScore = score;
+                bestAnyCell = candidate;
+            }
+
+            if (progress >= directedWanderMinProgress && score > bestProgressScore)
+            {
+                foundProgress = true;
+                bestProgressScore = score;
+                bestProgressCell = candidate;
+            }
+        }
+
+        if (foundProgress)
+        {
+            targetCell = bestProgressCell;
+            return true;
+        }
+
+        // 找不到明显靠近/远离的点时，允许兜底移动，避免卡死。
+        if (allowDirectedWanderFallback && foundAny)
+        {
+            targetCell = bestAnyCell;
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool IsValidWanderCell(Vector3Int cell)
+    {
+        if (!IsStaticWalkable(cell))
+            return false;
+
+        if (IsCellOccupiedByOtherCustomer(cell))
+            return false;
+
+        return true;
     }
 
     #endregion

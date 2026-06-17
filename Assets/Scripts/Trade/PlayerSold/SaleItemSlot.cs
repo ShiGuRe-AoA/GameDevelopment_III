@@ -24,12 +24,15 @@ public class SaleItemSlot : MonoBehaviour, IInteractable, IWorldObject
 
     #endregion
 
+    public event Action<int> OnSaleSlotInteracted;
+
     [SerializeField] private SpriteRenderer _sr;
     public SpriteRenderer Sr { get => _sr; }
 
     private ItemContainer sourceContainer;
     private int sourceIndex = -1;
 
+    // 对应 saleContainer 第几格
     public void Bind(ItemContainer container, int index)
     {
         sourceContainer = container;
@@ -112,12 +115,15 @@ public class SaleItemSlot : MonoBehaviour, IInteractable, IWorldObject
         ref var sourceStack = ref sourceContainer.Items[sourceIndex];
 
         if (sourceStack.IsEmpty) return;
-        else
-        {
-            sourceStack.count--;
-            ItemContainerEvents.OutsideChanged(sourceContainer);
-        } 
-        
+
+        //else
+        //{
+        //    sourceStack.count--;
+        //    ItemContainerEvents.OutsideChanged(sourceContainer);
+        //} 
+
+        OnSaleSlotInteracted?.Invoke(sourceIndex);
+
         RefreshFromSource();
     }
 

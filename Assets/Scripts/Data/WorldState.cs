@@ -346,6 +346,62 @@ public class WorldState : MonoBehaviour
         entityOccupiedCells[entityID] = new List<Vector3Int>(occupiedCells);
     }
 
+    // 尝试获取同Id的所有cell
+    public bool TryGetEntityOccupiedCells(int entityID, out List<Vector3Int> cells)
+    {
+        cells = null;
+
+        if (!entityOccupiedCells.TryGetValue(entityID, out List<Vector3Int> occupiedCells))
+            return false;
+
+        // 返回拷贝，避免外部直接修改 WorldState 内部记录
+        cells = new List<Vector3Int>(occupiedCells);
+        return true;
+    }
+    
+    // 尝试获取entity的所有cell
+    public bool TryGetEntityOccupiedCells(IEntityRuntime entity, out List<Vector3Int> cells)
+    {
+        cells = null;
+
+        if (entity == null)
+            return false;
+
+        return TryGetEntityOccupiedCells(entity.EntityId, out cells);
+    }
+
+    public bool TryGetCenterCell(List<Vector3Int> cells, out Vector3Int centerCell)
+    {
+        centerCell = Vector3Int.zero;
+
+        if (cells == null || cells.Count == 0)
+            return false;
+
+        int minX = cells[0].x;
+        int maxX = cells[0].x;
+        int minY = cells[0].y;
+        int maxY = cells[0].y;
+        int z = cells[0].z;
+
+        for (int i = 1; i < cells.Count; i++)
+        {
+            Vector3Int cell = cells[i];
+
+            minX = Mathf.Min(minX, cell.x);
+            maxX = Mathf.Max(maxX, cell.x);
+            minY = Mathf.Min(minY, cell.y);
+            maxY = Mathf.Max(maxY, cell.y);
+        }
+
+        centerCell = new Vector3Int(
+            Mathf.FloorToInt((minX + maxX) * 0.5f),
+            Mathf.FloorToInt((minY + maxY) * 0.5f),
+            z
+        );
+
+        return true;
+    }
+
     private bool IsDetailedStateEmpty(DetailedCellData detail)
     {
         return detail.WaterTimeLast <= 0f &&
@@ -749,9 +805,16 @@ public class WorldState : MonoBehaviour
         }
     }
 
-    public void Interact(IWorldObject obj)
+    public void Interact(IWorldObject obj, PlayerContext Ctx)
     {
-        TryInteractObject(obj);
+        if(obj is Component component)
+        {
+            float dist = Vector2.Distance(Ctx.Player.position, component.transform.position);
+            if (dist <= Ctx.InteractRange)
+            {
+                TryInteractObject(obj);
+            }
+        }  
     }
 
     public InteractPhase DetectInteract(Vector3Int interactPos)
@@ -770,25 +833,33 @@ public class WorldState : MonoBehaviour
         return InteractPhase.None;
     }
 
-    public InteractPhase DetectInteract(IWorldObject obj)
+    public InteractPhase DetectInteract(IWorldObject obj, PlayerContext Ctx)
     {
-        return TryDetectInteractObject(obj);
+        if (obj is Component component)
+        {
+            float dist = Vector2.Distance(Ctx.Player.position, component.transform.position);
+            if (dist <= Ctx.InteractRange)
+            {
+                return TryDetectInteractObject(obj);
+            }
+        }
+        return InteractPhase.None;
     }
 
     private void TryInteractObject(object obj)
     {
         if (obj is IInteractable interactable)
             interactable.OnInteract();
-        if (obj is IEntityInteractable entityInteractable)
-            entityInteractable.OnEntityInteract();
+        //if (obj is IEntityInteractable entityInteractable)
+        //    entityInteractable.OnEntityInteract();
     }
 
     private InteractPhase TryDetectInteractObject(object obj)
     {
         if (obj is IInteractable interactable)
             return interactable.OnInteractDetected();
-        if (obj is IEntityInteractable entityInteractable)
-            return entityInteractable.OnEntityInteractDetected();
+        //if (obj is IEntityInteractable entityInteractable)
+        //    return entityInteractable.OnEntityInteractDetected();
         return InteractPhase.None;
     }
 
