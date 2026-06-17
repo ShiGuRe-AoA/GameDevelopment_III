@@ -1045,6 +1045,7 @@ MonoBehaviour:
   fadeOverlay: {fileID: 1558689989}
   fadeInDuration: 0.4
   fadeOutDuration: 0.4
+  blackHoldDuration: 1
   cameraBindings:
   - mapId: 1
     virtualCamera: {fileID: 1878507959}
@@ -6359,7 +6360,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 6
+  orthographic size: 8
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -6384,7 +6385,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 9.4, y: 123.3, z: -10}
+  m_LocalPosition: {x: 69.17108, y: 106.955826, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -114117,6 +114118,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 646f409f02fdea642b98009a07ba37b9, type: 2}
   - {fileID: 11400000, guid: 2ff82141cc7dfe142ab0daa5570d035e, type: 2}
   - {fileID: 11400000, guid: 721e9823c30610048b7e381a2670509e, type: 2}
+  OpenDoorAction:
+  - {fileID: 11400000, guid: 1d3778e868921b94aa85b61c4af9a6c9, type: 2}
+  - {fileID: 11400000, guid: f4c3977bd5ab92344a5faa26b7b30162, type: 2}
+  - {fileID: 11400000, guid: cf6c6e2c61b488741a17643c074cf296, type: 2}
+  - {fileID: 11400000, guid: 6272ae36dbb107043b4c593d492d0a84, type: 2}
 --- !u!114 &1707658217
 MonoBehaviour:
   m_ObjectHideFlags: 0
