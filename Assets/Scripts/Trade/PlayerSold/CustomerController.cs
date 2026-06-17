@@ -1,7 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using TMPro;
+using UnityEngine;
+using static UnityEditor.Progress;
 
 [RequireComponent(typeof(CustomerPathAgent))]
 public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatable
@@ -100,7 +101,7 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
             HasQueueTarget = false,
             QueueTargetPos = transform.position,
 
-            BuyItem = ItemStack.Empty,
+            BuyContainer = null,
             Price = 0,
             Count = 0
         };
@@ -297,19 +298,20 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
 
     #region Buying
 
-    public bool TryPrepareBuyItem(out ItemStack item, out int itemPrice, out int itemCount)
+    public bool TryPrepareBuyItem(out ItemContainer buyContainer, out int buyIndex, out int itemPrice, out int itemCount)
     {
-        item = ItemStack.Empty;
+        buyContainer = null;
+
         itemPrice = 0;
         itemCount = 0;
 
-        if (!TryBuyItem(out item))
+        if (!TryBuyItem(out buyContainer, out buyIndex))
         {
             Debug.Log("Try Get Buy Item Failed.");
             return false;
         }
 
-
+        ItemStack item = buyContainer.Items[buyIndex];
         itemPrice = GetItemPrice(item);
         itemCount = GetItemCount(item);
 
@@ -323,9 +325,11 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
         return true;
     }
 
-    public bool IsBuyItemValid(ItemStack item)
+    public bool IsBuyItemValid()
     {
-        return !item.IsEmpty;
+        if(machineContext.BuyContainer == null ||machineContext.BuyIndex < 0)
+            return false;
+        return !machineContext.BuyContainer.Items[machineContext.BuyIndex].IsEmpty;
     }
 
     public void CompleteBuy()
@@ -338,9 +342,10 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
         CustomerCreator.Instance.RemoveCustomer(this);
     }
 
-    private bool TryBuyItem(out ItemStack item)
+    private bool TryBuyItem(out ItemContainer buyContainer, out int buyIndex)
     {
-        item = ItemStack.Empty;
+        buyContainer = null;
+        buyIndex = -1;
 
         if (machineContext == null || machineContext.TargetEntity == null)
         {
@@ -367,17 +372,19 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
             bContainer = store.shelfContainer;
         }
 
-        if (SlotController.Instance.TryGetItem(aContainer, out List<ItemStack> aItems))
+        if (SlotController.Instance.TryGetItem(aContainer, out List<int> aIndexs))
         {
-            randomIndex = Random.Range(0, aItems.Count);
-            item = aItems[randomIndex];
+            randomIndex = Random.Range(0, aIndexs.Count);
+            buyContainer = aContainer;
+            buyIndex = aIndexs[randomIndex];
             return true;
         }
 
-        if (SlotController.Instance.TryGetItem(bContainer, out List<ItemStack> bItems))
+        if (SlotController.Instance.TryGetItem(bContainer, out List<int> bIndexs))
         {
-            randomIndex = Random.Range(0, bItems.Count);
-            item = bItems[randomIndex];
+            randomIndex = Random.Range(0, bIndexs.Count);
+            buyContainer = bContainer;
+            buyIndex = bIndexs[randomIndex];
             return true;
         }
 

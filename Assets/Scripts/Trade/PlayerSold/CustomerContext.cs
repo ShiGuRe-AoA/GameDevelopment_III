@@ -11,7 +11,10 @@ public class CustomerContext
     public PlayerStore_Entity TargetEntity;
     public Vector2 QueueTargetPos;
     public bool HasQueueTarget;
-    public ItemStack BuyItem;
+
+    public ItemContainer BuyContainer;
+    public int BuyIndex = -1;
+
     public int Price;
     public int Count;
 }

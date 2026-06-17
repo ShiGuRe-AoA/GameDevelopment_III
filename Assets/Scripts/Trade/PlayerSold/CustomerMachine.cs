@@ -172,17 +172,17 @@ public class State_CustomerBuying : State_CustomerBase
 
         Customer.ResetBuyAttitude();
 
-        if (!Customer.TryPrepareBuyItem(out ItemStack item, out int price, out int count))
+        if (!Customer.TryPrepareBuyItem(out ItemContainer buyContainer, out int buyIndex, out int price, out int count))
         {
             Debug.Log("Try Prepare Buy Item Failed", Customer);
             Machine.ChangeState(new State_CustomerQuit(Machine, Ctx));
             return;
         }
 
-        Ctx.BuyItem = item; // 无法被引用
+        Ctx.BuyContainer = buyContainer;
+        Ctx.BuyIndex = buyIndex;
         Ctx.Price = price;
         Ctx.Count = count;
-        Debug.Log(item.itemId, Customer);
     }
 
     public override void Update()
@@ -196,9 +196,9 @@ public class State_CustomerBuying : State_CustomerBase
         }
 
         // 商品失效时重新选商品。
-        if (!Customer.IsBuyItemValid(Ctx.BuyItem))
+        if (!Customer.IsBuyItemValid())
         {
-            if (!Customer.TryPrepareBuyItem(out ItemStack item, out int price, out int count))
+            if (!Customer.TryPrepareBuyItem(out ItemContainer buyContainer, out int buyIndex, out int price, out int count))
             {
                 Debug.Log("Buying Failed", Customer);
                 Machine.ChangeState(new State_CustomerQuit(Machine, Ctx));
@@ -206,13 +206,10 @@ public class State_CustomerBuying : State_CustomerBase
             }
 
             Debug.Log("Refresh Buy Item.", Customer);
-            Ctx.BuyItem = item;
+            Ctx.BuyContainer = buyContainer;
+            Ctx.BuyIndex = buyIndex;
             Ctx.Price = price;
             Ctx.Count = count;
-
-
-
-            Debug.Log(item.itemId, Customer);
         }
 
         // todo: 这里之后接真正的交易完成条件。

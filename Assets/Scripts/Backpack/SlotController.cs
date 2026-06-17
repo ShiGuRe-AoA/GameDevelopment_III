@@ -168,41 +168,21 @@ public class SlotController : MonoBehaviour
 
     }
 
-    //遍历container, 检测是否所有单元格为空
-    public bool TryGetItem(ItemContainer container, out List<ItemStack> items)
+    //遍历container, 检测是否所有单元格为空, 导出对应 Stack 下标
+    public bool TryGetItem(ItemContainer container, out List<int> availableIndexs)
     {
-        items = new List<ItemStack>();
+        availableIndexs = new List<int>();
         
         for(int i = 0; i < container.SlotCount; i++)
         {
             if (!container.Items[i].IsEmpty)
             {
-                items.Add(container.Items[i]);
+                availableIndexs.Add(i);
             }
         }
 
-        return items.Count > 0;
+        return availableIndexs.Count > 0;
     }
-
-    //遍历container, 检测是否所有单元格为空, 并记录下标
-    public bool TryGetItem(ItemContainer container, out List<ItemStack> items, out List<int> stackIndex)
-    {
-        items = new List<ItemStack>();
-        stackIndex = new List<int>();
-
-        for (int i = 0; i < container.SlotCount; i++)
-        {
-            if (!container.Items[i].IsEmpty)
-            {
-                items.Add(container.Items[i]);
-                stackIndex.Add(i);
-            }
-        }
-
-        return items.Count > 0;
-    }
-
-
 
     //尝试添加物品
     public bool TryAddItem(int newItemID, int count, ItemContainer container)
