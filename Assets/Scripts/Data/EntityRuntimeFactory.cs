@@ -28,9 +28,7 @@ public static class EntityRuntimeFactory
         }
 
         IEntityRuntime entity = ctor();
-
-        RuntimeRegisterUtility.RegisterAll(entity);
-
+        // OnAwake 由 RegisterEntity 在 EntityInit 后统一调用，此处不再重复注册
         return entity;
     }
 }

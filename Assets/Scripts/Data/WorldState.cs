@@ -182,6 +182,7 @@ public class WorldState : MonoBehaviour
 
         Entitys.Add(id, rt);
         rt.EntityInit(id, pivotPos, this);
+        rt.OnAwake();
         nextEntityId++;
         Debug.Log($"EntityRegisteredInID:{id}");
         return true;
