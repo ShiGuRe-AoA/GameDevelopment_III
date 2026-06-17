@@ -172,15 +172,14 @@ public class State_CustomerBuying : State_CustomerBase
 
         Customer.ResetBuyAttitude();
 
-        if (!Customer.TryPrepareBuyItem(out ItemContainer buyContainer, out int buyIndex, out int price, out int count))
+        if (!Customer.TryPrepareBuyItem(out ItemStack item, out int price, out int count))
         {
             Debug.Log("Try Prepare Buy Item Failed", Customer);
             Machine.ChangeState(new State_CustomerQuit(Machine, Ctx));
             return;
         }
 
-        Ctx.BuyContainer = buyContainer;
-        Ctx.BuyIndex = buyIndex;
+        Ctx.BuyItem = item;
         Ctx.Price = price;
         Ctx.Count = count;
     }
@@ -198,7 +197,7 @@ public class State_CustomerBuying : State_CustomerBase
         // 商品失效时重新选商品。
         if (!Customer.IsBuyItemValid())
         {
-            if (!Customer.TryPrepareBuyItem(out ItemContainer buyContainer, out int buyIndex, out int price, out int count))
+            if (!Customer.TryPrepareBuyItem(out ItemStack item, out int price, out int count))
             {
                 Debug.Log("Buying Failed", Customer);
                 Machine.ChangeState(new State_CustomerQuit(Machine, Ctx));
@@ -206,8 +205,8 @@ public class State_CustomerBuying : State_CustomerBase
             }
 
             Debug.Log("Refresh Buy Item.", Customer);
-            Ctx.BuyContainer = buyContainer;
-            Ctx.BuyIndex = buyIndex;
+            
+            Ctx.BuyItem = item;
             Ctx.Price = price;
             Ctx.Count = count;
         }

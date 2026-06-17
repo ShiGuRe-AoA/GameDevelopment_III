@@ -153,21 +153,6 @@ public class SlotController : MonoBehaviour
         return slots;
     }
 
-    //获取某单元格物品信息
-    public bool TryGetItem(ItemContainer container, int containerIndex, out ItemStack item)
-    {
-        if (container.Items[containerIndex].IsEmpty)
-        {
-            item = default;
-            return false;
-        }
-        
-        item = container.Items[containerIndex];
-
-        return true;
-
-    }
-
     //遍历container, 检测是否所有单元格为空, 导出对应 Stack 下标
     public bool TryGetItem(ItemContainer container, out List<int> availableIndexs)
     {
@@ -182,6 +167,49 @@ public class SlotController : MonoBehaviour
         }
 
         return availableIndexs.Count > 0;
+    }
+
+    // 遍历container, 检测是否存在对应 id 物品
+    public bool TryGetItem(List<ItemContainer> containers, int itemId)
+    {
+        if (itemId == -1) return false;
+
+        foreach(var container in containers)
+        {
+            for (int i = 0; i < container.SlotCount; i++)
+            {
+                if (container.Items[i].itemId == itemId && !container.Items[i].IsEmpty)
+                    return true;
+            }
+        }
+        
+        return false;
+    }
+
+    // 遍历container, 检测是否存在指定数目个对应 id 物品
+    public bool TryGetItem(List<ItemContainer> containers, int itemId, int count)
+    {
+        if (itemId == -1) return false;
+
+        int currentCount = 0;
+
+        foreach(var container in containers)
+        {
+            for (int i = 0; i < container.SlotCount; i++)
+            {
+                if (container.Items[i].itemId == itemId)
+                {
+                    // todo: 检测品级是否对应
+
+                    currentCount += container.Items[i].count;
+                }
+
+                if (currentCount >= count) return true;
+            }
+        }
+        
+
+        return false;
     }
 
     //尝试添加物品

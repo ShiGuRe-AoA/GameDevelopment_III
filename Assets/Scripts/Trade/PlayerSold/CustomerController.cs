@@ -101,7 +101,7 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
             HasQueueTarget = false,
             QueueTargetPos = transform.position,
 
-            BuyContainer = null,
+            BuyItem = ItemStack.Empty,
             Price = 0,
             Count = 0
         };
@@ -298,20 +298,37 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
 
     #region Buying
 
-    public bool TryPrepareBuyItem(out ItemContainer buyContainer, out int buyIndex, out int itemPrice, out int itemCount)
+    public bool TryPrepareBuyItem(out ItemStack item, out int itemPrice, out int itemCount)
     {
-        buyContainer = null;
+        item = ItemStack.Empty;
 
         itemPrice = 0;
         itemCount = 0;
 
-        if (!TryBuyItem(out buyContainer, out buyIndex))
+        var store = machineContext.TargetEntity;
+
+        // 当 count 不对但 item 存在时
+        if(SlotController.Instance.TryGetItem(store.Containers, buyItem.itemId))
+        {
+            item = buyItem;
+            itemPrice = GetItemPrice(item);
+            itemCount = GetItemCount(item);
+            count = itemCount;
+
+            buyItemUI.sprite = item.GetSprite();
+            buyCountUI.text = count.ToString();
+
+            return true;
+        }
+
+
+        if (!TryBuyItem(out ItemContainer buyContainer, out int buyIndex))
         {
             Debug.Log("Try Get Buy Item Failed.");
             return false;
         }
 
-        ItemStack item = buyContainer.Items[buyIndex];
+        item = buyContainer.Items[buyIndex];
         itemPrice = GetItemPrice(item);
         itemCount = GetItemCount(item);
 
@@ -327,9 +344,16 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
 
     public bool IsBuyItemValid()
     {
-        if(machineContext.BuyContainer == null ||machineContext.BuyIndex < 0)
+        if (!SlotController.Instance.holdingItem)
+        {
+            var store = machineContext.TargetEntity;
+            if (SlotController.Instance.TryGetItem(store.Containers, buyItem.itemId, count)) 
+                return true;
+
             return false;
-        return !machineContext.BuyContainer.Items[machineContext.BuyIndex].IsEmpty;
+        }
+
+        return true;
     }
 
     public void CompleteBuy()
@@ -353,7 +377,7 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
             return false;
         }
 
-        PlayerStore_Entity store = machineContext.TargetEntity;
+        var store = machineContext.TargetEntity;
 
         ItemContainer aContainer;
         ItemContainer bContainer;
