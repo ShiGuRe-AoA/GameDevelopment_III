@@ -31,6 +31,16 @@ public class ItemContainer_Base : MonoBehaviour
         }
     }
 
+    protected virtual void OnEnable()
+    {
+        ItemContainerEvents.OnOutside2ContainerChanged += Refresh;
+    }
+
+    protected virtual void OnDisable()
+    {
+        ItemContainerEvents.OnOutside2ContainerChanged -= Refresh;
+    }
+
     private bool InitContainer(bool force = false)
     {
         int num = collectedParents.Count;
@@ -114,8 +124,6 @@ public class ItemContainer_Base : MonoBehaviour
             Refresh();
         }
     }
-
-
 
     public ItemContainer GetContainer(int containerID = 0)
     {

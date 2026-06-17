@@ -304,7 +304,11 @@ public class CustomerController : MonoBehaviour, ITickUpdatable, IMinuteUpdatabl
         itemCount = 0;
 
         if (!TryBuyItem(out item))
+        {
+            Debug.Log("Try Get Buy Item Failed.");
             return false;
+        }
+
 
         itemPrice = GetItemPrice(item);
         itemCount = GetItemCount(item);

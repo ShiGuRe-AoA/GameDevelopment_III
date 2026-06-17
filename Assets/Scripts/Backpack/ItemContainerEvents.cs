@@ -5,10 +5,15 @@ using UnityEngine;
 
 public static class ItemContainerEvents
 {
-    public static event Action<ItemContainer, int> OnSlotChanged;
+    public static event Action<ItemContainer, int> OnContainer2OutsideChanged;
+    public static event Action<ItemContainer> OnOutside2ContainerChanged;
 
-    public static void SlotChanged(ItemContainer container, int index)
+    public static void ContainerChanged(ItemContainer container, int index)
     {
-        OnSlotChanged?.Invoke(container, index);
+        OnContainer2OutsideChanged?.Invoke(container, index);
+    }
+    public static void OutsideChanged(ItemContainer container)
+    {
+        OnOutside2ContainerChanged?.Invoke(container);
     }
 }

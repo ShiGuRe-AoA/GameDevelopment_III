@@ -52,12 +52,12 @@ public class SaleItemSlot : MonoBehaviour, IInteractable, IWorldObject
 
     private void OnEnable()
     {
-        ItemContainerEvents.OnSlotChanged += HandleSlotChanged;
+        ItemContainerEvents.OnContainer2OutsideChanged += RefreshSaleSlot;
     }
 
     private void OnDisable()
     {
-        ItemContainerEvents.OnSlotChanged -= HandleSlotChanged;
+        ItemContainerEvents.OnContainer2OutsideChanged -= RefreshSaleSlot;
     }
 
     // Start is called before the first frame update
@@ -73,7 +73,7 @@ public class SaleItemSlot : MonoBehaviour, IInteractable, IWorldObject
         
     }
 
-    private void HandleSlotChanged(ItemContainer changedContainer, int changedIndex)
+    private void RefreshSaleSlot(ItemContainer changedContainer, int changedIndex)
     {
         if (changedContainer != sourceContainer)
             return;
@@ -112,7 +112,11 @@ public class SaleItemSlot : MonoBehaviour, IInteractable, IWorldObject
         ref var sourceStack = ref sourceContainer.Items[sourceIndex];
 
         if (sourceStack.IsEmpty) return;
-        else sourceStack.count--; 
+        else
+        {
+            sourceStack.count--;
+            ItemContainerEvents.OutsideChanged(sourceContainer);
+        } 
         
         RefreshFromSource();
     }

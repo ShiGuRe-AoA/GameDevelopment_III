@@ -470,7 +470,7 @@ public class SlotController : MonoBehaviour
         }
 
         // 弹检测格子变化事件
-        ItemContainerEvents.SlotChanged(container, containerIndex);
+        ItemContainerEvents.ContainerChanged(container, containerIndex);
 
     }
 

@@ -179,7 +179,7 @@ public class State_CustomerBuying : State_CustomerBase
             return;
         }
 
-        Ctx.BuyItem = item;
+        Ctx.BuyItem = item; // 无法被引用
         Ctx.Price = price;
         Ctx.Count = count;
         Debug.Log(item.itemId, Customer);
@@ -205,9 +205,13 @@ public class State_CustomerBuying : State_CustomerBase
                 return;
             }
 
+            Debug.Log("Refresh Buy Item.", Customer);
             Ctx.BuyItem = item;
             Ctx.Price = price;
             Ctx.Count = count;
+
+
+
             Debug.Log(item.itemId, Customer);
         }
 

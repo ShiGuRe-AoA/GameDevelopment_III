@@ -42,7 +42,6 @@ public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IEntityInt
 
     [Header("展示位数据")]
     [SerializeField] private SaleItemSlot[] saleItemSlots;
-    private Dictionary<SaleItemSlot, ItemStack> _DisplaySlot_Stack = new();
 
     protected override void Awake()
     {
@@ -265,9 +264,14 @@ public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IEntityInt
     // 在摊位互动时打开
     public void OpenStorePanel()
     {
+        RefreshStorePanel();
+        storePanel.gameObject.SetActive(true);
+    }
+
+    public void RefreshStorePanel()
+    {
         Refresh(shelfContainer);
         Refresh(saleContainer);
-        storePanel.gameObject.SetActive(true);
     }
 
     public void CloseStorePanel()
