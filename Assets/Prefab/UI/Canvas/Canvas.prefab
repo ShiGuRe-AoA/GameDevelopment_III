@@ -729,6 +729,14 @@ PrefabInstance:
       propertyPath: canvas
       value: 
       objectReference: {fileID: 1941608551520148296}
+    - target: {fileID: 1788396432104879499, guid: bcd3d4f03e1995b48a172cfc844b2952, type: 3}
+      propertyPath: canvasOffset.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1788396432104879499, guid: bcd3d4f03e1995b48a172cfc844b2952, type: 3}
+      propertyPath: canvasOffset.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2488156328406571282, guid: bcd3d4f03e1995b48a172cfc844b2952, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -791,11 +799,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2488156328406571282, guid: bcd3d4f03e1995b48a172cfc844b2952, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -121.600006
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2488156328406571282, guid: bcd3d4f03e1995b48a172cfc844b2952, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -253.6
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2488156328406571282, guid: bcd3d4f03e1995b48a172cfc844b2952, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
