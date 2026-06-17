@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53aa8950918b0334686b9e31f4c2e0d0, type: 3}
+  m_Name: SeedFeature
+  m_EditorClassIdentifier: 
+  SeedTiles:
+  - {fileID: 11400000, guid: 55ef2dfdfa1fe6e4da785131429cf54a, type: 2}
+  - {fileID: 11400000, guid: 6e1a16d93940e4c429c54b7e45ad112a, type: 2}
+  - {fileID: 11400000, guid: 8b6ee5b491a8f5642b342c7b768b7a6f, type: 2}
+  - {fileID: 11400000, guid: 2de23a027af72d147a59bcda391c6610, type: 2}
+  - {fileID: 11400000, guid: 18f2ca94cab659c42962246e83de337e, type: 2}
+  Product: {fileID: 11400000, guid: 4b0316823911052408e4779c08bc3f5c, type: 2}
+  CropRuntimeKind: 1

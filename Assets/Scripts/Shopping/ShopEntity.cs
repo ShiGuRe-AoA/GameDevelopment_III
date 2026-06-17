@@ -3,9 +3,14 @@ using UnityEngine;
 
 /// <summary>
 /// 商店实体：玩家与之交互时打开商店面板。
-/// 挂载在商店预制体上，需配置 ShopInventorySO 与面板引用。
+/// 挂载在商店预制体上，需配置 ShopInventorySO、面板引用以及 Collider2D（用于悬停检测）。
+///
+/// 交互方式：
+///   鼠标右击  → 经过悬停检测 → IWorldObject → State_Interact → 打开/关闭面板
+///   F键       → 若同一格有实体 → State_EntityInteract → 打开/关闭面板
 /// </summary>
-public class ShopEntity : MonoBehaviour, IEntityRuntime, IEntityInteractable
+[RequireComponent(typeof(Collider2D))]
+public class ShopEntity : MonoBehaviour, IEntityRuntime, IWorldObject, IHoverTarget, IEntityInteractable
 {
     [Header("商店配置")]
     [SerializeField] private ShopInventorySO shopInventory;
@@ -21,15 +26,37 @@ public class ShopEntity : MonoBehaviour, IEntityRuntime, IEntityInteractable
     public List<GameObject> RelativeObj { get; private set; }
 
     // --------------------------------------------------------------------------------
+    // IWorldObject
+    // --------------------------------------------------------------------------------
+    public int ObjectId { get; private set; }
+    public Vector3 WorldPos => transform.position;
+
+    public void ObjectInit(int objectId, Vector3 worldPos, WorldState worldState)
+    {
+        ObjectId = objectId;
+    }
+
+    // --------------------------------------------------------------------------------
     // Unity 生命周期
     // --------------------------------------------------------------------------------
     private void Awake()
     {
-        // 直接放在场景中的情况：自行注册
-        if (EntityId == 0)
-            RuntimeRegisterUtility.RegisterAll(this);
+        // 确保 Collider2D 为 Trigger（用于悬停检测）
+        var col = GetComponent<Collider2D>();
+        if (col != null)
+            col.isTrigger = true;
 
-        //OnInteract();
+        // 注册到 RuntimeRegister 和 WorldObject 系统
+        RuntimeRegisterUtility.RegisterAll(this);
+        WorldState.Instance?.RegisterWorldObject(this);
+
+        if (EntityId == 0 && WorldState.Instance != null)
+        {
+            // 同时注册为格子实体（若放置在 Tilemap 上）
+            Vector3Int cellPos = WorldState.Instance.WorldToCell(transform.position);
+            WorldState.Instance.PlaceEntity(cellPos, this, 1, 1);
+        }
+
         if (shopInventory == null)
             Debug.LogWarning($"[ShopEntity] {gameObject.name} 未配置 ShopInventorySO", this);
         if (shopPanel == null)
@@ -39,6 +66,7 @@ public class ShopEntity : MonoBehaviour, IEntityRuntime, IEntityInteractable
     public void OnDestroy()
     {
         RuntimeRegisterUtility.UnregisterAll(this);
+        WorldState.Instance?.UnRegisterWorldObject(this);
         // 关闭面板避免残留
         if (shopPanel != null && shopPanel.TryGetComponent<ShopPanelController>(out var ctrl))
             ctrl.Close();
@@ -61,9 +89,28 @@ public class ShopEntity : MonoBehaviour, IEntityRuntime, IEntityInteractable
     }
 
     // --------------------------------------------------------------------------------
-    // IInteractable
+    // IEntityInteractable — F 键 / 右击 → 打开面板
     // --------------------------------------------------------------------------------
     public void OnEntityInteract()
+    {
+        TogglePanel();
+    }
+
+    public InteractPhase OnEntityInteractDetected()
+    {
+        return InteractPhase.OpenDoor;
+    }
+
+    // --------------------------------------------------------------------------------
+    // IHoverTarget — 悬停检测
+    // --------------------------------------------------------------------------------
+    public void OnHoverEnter() { }
+    public void OnHoverExit() { }
+
+    // --------------------------------------------------------------------------------
+    // 面板开关
+    // --------------------------------------------------------------------------------
+    private void TogglePanel()
     {
         if (shopInventory == null)
         {
@@ -82,14 +129,10 @@ public class ShopEntity : MonoBehaviour, IEntityRuntime, IEntityInteractable
             Debug.LogError($"[ShopEntity] {gameObject.name} shopPanel 上未找到 ShopPanelController", shopPanel);
             return;
         }
+
         if (!shopPanel.activeSelf)
             controller.Open(shopInventory);
         else
             controller.Close();
-    }
-
-    public InteractPhase OnEntityInteractDetected()
-    {
-        return InteractPhase.OpenDoor;
     }
 }

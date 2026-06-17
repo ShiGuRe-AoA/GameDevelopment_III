@@ -16,5 +16,7 @@ MonoBehaviour:
   ID_str: Strawbarry
   Name: "\u8349\u8393"
   StackAmount: 64
+  BasePrice: 25
+  HasRank: 0
   ItemSprite: {fileID: 1246325502, guid: 770d310c7fea9b948b0d3d5667c1203c, type: 3}
   Features: []

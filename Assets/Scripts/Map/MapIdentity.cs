@@ -8,5 +8,6 @@ public enum MapIdentity
     Passage,
     Village,
     Ocean,
-    Mountain
+    Mountain,
+    Home
 }

@@ -15,12 +15,6 @@ MonoBehaviour:
   StoreName: "\u6EE8\u6D77\u8D27\u96C6"
   Goods:
   - {fileID: 11400000, guid: 82db8a067c192d4468a266d1279141fe, type: 2}
-  - {fileID: 11400000, guid: 82db8a067c192d4468a266d1279141fe, type: 2}
-  - {fileID: 11400000, guid: 82db8a067c192d4468a266d1279141fe, type: 2}
-  - {fileID: 11400000, guid: 82db8a067c192d4468a266d1279141fe, type: 2}
-  - {fileID: 11400000, guid: 82db8a067c192d4468a266d1279141fe, type: 2}
-  - {fileID: 11400000, guid: 82db8a067c192d4468a266d1279141fe, type: 2}
-  - {fileID: 11400000, guid: 82db8a067c192d4468a266d1279141fe, type: 2}
-  - {fileID: 11400000, guid: 82db8a067c192d4468a266d1279141fe, type: 2}
-  - {fileID: 11400000, guid: 82db8a067c192d4468a266d1279141fe, type: 2}
-  - {fileID: 11400000, guid: 82db8a067c192d4468a266d1279141fe, type: 2}
+  - {fileID: 11400000, guid: c02c02fe7eadd5b4e9bfb761d0ac5ca3, type: 2}
+  - {fileID: 11400000, guid: 2fa38c727e1000e46a8edbe888f6f3fb, type: 2}
+  - {fileID: 11400000, guid: 44d17584ff06d8f49ae831ceb840319d, type: 2}

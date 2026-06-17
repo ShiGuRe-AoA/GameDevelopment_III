@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c26c87345fee584ea91ebe6c4d6eb11, type: 3}
+  m_Name: Seed_Turnip
+  m_EditorClassIdentifier: 
+  ID_num: 14002
+  ID_str: Seed_Turnip
+  Name: "\u829C\u83C1\u79CD\u5B50"
+  StackAmount: 64
+  BasePrice: 50
+  HasRank: 0
+  ItemSprite: {fileID: 261626727, guid: cc5f9e8a862333d4c86c6feb786775bb, type: 3}
+  Features:
+  - {fileID: 11400000, guid: 83bc10ecdc0a99143b43e514da6ed96c, type: 2}

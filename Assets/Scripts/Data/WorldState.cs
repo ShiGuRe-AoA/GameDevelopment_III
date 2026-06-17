@@ -776,14 +776,18 @@ public class WorldState : MonoBehaviour
 
     private void TryInteractObject(object obj)
     {
-        if(obj is IInteractable interactable)
+        if (obj is IInteractable interactable)
             interactable.OnInteract();
+        if (obj is IEntityInteractable entityInteractable)
+            entityInteractable.OnEntityInteract();
     }
 
     private InteractPhase TryDetectInteractObject(object obj)
     {
-        if(obj is IInteractable interactable)
+        if (obj is IInteractable interactable)
             return interactable.OnInteractDetected();
+        if (obj is IEntityInteractable entityInteractable)
+            return entityInteractable.OnEntityInteractDetected();
         return InteractPhase.None;
     }
 

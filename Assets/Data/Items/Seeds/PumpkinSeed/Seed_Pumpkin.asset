@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c26c87345fee584ea91ebe6c4d6eb11, type: 3}
+  m_Name: Seed_Pumpkin
+  m_EditorClassIdentifier: 
+  ID_num: 14004
+  ID_str: Seed_Pumpkin
+  Name: "\u5357\u74DC\u79CD\u5B50"
+  StackAmount: 64
+  BasePrice: 150
+  HasRank: 0
+  ItemSprite: {fileID: 1392102431, guid: cc5f9e8a862333d4c86c6feb786775bb, type: 3}
+  Features:
+  - {fileID: 11400000, guid: 7ee7c2219c8950e41846a624dd0bee00, type: 2}
