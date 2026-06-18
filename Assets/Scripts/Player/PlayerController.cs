@@ -251,22 +251,71 @@ public class PlayerController : MonoBehaviour
         playerMoveDirExp = Vector2.zero;
     }
 
+    //public bool SimpleInteract()
+    //{
+    //    playerStateMachine.PushState(new State_Interact(playerStateMachine, machineContext));
+    //    return true;
+    //}
+
     public bool SimpleInteract()
     {
-        playerStateMachine.PushState(new State_Interact(playerStateMachine, machineContext));
-        return true;
+        if (!canInteract)
+            return false;
+
+        // 打开 Container / StorePanel 时，禁止普通世界交互
+        if (PlayerInteractionMode.IsContainerPanelOpen)
+            return false;
+
+        if (playerStateMachine == null || machineContext == null)
+            return false;
+
+        return playerStateMachine.PushState(
+            new State_Interact(playerStateMachine, machineContext)
+        );
     }
+
+    //public bool PanelInteract()
+    //{
+    //    playerStateMachine.PushState(new State_EntityInteract(playerStateMachine, machineContext));
+    //    return true;
+    //}
 
     public bool PanelInteract()
     {
-        playerStateMachine.PushState(new State_EntityInteract(playerStateMachine, machineContext));
-        return true;
+        if (!canInteract)
+            return false;
+
+        if (playerStateMachine == null || machineContext == null)
+            return false;
+
+        return playerStateMachine.PushState(
+            new State_EntityInteract(playerStateMachine, machineContext)
+        );
     }
+
+    //public bool ToolInteract(List<ToolType> tools)
+    //{
+    //    playerStateMachine.PushState(new State_UseTool(playerStateMachine, machineContext, tools));
+    //    return true;
+    //}
 
     public bool ToolInteract(List<ToolType> tools)
     {
-        playerStateMachine.PushState(new State_UseTool(playerStateMachine, machineContext, tools));
-        return true;
+        if (!canInteract)
+            return false;
+
+        if (PlayerInteractionMode.IsContainerPanelOpen)
+            return false;
+
+        if (playerStateMachine == null || machineContext == null)
+            return false;
+
+        if (tools == null || tools.Count == 0)
+            return false;
+
+        return playerStateMachine.PushState(
+            new State_UseTool(playerStateMachine, machineContext, tools)
+        );
     }
 
     #region 钓鱼

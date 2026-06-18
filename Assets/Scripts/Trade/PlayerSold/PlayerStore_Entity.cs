@@ -75,20 +75,6 @@ public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IEntityInt
         Vector3Int pivot = WorldState.Instance.WorldToCell(transform.position);
         WorldState.Instance.PlaceEntity(pivot, this as IEntityRuntime, 8, 2);
         RuntimeRegisterUtility.RegisterAll(this);
-
-
-        // ≤‚ ‘
-        SlotController.Instance.TryAddItem(10100, 36, containers[0]);
-        Debug.Log($"DebugItemAddComplete");
-        SlotController.Instance.TryAddItem(10100, 12, containers[0]);
-        SlotController.Instance.TryAddItem(10100, 4, containers[0]);
-        SlotController.Instance.TryAddItem(10101, 36, containers[0]);
-        SlotController.Instance.TryAddItem(10102, 5, containers[0]);
-        SlotController.Instance.TryAddItem(14001, 32, containers[0]);
-        SlotController.Instance.TryAddItem("Hoe_1", 1, containers[1]);
-        SlotController.Instance.TryAddItem("Axe_1", 1, containers[1]);
-        SlotController.Instance.TryAddItem("WateringCan_1", 1, containers[1]);
-        SlotController.Instance.TryAddItem("Bell_1", 1, containers[1]);
     }
 
     public void OnEntityInteract()
@@ -332,6 +318,8 @@ public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IEntityInt
     {
         RefreshStorePanel();
         storePanel.gameObject.SetActive(true);
+
+        PlayerInteractionMode.SetContainerPanelOpen(true);
     }
 
     public void RefreshStorePanel()
@@ -343,5 +331,7 @@ public class PlayerStore_Entity : ItemContainer_Base, IEntityRuntime, IEntityInt
     public void CloseStorePanel()
     {
         storePanel.gameObject.SetActive(false);
+
+        PlayerInteractionMode.SetContainerPanelOpen(false);
     }
 }

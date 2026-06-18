@@ -56,7 +56,6 @@ public class BackpackContainer : ItemContainer_Base
         SlotController.Instance.TryAddItem(10100, 12, container);
         SlotController.Instance.TryAddItem(10100, 4, container);
         SlotController.Instance.TryAddItem(10101, 36, container);
-        SlotController.Instance.TryAddItem(10102, 5, container);
         SlotController.Instance.TryAddItem(14001, 32, container);
         SlotController.Instance.TryAddItem("Hoe_1", 1, container);
         SlotController.Instance.TryAddItem("Axe_1", 1, container);
@@ -77,11 +76,15 @@ public class BackpackContainer : ItemContainer_Base
     {
         BackpackPanel.gameObject.SetActive(true);
         IsOpen = true;
+
+        PlayerInteractionMode.SetContainerPanelOpen(true);
     }
 
     public void CloseBackpack()
     {
         BackpackPanel.gameObject.SetActive(false);
         IsOpen = false;
+
+        PlayerInteractionMode.SetContainerPanelOpen(false);
     }
 }
