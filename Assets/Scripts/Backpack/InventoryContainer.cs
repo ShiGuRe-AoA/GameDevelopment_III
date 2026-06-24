@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 public class InventoryContainer : MonoBehaviour
@@ -21,7 +22,7 @@ public class InventoryContainer : MonoBehaviour
 
     private Vector3 mousePos;
 
-    public ItemStack CurrentStack => backpackContainer.Items[currentSlot];
+    public ItemStack CurrentStack => backpackContainer?.Items != null ? backpackContainer.Items[currentSlot] : ItemStack.Empty;
     public ItemBase_SO CurrentItem => ItemRegistry.Get(CurrentStack.itemId);
 
     // Feature interaction contexts
@@ -50,7 +51,7 @@ public class InventoryContainer : MonoBehaviour
 
     private void Update()
     {
-        mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        mousePos = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
         holdTickContext.MousePos = mousePos;
         holdInteractContext.MousePos = mousePos;
 

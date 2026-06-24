@@ -10,7 +10,7 @@ using UnityEngine;
 ///   F键       → 若同一格有实体 → State_EntityInteract → 打开/关闭面板
 /// </summary>
 [RequireComponent(typeof(Collider2D))]
-public class ShopEntity : MonoBehaviour, IEntityRuntime, IWorldObject, IHoverTarget, IEntityInteractable
+public class ShopEntity : MonoBehaviour, IEntityRuntime, IWorldObject, IHoverTarget, IInteractable, IEntityInteractable
 {
     [Header("商店配置")]
     [SerializeField] private ShopInventorySO shopInventory;
@@ -46,16 +46,11 @@ public class ShopEntity : MonoBehaviour, IEntityRuntime, IWorldObject, IHoverTar
         if (col != null)
             col.isTrigger = true;
 
-        // 注册到 RuntimeRegister 和 WorldObject 系统
+        // 注册所有接口（IEntityRuntime / IWorldObject / IHoverTarget / IInteractable / IEntityInteractable）
         RuntimeRegisterUtility.RegisterAll(this);
         WorldState.Instance?.RegisterWorldObject(this);
 
-        if (EntityId == 0 && WorldState.Instance != null)
-        {
-            // 同时注册为格子实体（若放置在 Tilemap 上）
-            Vector3Int cellPos = WorldState.Instance.WorldToCell(transform.position);
-            WorldState.Instance.PlaceEntity(cellPos, this, 1, 1);
-        }
+        InputManager.OnMoveInput += HandleMove;
 
         if (shopInventory == null)
             Debug.LogWarning($"[ShopEntity] {gameObject.name} 未配置 ShopInventorySO", this);
@@ -63,13 +58,28 @@ public class ShopEntity : MonoBehaviour, IEntityRuntime, IWorldObject, IHoverTar
             Debug.LogWarning($"[ShopEntity] {gameObject.name} 未配置 shopPanel", this);
     }
 
+    private void Start()
+    {
+        // 在 Start 中注册格子实体（此时 WorldState 已初始化完毕，与 PlayerStore_Entity 一致）
+        Vector3Int pivot = WorldState.Instance.WorldToCell(transform.position);
+        WorldState.Instance.PlaceEntity(pivot, this as IEntityRuntime, 3, 2);
+    }
+
     public void OnDestroy()
     {
+        InputManager.OnMoveInput -= HandleMove;
         RuntimeRegisterUtility.UnregisterAll(this);
         WorldState.Instance?.UnRegisterWorldObject(this);
         // 关闭面板避免残留
         if (shopPanel != null && shopPanel.TryGetComponent<ShopPanelController>(out var ctrl))
             ctrl.Close();
+    }
+
+    /// <summary>玩家移动时关闭面板（与 PlayerStore_Entity 行为一致）</summary>
+    private void HandleMove(Vector2 _)
+    {
+        if (shopPanel != null && shopPanel.activeSelf)
+            ClosePanel();
     }
 
     // --------------------------------------------------------------------------------
@@ -83,13 +93,25 @@ public class ShopEntity : MonoBehaviour, IEntityRuntime, IWorldObject, IHoverTar
 
     public void OnAwake()
     {
-        // WorldState 注册实体时回调（若已通过 Awake 注册则跳过）
-        if (EntityId == 0) return;
+        // WorldState 注册实体时回调，确保始终注册
         RuntimeRegisterUtility.RegisterAll(this);
     }
 
     // --------------------------------------------------------------------------------
-    // IEntityInteractable — F 键 / 右击 → 打开面板
+    // IInteractable — 右击悬停交互
+    // --------------------------------------------------------------------------------
+    public void OnInteract()
+    {
+        TogglePanel();
+    }
+
+    public InteractPhase OnInteractDetected()
+    {
+        return InteractPhase.OpenDoor;
+    }
+
+    // --------------------------------------------------------------------------------
+    // IEntityInteractable — F 键交互
     // --------------------------------------------------------------------------------
     public void OnEntityInteract()
     {
@@ -123,6 +145,14 @@ public class ShopEntity : MonoBehaviour, IEntityRuntime, IWorldObject, IHoverTar
             return;
         }
 
+        if (!shopPanel.activeSelf)
+            OpenPanel();
+        else
+            ClosePanel();
+    }
+
+    private void OpenPanel()
+    {
         ShopPanelController controller = shopPanel.GetComponent<ShopPanelController>();
         if (controller == null)
         {
@@ -130,9 +160,16 @@ public class ShopEntity : MonoBehaviour, IEntityRuntime, IWorldObject, IHoverTar
             return;
         }
 
-        if (!shopPanel.activeSelf)
-            controller.Open(shopInventory);
-        else
+        controller.Open(shopInventory);
+        PlayerInteractionMode.SetContainerPanelOpen(true);
+    }
+
+    private void ClosePanel()
+    {
+        ShopPanelController controller = shopPanel.GetComponent<ShopPanelController>();
+        if (controller != null)
             controller.Close();
+
+        PlayerInteractionMode.SetContainerPanelOpen(false);
     }
 }

@@ -23,6 +23,7 @@ public class InputManager : MonoBehaviour
     public InputActionMain inputActions;
 
     private const int HotbarSize = 10;
+    private float _lastScrollAbs;
 
     // ================================================================================
     // 事件（由外部消费者订阅，取代直接方法调用）
@@ -78,7 +79,10 @@ public class InputManager : MonoBehaviour
 
     private void Update()
     {
-        Context.MouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        // 新版 Input System 低级 API，兼容编辑器 + Build
+        Context.MouseWorldPos = Camera.main.ScreenToWorldPoint(
+            Mouse.current?.position.ReadValue() ?? Vector2.zero
+        );
         DetectHoverChanged();
 
         // --- 快捷栏数字键 ---
@@ -86,12 +90,15 @@ public class InputManager : MonoBehaviour
         if (idx != -1)
             OnHotbarSlotSelected?.Invoke(idx);
 
-        // --- 滚轮切换 ---
-        float scroll = Input.mouseScrollDelta.y;
-        if (scroll > 0f)
-            OnHotbarScroll?.Invoke(-1);
-        else if (scroll < 0f)
-            OnHotbarScroll?.Invoke(1);
+        // --- 滚轮切换（仅在新越过阈值时触发一次，静止回零不会误触发） ---
+        float scroll = Mouse.current?.scroll.ReadValue().y ?? 0f;
+        float absNow = Mathf.Abs(scroll);
+
+        if (absNow > 0.5f && absNow > _lastScrollAbs)
+        {
+            OnHotbarScroll?.Invoke(scroll > 0f ? -1 : 1);
+        }
+        _lastScrollAbs = absNow;
     }
 
     // ================================================================================
@@ -101,12 +108,14 @@ public class InputManager : MonoBehaviour
     {
         Context.MoveInput = Vector2.zero;
         OnMoveInput?.Invoke(Vector2.zero);
+        
     }
 
     private void OnPlayerMovePerformed(InputAction.CallbackContext obj)
     {
         Context.MoveInput = obj.ReadValue<Vector2>();
         OnMoveInput?.Invoke(Context.MoveInput);
+        //DebugHUD.Instance.Append($"MoveInputDetected: {obj.ReadValue<Vector2>()}");
     }
 
     // ================================================================================
@@ -176,15 +185,19 @@ public class InputManager : MonoBehaviour
     // ================================================================================
     private static int GetHotbarNumberKeyDown(int hotbarSize)
     {
-        int max = Mathf.Min(9, hotbarSize);
-        for (int n = 1; n <= max; n++)
-        {
-            if (Input.GetKeyDown((KeyCode)((int)KeyCode.Alpha0 + n)))
-                return n - 1;
-        }
+        Keyboard kb = Keyboard.current;
+        if (kb == null) return -1;
 
-        if (hotbarSize >= 10 && Input.GetKeyDown(KeyCode.Alpha0))
-            return 9;
+        // 数字键 1~0 映射到索引 0~9
+        Key[] digitKeys = { Key.Digit1, Key.Digit2, Key.Digit3, Key.Digit4, Key.Digit5,
+                            Key.Digit6, Key.Digit7, Key.Digit8, Key.Digit9, Key.Digit0 };
+
+        int max = Mathf.Min(hotbarSize - 1, digitKeys.Length - 1);
+        for (int i = 0; i <= max; i++)
+        {
+            if (kb[digitKeys[i]].wasPressedThisFrame)
+                return i;
+        }
 
         return -1;
     }

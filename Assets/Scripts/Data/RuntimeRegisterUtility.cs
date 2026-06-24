@@ -9,7 +9,7 @@ public static class RuntimeRegisterUtility
     {
         if (obj == null) return;
 
-        Debug.Log($"Register Entity: {obj.ToString()}");
+        //Debug.Log($"Register Entity: {obj.ToString()}");
         TimeManager.Instance?.Register(obj);
         //WorldState.Instance?.RegisterEntity(obj);
 

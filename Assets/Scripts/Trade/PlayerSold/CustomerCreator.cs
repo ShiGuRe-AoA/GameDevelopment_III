@@ -98,7 +98,6 @@ public class CustomerCreator : MonoBehaviour, IMinuteUpdatable
 
     public void OnMinuteUpdate()
     {
-        Debug.Log("AAAAAAAAAA");
         if (!isTradeDay) return;
 
         //createTime++;

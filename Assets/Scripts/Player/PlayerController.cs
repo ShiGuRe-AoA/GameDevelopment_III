@@ -119,9 +119,12 @@ public class PlayerController : MonoBehaviour
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
 
         InitializeFacingDirection();
+    }
+    private void Start()
+    {
+        
         InitializeStateMachine();
     }
-
     private void OnEnable()
     {
         InputManager.OnMoveInput += OnInputMove;

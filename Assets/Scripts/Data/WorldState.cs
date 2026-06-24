@@ -268,6 +268,7 @@ public class WorldState : MonoBehaviour
     private bool TryGetIndex(Vector3Int cellPos, out int index)
     {
         index = -1;
+        if (BasicMapData == null) return false;
         if (cellPos.x < 0 || cellPos.x >= MapSize.x || cellPos.y < 0 || cellPos.y >= MapSize.y)
         {
             return false;
@@ -850,16 +851,16 @@ public class WorldState : MonoBehaviour
     {
         if (obj is IInteractable interactable)
             interactable.OnInteract();
-        //if (obj is IEntityInteractable entityInteractable)
-        //    entityInteractable.OnEntityInteract();
+        if (obj is IEntityInteractable entityInteractable)
+            entityInteractable.OnEntityInteract();
     }
 
     private InteractPhase TryDetectInteractObject(object obj)
     {
         if (obj is IInteractable interactable)
             return interactable.OnInteractDetected();
-        //if (obj is IEntityInteractable entityInteractable)
-        //    return entityInteractable.OnEntityInteractDetected();
+        if (obj is IEntityInteractable entityInteractable)
+            return entityInteractable.OnEntityInteractDetected();
         return InteractPhase.None;
     }
 

@@ -245,6 +245,8 @@ public class State_Interact : State_PlayerBase
 public class State_EntityInteract : State_PlayerBase
 {
     private InteractPhase phase;
+    private IWorldObject targetWorldObj;
+    private bool useWorldObjTarget;
 
     public State_EntityInteract(StateMachine<PlayerContext> machine, PlayerContext ctx)
         : base(machine, ctx) { }
@@ -254,6 +256,22 @@ public class State_EntityInteract : State_PlayerBase
         base.Enter();
         SetControl(canMove: false, canInteract: false);
 
+        // 优先检查悬停的 WorldObject（如 ShopEntity）
+        targetWorldObj = Ctx.PlayerController.CurrentHoverWorldObj;
+        useWorldObjTarget = false;
+
+        if (targetWorldObj != null)
+        {
+            phase = WorldState.Instance.DetectInteract(targetWorldObj, Ctx);
+            if (phase != InteractPhase.None)
+            {
+                useWorldObjTarget = true;
+                PlayAction(GetInteractAction(phase, PlayerDirection));
+                return;
+            }
+        }
+
+        // 回退到格子实体检测
         phase = WorldState.Instance.EntityDetectInteract(InteractTilePosition);
         if (phase == InteractPhase.None) { Machine.PopState(); return; }
 
@@ -268,7 +286,11 @@ public class State_EntityInteract : State_PlayerBase
 
         if (actionRuntime.CanApplyEffect())
         {
-            WorldState.Instance.EntityInteractAt(InteractTilePosition);
+            if (useWorldObjTarget)
+                WorldState.Instance.Interact(targetWorldObj, Ctx);
+            else
+                WorldState.Instance.EntityInteractAt(InteractTilePosition);
+
             actionRuntime.MarkEffectApplied();
         }
 

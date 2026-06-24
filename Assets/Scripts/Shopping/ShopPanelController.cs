@@ -15,7 +15,7 @@ public class ShopPanelController : MonoBehaviour
     [SerializeField] private ShopGoodsButton goodsButtonPrefab; // 商品按钮预制体
 
     private readonly List<ShopGoodsButton> activeButtons = new();
-    private ShopInventorySO currentInventory;
+    [SerializeField] private ShopInventorySO currentInventory;
 
     // ================================================================================
     // 面板开关
