@@ -257,7 +257,34 @@ public class WorldState : MonoBehaviour
 
     public Vector3 CellToWorld(Vector3Int cellPos)
     {
-        return MainTile.GetCellCenterWorld(cellPos);
+        if (MainTile == null)
+        {
+            Debug.LogError("[WorldState] CellToWorld failed: MainTile is null");
+            return Vector3.zero;
+        }
+
+        Vector3 result = MainTile.GetCellCenterWorld(cellPos);
+
+        // 浮点精度：GetCellCenterWorld 可能返回极小数而非精确零（如 1E-07）
+        if (result.sqrMagnitude < 0.001f && cellPos != Vector3Int.zero)
+        {
+            Debug.LogError(
+                $"[WorldState] CellToWorld({cellPos}) returned near-zero ({result:F6})!\n" +
+                $"  MainTile.name      = {MainTile.name}\n" +
+                $"  MainTile.enabled   = {MainTile.enabled}\n" +
+                $"  MainTile.cellSize  = {MainTile.cellSize}\n" +
+                $"  Grid 存在          = {MainTile.layoutGrid != null}\n" +
+                $"  Grid.cellSize      = {(MainTile.layoutGrid != null ? MainTile.layoutGrid.cellSize : default)}\n" +
+                $"  transform.position = {MainTile.transform.position}",
+                MainTile.gameObject
+            );
+
+            // 回退：手动计算世界坐标（绕过有问题的 Grid 布局）
+            result = MainTile.transform.position + Vector3.Scale(MainTile.cellSize, (Vector3)cellPos)
+                     + MainTile.cellSize * 0.5f;
+        }
+
+        return result;
     }
 
     private int Index(int x, int y)
